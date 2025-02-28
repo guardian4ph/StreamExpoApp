@@ -40,7 +40,15 @@
           "microphonePermission": "$(PRODUCT_NAME) requires microphone access in order to capture and transmit audio"
         }
       ],
-      "expo-build-properties"
+
+      "expo-build-properties",
+      {
+        "android": {
+          "extraMavenRepos": [
+            "$rootDir/../../../node_modules/@notifee/react-native/android/libs"
+          ]
+        }
+      }
     ],
     "experiments": {
       "typedRoutes": true
