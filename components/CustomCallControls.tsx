@@ -64,7 +64,7 @@ const CustomCallControls = (props: CallControlProps) => {
       <ToggleCameraFaceButton onPressHandler={() => call?.camera.flip()} />
       <HangUpCallButton onHangupCallHandler={props.onHangupCallHandler} />
       <ReactionsButton supportedReactions={reactions} />
-      <Button onPress={onLike} title="Like!" color={Colors.secondary} />
+      {/* <Button onPress={onLike} title="Like!" color={Colors.secondary} /> */}
     </View>
   );
 };
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
   customCallControlsContainer: {
     position: "absolute",
     right: 0,
-    top: 100,
+    top: 120,
     gap: 10,
     marginHorizontal: 10,
     paddingVertical: 10,

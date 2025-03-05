@@ -1,4 +1,10 @@
-import { View, StyleSheet, Share, Dimensions } from "react-native";
+import {
+  View,
+  StyleSheet,
+  Share,
+  Dimensions,
+  TouchableOpacity,
+} from "react-native";
 import React, { useState, useEffect } from "react";
 import {
   Call,
@@ -13,8 +19,8 @@ import CustomCallControls from "../../../components/CustomCallControls";
 import CustomTopView from "../../../components/CustomTopView";
 import { reactions } from "../../../components/CustomCallControls";
 import ChatView from "@/components/ChatView";
-import TestSvg from "@/components/TestSVG";
 import CustomBottomSheet from "@/components/CustomBottomSheet";
+import { Ionicons } from "@expo/vector-icons";
 
 const WIDTH = Dimensions.get("window").width;
 const HEIGHT = Dimensions.get("window").height;
@@ -27,6 +33,16 @@ const Page = () => {
 
   const router = useRouter();
   const navigation = useNavigation();
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity onPress={shareMeeting}>
+          <Ionicons name="share-outline" size={24} color={"#fff"} />
+        </TouchableOpacity>
+      ),
+    });
+  }, []);
 
   useEffect(() => {
     if (!client || call) return;
@@ -60,9 +76,9 @@ const Page = () => {
       <StreamCall call={call}>
         <View style={styles.container}>
           <CallContent
-            // CallControls={CustomCallControls}
+            CallControls={CustomCallControls}
             onHangupCallHandler={goToHomeScreen}
-            // layout="grid"
+            layout="grid"
             CallParticipantsList={CustomTopView}
           />
 
