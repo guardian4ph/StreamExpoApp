@@ -2,12 +2,12 @@ export const rooms = [
   {
     id: 10001,
     name: "Public",
-    img: require("./1.jpeg"),
+    img: require("./1.png"),
   },
   {
     id: 10002,
     name: "SugboTek",
-    img: require("./2.jpeg"),
+    img: require("./2.jpg"),
   },
   {
     id: 10003,
@@ -17,11 +17,11 @@ export const rooms = [
   {
     id: 10004,
     name: "Dispatchers",
-    img: require("./4.jpeg"),
+    img: require("./4.jpg"),
   },
   {
     id: 10005,
     name: "Admin",
-    img: require("./5.jpeg"),
+    img: require("./5.jpg"),
   },
 ];

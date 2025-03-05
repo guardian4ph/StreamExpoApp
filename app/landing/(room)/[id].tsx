@@ -11,10 +11,11 @@ import {
   CallContent,
   StreamCall,
   useStreamVideoClient,
+  StreamVideoEvent,
 } from "@stream-io/video-react-native-sdk";
 import Spinner from "react-native-loading-spinner-overlay";
 import { useLocalSearchParams, useRouter, useNavigation } from "expo-router";
-
+import Toast from "react-native-toast-message";
 import CustomCallControls from "../../../components/CustomCallControls";
 import CustomTopView from "../../../components/CustomTopView";
 import { reactions } from "../../../components/CustomCallControls";
@@ -42,6 +43,37 @@ const Page = () => {
         </TouchableOpacity>
       ),
     });
+    // Listen to call events
+    const unsubscribe = client!.on("all", (event: StreamVideoEvent) => {
+      console.log(event);
+
+      if (event.type === "call.reaction_new") {
+        console.log(`New reaction: ${event.reaction}`);
+      }
+
+      if (event.type === "call.session_participant_joined") {
+        console.log(`New user joined the call: ${event.participant}`);
+        const user = event.participant.user.name;
+        Toast.show({
+          text1: "User joined",
+          text2: `Say hello to ${user} 👋`,
+        });
+      }
+
+      if (event.type === "call.session_participant_left") {
+        console.log(`Someone left the call: ${event.participant}`);
+        const user = event.participant.user.name;
+        Toast.show({
+          text1: "User left",
+          text2: `Say goodbye to ${user} 👋`,
+        });
+      }
+    });
+
+    // Stop the listener when the component unmounts
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
@@ -65,7 +97,7 @@ const Page = () => {
   // Share the meeting link
   const shareMeeting = async () => {
     Share.share({
-      message: `Join my meeting: myapp://(inside)/(room)/${id}`,
+      message: `Join my meeting: myapp://landing/(room)/${id}`,
     });
   };
   if (!call) return null;
