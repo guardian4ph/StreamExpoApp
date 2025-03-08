@@ -5,7 +5,7 @@ import {
   Dimensions,
   TouchableOpacity,
 } from "react-native";
-import React, { useState, useEffect } from "react";
+import React, {useState, useEffect} from "react";
 import {
   Call,
   CallContent,
@@ -14,23 +14,23 @@ import {
   StreamVideoEvent,
 } from "@stream-io/video-react-native-sdk";
 import Spinner from "react-native-loading-spinner-overlay";
-import { useLocalSearchParams, useRouter, useNavigation } from "expo-router";
+import {useLocalSearchParams, useRouter, useNavigation} from "expo-router";
 import Toast from "react-native-toast-message";
 import CustomCallControls from "../../../components/CustomCallControls";
 import CustomTopView from "../../../components/CustomTopView";
-import { reactions } from "../../../components/CustomCallControls";
+import {reactions} from "../../../components/CustomCallControls";
 import ChatView from "@/components/ChatView";
 import CustomBottomSheet from "@/components/CustomBottomSheet";
-import { Ionicons } from "@expo/vector-icons";
+import {Ionicons} from "@expo/vector-icons";
 
-const WIDTH = Dimensions.get("window").width;
-const HEIGHT = Dimensions.get("window").height;
+// const WIDTH = Dimensions.get("window").width;
+// const HEIGHT = Dimensions.get("window").height;
 
 const Page = () => {
   const [call, setCall] = useState<Call | null>(null);
 
   const client = useStreamVideoClient();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const {id} = useLocalSearchParams<{id: string}>();
 
   const router = useRouter();
   const navigation = useNavigation();
@@ -82,7 +82,7 @@ const Page = () => {
     const joinCall = async () => {
       console.log("Joining Call with id", id);
       const call = client.call("default", id);
-      await call.join({ create: true });
+      await call.join({create: true});
       setCall(call);
     };
 
@@ -103,7 +103,7 @@ const Page = () => {
   if (!call) return null;
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{flex: 1}}>
       <Spinner visible={!call} />
       <StreamCall call={call}>
         <View style={styles.container}>
@@ -114,13 +114,12 @@ const Page = () => {
             CallParticipantsList={CustomTopView}
           />
 
-          {WIDTH > HEIGHT ? (
-            <View style={styles.videoContainer}>
-              <ChatView channelId={id} />
-            </View>
-          ) : (
+          <View style={styles.videoContainer}>
+            <ChatView channelId={id} />
+          </View>
+          {/* ) : (
             <CustomBottomSheet channelId={id} />
-          )}
+          )} */}
         </View>
       </StreamCall>
     </View>
@@ -135,7 +134,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    flexDirection: WIDTH > HEIGHT ? "row" : "column",
+    flexDirection: "column",
   },
   chatContainer: {
     flex: 1,

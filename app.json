@@ -23,7 +23,6 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.client",
       "permissions": [
         "android.permission.BLUETOOTH",
         "android.permission.BLUETOOTH_CONNECT",
@@ -46,7 +45,6 @@
       "expo-router",
       "expo-secure-store",
       "@stream-io/video-react-native-sdk",
-      "expo-build-properties",
       [
         "@config-plugins/react-native-webrtc",
         {
@@ -54,7 +52,17 @@
           "microphonePermission": "$(PRODUCT_NAME) requires microphone access in order to capture and transmit audio"
         }
       ],
-      "expo-build-properties"
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraMavenRepos": [
+              "../../node_modules/@notifee/react-native/android/libs"
+            ],
+            "minSdkVersion": 24
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
@@ -64,7 +72,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "9c2e1c56-87bc-4b7d-b2b2-c18a48137f64"
+        "projectId": "728aec36-65b8-4928-901c-8c528e21d3a1"
       }
     }
   }
