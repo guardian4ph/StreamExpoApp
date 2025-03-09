@@ -15,7 +15,7 @@ export const rooms = [
     img: require("./3.jpeg"),
   },
   {
-    id: 10004,
+    id: "meeting-1741431459465-7p5ap9",
     name: "Dispatchers",
     img: require("./4.jpg"),
   },

@@ -9,7 +9,7 @@ import {
   StreamReactionType,
 } from "@stream-io/video-react-native-sdk";
 import React from "react";
-import { View, StyleSheet, Button } from "react-native";
+import {View, StyleSheet, Button} from "react-native";
 import Colors from "../constants/Colors";
 
 export const reactions: StreamReactionType[] = [
