@@ -12,13 +12,13 @@ import {
   StreamCall,
   useStreamVideoClient,
   StreamVideoEvent,
+  useCallStateHooks,
 } from "@stream-io/video-react-native-sdk";
 import Spinner from "react-native-loading-spinner-overlay";
 import {useLocalSearchParams, useRouter, useNavigation} from "expo-router";
 import Toast from "react-native-toast-message";
 import CustomCallControls from "../../../components/CustomCallControls";
 import CustomTopView from "../../../components/CustomTopView";
-import {reactions} from "../../../components/CustomCallControls";
 import ChatView from "@/components/ChatView";
 import CustomBottomSheet from "@/components/CustomBottomSheet";
 import {Ionicons} from "@expo/vector-icons";
@@ -82,7 +82,7 @@ const Page = () => {
     const joinCall = async () => {
       console.log("Joining Call with id", id);
       const call = client.call("default", id);
-      await call.join({create: true});
+      await call.join({create: false});
       setCall(call);
     };
 
@@ -111,9 +111,7 @@ const Page = () => {
             CallControls={CustomCallControls}
             onHangupCallHandler={goToHomeScreen}
             layout="grid"
-            CallParticipantsList={CustomTopView}
           />
-
           <View style={styles.videoContainer}>
             <ChatView channelId={id} />
           </View>

@@ -1,36 +1,170 @@
 import React from "react";
-import { Stack } from "expo-router";
-import { TouchableOpacity } from "react-native";
-import { useAuth } from "../../context/AuthContext";
-import { Ionicons } from "@expo/vector-icons";
+import {Tabs} from "expo-router";
+import {Image, TouchableOpacity, View, StyleSheet, Text} from "react-native";
+import Colors from "@/constants/Colors";
+import {Ionicons} from "@expo/vector-icons";
+import {BottomTabBarProps} from "@react-navigation/bottom-tabs";
 
-const Layout = () => {
-  const { onLogout } = useAuth();
-
+function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
   return (
-    <Stack
+    <View style={styles.tabBarContainer}>
+      {state.routes.map((route, index) => {
+        const {options} = descriptors[route.key];
+        const isFocused = state.index === index;
+
+        let labelText: string;
+        if (typeof options.tabBarLabel === "string") {
+          labelText = options.tabBarLabel;
+        } else if (typeof options.title === "string") {
+          labelText = options.title;
+        } else {
+          labelText = route.name;
+        }
+
+        // for report button
+        if (index === 2) {
+          return (
+            <TouchableOpacity
+              key={route.key}
+              style={styles.centerButton}
+              onPress={() => navigation.navigate(route.name)}>
+              <Image
+                source={require("@/assets/images/Button.png")}
+                style={styles.centerButtonImage}
+              />
+            </TouchableOpacity>
+          );
+        }
+
+        // other tab buttons
+        return (
+          <TouchableOpacity
+            key={route.key}
+            onPress={() => navigation.navigate(route.name)}
+            style={styles.tabButton}>
+            <View
+              style={[
+                styles.tabButtonContent,
+                isFocused && styles.tabButtonFocused,
+              ]}>
+              {options.tabBarIcon &&
+                options.tabBarIcon({
+                  color: "white",
+                  size: 24,
+                  focused: isFocused,
+                })}
+              <Text style={styles.tabLabel}>{labelText}</Text>
+            </View>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+export default function MainLayout() {
+  return (
+    <Tabs
       screenOptions={{
-        headerStyle: {
-          backgroundColor: "#0333C1",
-        },
-        headerTintColor: "#fff",
+        headerShown: false,
       }}
-    >
-      <Stack.Screen
+      tabBar={(props) => <CustomTabBar {...props} />}>
+      <Tabs.Screen
         name="index"
         options={{
-          title: "Meeting Rooms",
-          headerRight: () => (
-            <TouchableOpacity onPress={onLogout}>
-              <Ionicons name="log-out-outline" size={24} color="white" />
-            </TouchableOpacity>
+          title: "Alerts",
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: "#1B4965",
+            height: 110,
+          },
+          headerTitle: "Emergency Alerts",
+          headerTitleStyle: {
+            color: "white",
+            fontSize: 20,
+            fontWeight: "bold",
+            marginLeft: 10,
+          },
+          headerTitleAlign: "left",
+          tabBarIcon: ({color}) => (
+            <Ionicons name="alert-circle" size={30} color={color} />
           ),
         }}
       />
-
-      <Stack.Screen name="(room)/[id]" options={{ title: "Room" }} />
-    </Stack>
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({color}) => (
+            <Ionicons name="person" size={30} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen name="(room)" options={{}} />
+      <Tabs.Screen
+        name="id"
+        options={{
+          title: "ID",
+          tabBarIcon: ({color}) => (
+            <Ionicons name="card" size={30} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: "Settings",
+          tabBarIcon: ({color}) => (
+            <Ionicons name="settings" size={30} color={color} />
+          ),
+        }}
+      />
+    </Tabs>
   );
-};
+}
 
-export default Layout;
+const styles = StyleSheet.create({
+  tabBarContainer: {
+    flexDirection: "row",
+    height: 80,
+    backgroundColor: "#1B4965",
+    justifyContent: "space-around",
+    alignItems: "center",
+    borderTopWidth: 0,
+  },
+  tabButton: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    height: "100%",
+    paddingVertical: 15,
+  },
+  tabButtonContent: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  tabLabel: {
+    fontSize: 12,
+    marginTop: 4,
+    textAlign: "center",
+    color: "white",
+  },
+  centerButton: {
+    justifyContent: "center",
+    alignItems: "center",
+    height: 80,
+    width: 80,
+    bottom: 20,
+    position: "relative",
+  },
+
+  centerButtonImage: {
+    width: 80,
+    height: 80,
+  },
+  tabButtonFocused: {
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    padding: 15,
+    borderRadius: 10,
+  },
+});

@@ -1,6 +1,6 @@
 export const rooms = [
   {
-    id: 10001,
+    id: "newCallByJolo",
     name: "Public",
     img: require("./1.png"),
   },
