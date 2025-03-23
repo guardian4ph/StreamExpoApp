@@ -1,16 +1,31 @@
 import {Image, SafeAreaView, StyleSheet, Text, View} from "react-native";
 import React from "react";
 import {EmergencyContacts} from "@/assets/data/emergencyContacts";
-import Contacts from "@/types/Contacts";
 import {TouchableOpacity} from "react-native";
+import {useRouter} from "expo-router";
 
-export default function index() {
+export default function SelectEmergency() {
+  const router = useRouter();
+
+  const handleClickEmergency = (contact: {name: string; roomId: string}) => {
+    router.push({
+      pathname: "/landing/(room)/loadingCall",
+      params: {
+        emergencyType: contact.name,
+        roomId: contact.roomId,
+      },
+    });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.centerContainer}>
         <View style={styles.grid}>
           {EmergencyContacts.map((contact) => (
-            <TouchableOpacity key={contact.id} style={styles.gridItem}>
+            <TouchableOpacity
+              key={contact.id}
+              style={styles.gridItem}
+              onPress={() => handleClickEmergency(contact)}>
               <Image
                 source={contact.icon}
                 style={styles.icon}
