@@ -17,6 +17,7 @@ export default function RoomLayout() {
         }}
       />
       <Stack.Screen name="[id]" />
+      <Stack.Screen name="VideoCall" options={{headerShown: false}} />
       <Stack.Screen name="loadingCall" options={{headerShown: false}} />
       <Stack.Screen name="RoomVerification" options={{headerShown: false}} />
     </Stack>

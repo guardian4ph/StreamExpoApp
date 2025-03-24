@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import React from "react";
 import {useLocalSearchParams, useRouter} from "expo-router";
-import getEmergencyIcon from "@/utils/getIcon";
+import getEmergencyIcon from "@/utils/GetIcon";
 
 export default function loadingCall() {
   const {emergencyType, roomId} = useLocalSearchParams();

@@ -1,7 +1,7 @@
 import {SafeAreaView, StyleSheet, Text, View, Image} from "react-native";
 import React, {useEffect, useState} from "react";
-import {useLocalSearchParams} from "expo-router";
-import getEmergencyIcon from "@/utils/getIcon";
+import {router, useLocalSearchParams} from "expo-router";
+import getEmergencyIcon from "@/utils/GetIcon";
 import formatTime from "@/utils/FormatTime";
 import {Ionicons} from "@expo/vector-icons";
 
@@ -97,8 +97,32 @@ export default function RoomVerification() {
                     <Text>Dispatch Operator</Text>
                   </View>
                   <View style={styles.iconContainer}>
-                    <Ionicons name="mail" size={30} color="#1B4965" />
-                    <Ionicons name="videocam-sharp" size={30} color="#1B4965" />
+                    <Ionicons
+                      name="mail"
+                      size={30}
+                      color="#1B4965"
+                      onPress={() =>
+                        router.push({
+                          pathname: "/landing/(room)/[id]",
+                          params: {
+                            id: roomId as string,
+                          },
+                        })
+                      }
+                    />
+                    <Ionicons
+                      name="videocam-sharp"
+                      size={30}
+                      color="#1B4965"
+                      onPress={() =>
+                        router.push({
+                          pathname: "/landing/(room)/VideoCall",
+                          params: {
+                            id: roomId as string,
+                          },
+                        })
+                      }
+                    />
                   </View>
                 </View>
               </View>
