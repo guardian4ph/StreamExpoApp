@@ -6,18 +6,57 @@ import {
   Image,
   Alert,
 } from "react-native";
-import React from "react";
+import React, {useState, useEffect} from "react";
 import {useLocalSearchParams, useRouter} from "expo-router";
 import getEmergencyIcon from "@/utils/GetIcon";
 
 export default function loadingCall() {
-  const {emergencyType, roomId} = useLocalSearchParams();
+  const {emergencyType, roomId, incidentId} = useLocalSearchParams();
   const router = useRouter();
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+
+  useEffect(() => {
+    let mounted = true;
+    const checkIncidentStatus = async () => {
+      try {
+        const response = await fetch(
+          `${process.env.EXPO_PUBLIC_API_URL}/incidents/${incidentId}`
+        );
+        const incident = await response.json();
+        console.log(incident);
+
+        if (incident.isAccepted && mounted) {
+          setIsConnected(true);
+          clearInterval(interval);
+          router.push({
+            pathname: "/landing/(room)/RoomVerification",
+            params: {
+              emergencyType,
+              roomId,
+              incidentId,
+            },
+          });
+        }
+      } catch (error) {
+        console.error("Error checking incident status:", error);
+      }
+    };
+
+    const interval = setInterval(checkIncidentStatus, 5000);
+    checkIncidentStatus();
+
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, [incidentId, emergencyType, roomId, router]);
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Reporting {emergencyType} Emergency</Text>
-      <Text style={styles.connecting}>Connecting...</Text>
+      <Text style={styles.connecting}>
+        {isConnected ? "Connected!" : "Connecting..."}
+      </Text>
       <View style={styles.iconContainer}>
         <Image
           source={getEmergencyIcon(emergencyType as string)}
@@ -27,7 +66,7 @@ export default function loadingCall() {
       </View>
       <Text style={styles.address}>A. S. Fortuna St, Mandaue City</Text>
 
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={styles.proceedButton}
         onPress={() =>
           router.push({
@@ -39,7 +78,7 @@ export default function loadingCall() {
           })
         }>
         <Text style={styles.cancelText}>Proceed</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       <TouchableOpacity
         style={styles.cancelButton}

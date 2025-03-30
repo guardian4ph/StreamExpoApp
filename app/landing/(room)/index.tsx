@@ -1,5 +1,5 @@
 import {Image, SafeAreaView, StyleSheet, Text, View} from "react-native";
-import React from "react";
+import React, {useEffect} from "react";
 import {EmergencyContacts} from "@/assets/data/emergencyContacts";
 import {TouchableOpacity} from "react-native";
 import {useRouter} from "expo-router";
@@ -7,14 +7,43 @@ import {useRouter} from "expo-router";
 export default function SelectEmergency() {
   const router = useRouter();
 
-  const handleClickEmergency = (contact: {name: string; roomId: string}) => {
-    router.push({
-      pathname: "/landing/(room)/loadingCall",
-      params: {
-        emergencyType: contact.name,
-        roomId: contact.roomId,
-      },
-    });
+  const handleClickEmergency = async (contact: {
+    name: string;
+    roomId: string;
+  }) => {
+    try {
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/incidents`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            incidentType: contact.name,
+            isVerified: false,
+            isResolved: false,
+            isAccepted: false,
+            userId: "67e439b436fdce8bf6f8dc7d",
+          }),
+        }
+      );
+
+      const data = await response.json();
+      console.log("Incident created:", data);
+
+      router.push({
+        pathname: "/landing/(room)/loadingCall",
+        params: {
+          emergencyType: contact.name,
+          roomId: contact.roomId,
+          incidentId: data._id,
+        },
+      });
+    } catch (error) {
+      console.error("Error creating incident:", error);
+      // Handle error appropriately
+    }
   };
 
   return (
