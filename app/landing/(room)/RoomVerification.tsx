@@ -6,7 +6,7 @@ import formatTime from "@/utils/FormatTime";
 import {Ionicons} from "@expo/vector-icons";
 
 export default function RoomVerification() {
-  const {emergencyType, roomId} = useLocalSearchParams();
+  const {emergencyType, channelId, incidenId} = useLocalSearchParams();
   const [timer, setTimer] = useState<number>(0);
   const [startTime] = useState<number>(Date.now());
   const [isVerified, setIsVerified] = useState<boolean>(false);
@@ -105,7 +105,7 @@ export default function RoomVerification() {
                         router.push({
                           pathname: "/landing/(room)/[id]",
                           params: {
-                            id: roomId as string,
+                            id: channelId as string,
                           },
                         })
                       }
@@ -118,7 +118,7 @@ export default function RoomVerification() {
                         router.push({
                           pathname: "/landing/(room)/VideoCall",
                           params: {
-                            id: roomId as string,
+                            id: channelId as string,
                           },
                         })
                       }

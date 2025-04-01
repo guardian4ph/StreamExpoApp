@@ -18,10 +18,29 @@ const VideoCall = () => {
   const {id} = useLocalSearchParams<{id: string}>();
   const [call, setCall] = useState<Call | null>(null);
   const client = useStreamVideoClient();
+  const router = useRouter();
+
+  const handleCallEnd = async () => {
+    try {
+      setCall(null);
+      router.replace("/landing/(room)/RoomVerification");
+    } catch (error) {
+      console.error("Error ending call:", error);
+      router.replace("/landing/(room)/RoomVerification");
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = client!.on("all", (event: StreamVideoEvent) => {
       console.log(event);
+
+      if (event.type === "call.ended") {
+        Toast.show({
+          text1: "Call Ended",
+          text2: "Returning to room verification",
+        });
+        router.replace("/landing/(room)/RoomVerification");
+      }
 
       if (event.type === "call.reaction_new") {
         console.log(`new reaction: ${event.reaction}`);
@@ -68,7 +87,11 @@ const VideoCall = () => {
       {call && (
         <StreamCall call={call}>
           <View style={styles.container}>
-            <CallContent CallControls={CustomCallControls} layout="grid" />
+            <CallContent
+              CallControls={CustomCallControls}
+              layout="grid"
+              onHangupCallHandler={handleCallEnd}
+            />
           </View>
         </StreamCall>
       )}

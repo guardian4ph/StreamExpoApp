@@ -53,6 +53,19 @@ const CustomCallControls = (props: CallControlProps) => {
     call?.sendReaction(reaction);
   };
 
+  const handleHangup = async () => {
+    try {
+      await call?.leave();
+      if (props.onHangupCallHandler) {
+        props.onHangupCallHandler();
+      }
+    } catch (error) {
+      console.error("Error hanging up:", error);
+      if (props.onHangupCallHandler) {
+        props.onHangupCallHandler();
+      }
+    }
+  };
   return (
     <View style={styles.customCallControlsContainer}>
       <ToggleAudioPublishingButton
@@ -62,7 +75,7 @@ const CustomCallControls = (props: CallControlProps) => {
         onPressHandler={() => call?.camera.toggle()}
       />
       <ToggleCameraFaceButton onPressHandler={() => call?.camera.flip()} />
-      <HangUpCallButton onHangupCallHandler={props.onHangupCallHandler} />
+      <HangUpCallButton onHangupCallHandler={handleHangup} />
       <ReactionsButton supportedReactions={reactions} />
       {/* <Button onPress={onLike} title="Like!" color={Colors.secondary} /> */}
     </View>

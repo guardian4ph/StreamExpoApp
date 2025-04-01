@@ -11,7 +11,7 @@ import {useLocalSearchParams, useRouter} from "expo-router";
 import getEmergencyIcon from "@/utils/GetIcon";
 
 export default function loadingCall() {
-  const {emergencyType, roomId, incidentId} = useLocalSearchParams();
+  const {emergencyType, channelId, incidentId} = useLocalSearchParams();
   const router = useRouter();
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
@@ -32,7 +32,7 @@ export default function loadingCall() {
             pathname: "/landing/(room)/RoomVerification",
             params: {
               emergencyType,
-              roomId,
+              channelId,
               incidentId,
             },
           });
@@ -49,7 +49,7 @@ export default function loadingCall() {
       mounted = false;
       clearInterval(interval);
     };
-  }, [incidentId, emergencyType, roomId, router]);
+  }, [incidentId, emergencyType, channelId, router]);
 
   return (
     <View style={styles.container}>

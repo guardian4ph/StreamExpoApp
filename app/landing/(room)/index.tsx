@@ -3,9 +3,11 @@ import React, {useEffect} from "react";
 import {EmergencyContacts} from "@/assets/data/emergencyContacts";
 import {TouchableOpacity} from "react-native";
 import {useRouter} from "expo-router";
+import {useAuth} from "@/context/AuthContext";
 
 export default function SelectEmergency() {
   const router = useRouter();
+  const {authState} = useAuth();
 
   const handleClickEmergency = async (contact: {
     name: string;
@@ -24,7 +26,7 @@ export default function SelectEmergency() {
             isVerified: false,
             isResolved: false,
             isAccepted: false,
-            userId: "67e439b436fdce8bf6f8dc7d",
+            userId: authState?.user_id,
           }),
         }
       );
@@ -36,13 +38,12 @@ export default function SelectEmergency() {
         pathname: "/landing/(room)/loadingCall",
         params: {
           emergencyType: contact.name,
-          roomId: contact.roomId,
+          channelId: "fad-call",
           incidentId: data._id,
         },
       });
     } catch (error) {
       console.error("Error creating incident:", error);
-      // Handle error appropriately
     }
   };
 
