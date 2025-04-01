@@ -27,12 +27,31 @@ export default function LogIn() {
   const router = useRouter();
 
   const logIn = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Email and password are required");
+      return;
+    }
+
     setLoading(true);
     try {
+      console.log(
+        "Attempting login with URL:",
+        process.env.EXPO_PUBLIC_API_URL
+      );
       const result = await onLogin!(email, password);
-      console.log("~ file: index.tsx:31 ~ login ~ result", result);
+
+      if (result?.error) {
+        Alert.alert("Error", result.msg);
+        return;
+      }
+
+      console.log("Login successful:", result);
     } catch (err) {
-      Alert.alert("Error", "Login Failed");
+      console.error("Login error details:", err);
+      Alert.alert(
+        "Error",
+        "Server connection failed. Please check your network connection."
+      );
     } finally {
       setLoading(false);
     }

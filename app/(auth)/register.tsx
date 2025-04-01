@@ -8,41 +8,86 @@ import {
   TouchableOpacity,
   Dimensions,
   StatusBar,
-  Alert,
   TouchableWithoutFeedback,
+  Alert,
 } from "react-native";
 import React, {useState} from "react";
 import Spinner from "react-native-loading-spinner-overlay";
 import {useAuth} from "@/context/AuthContext";
-import {useRouter} from "expo-router";
+import {Href, useRouter} from "expo-router";
 import {ScrollView} from "react-native-gesture-handler";
 
 const WIDTH = Dimensions.get("window").width;
 const HEIGHT = Dimensions.get("window").height;
 
 const Register = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    mobileNumber: "",
+    password: "",
+    confirmPassword: "",
+    address: "",
+    barangay: "",
+    city: "",
+  });
   const [loading, setLoading] = useState(false);
   const [isAgree, setIsAgree] = useState(false);
   const {onRegister} = useAuth();
   const router = useRouter();
 
-  const register = async () => {
+  const handleRegister = async () => {
     if (!isAgree) {
-      Alert.alert("Error", "Please agree to the terms and conditions");
+      Alert.alert("Error", "Please agree to the terms and conditions.");
       return;
     }
-    setLoading(true);
+
+    if (formData.password !== formData.confirmPassword) {
+      Alert.alert("Error", "Passwords do not match");
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      Alert.alert("Error", "Password must be at least 6 characters long");
+      return;
+    }
+
     try {
-      const result = await onRegister!(email, password);
-      console.log("Registration successful", result);
-      router.replace("/");
-    } catch (err) {
-      Alert.alert("Error", "Registration Failed");
+      setLoading(true);
+      const result = await onRegister?.(
+        formData.firstName,
+        formData.lastName,
+        formData.email,
+        formData.mobileNumber,
+        formData.password,
+        formData.address,
+        formData.barangay,
+        formData.city
+      );
+
+      if (result?.error) {
+        Alert.alert("Error", result.msg || "Registration failed");
+        return;
+      }
+
+      console.log("Registration response:", result);
+      Alert.alert("Success", "Registration successful!", [
+        {
+          text: "OK",
+          onPress: () => router.replace("/"),
+        },
+      ]);
+    } catch (error) {
+      console.error("Registration error:", error);
+      Alert.alert("Error", "An error occurred during registration");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleChange = (name: string, value: string) => {
+    setFormData((prev) => ({...prev, [name]: value}));
   };
 
   return (
@@ -65,20 +110,24 @@ const Register = () => {
 
         <TextInput
           placeholder="First Name"
+          value={formData.firstName}
+          onChangeText={(value) => handleChange("firstName", value)}
           style={styles.textField}
           placeholderTextColor="gray"
         />
 
         <TextInput
           placeholder="Last Name"
+          value={formData.lastName}
+          onChangeText={(value) => handleChange("lastName", value)}
           style={styles.textField}
           placeholderTextColor="gray"
         />
 
         <TextInput
           placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
+          value={formData.email}
+          onChangeText={(value) => handleChange("email", value)}
           style={styles.textField}
           placeholderTextColor="gray"
           autoCapitalize="none"
@@ -87,6 +136,8 @@ const Register = () => {
 
         <TextInput
           placeholder="Mobile Number"
+          value={formData.mobileNumber}
+          onChangeText={(value) => handleChange("mobileNumber", value)}
           style={styles.textField}
           placeholderTextColor="gray"
           keyboardType="phone-pad"
@@ -100,8 +151,8 @@ const Register = () => {
 
         <TextInput
           placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
+          value={formData.password}
+          onChangeText={(value) => handleChange("password", value)}
           style={styles.textField}
           placeholderTextColor="gray"
           secureTextEntry={true}
@@ -109,6 +160,8 @@ const Register = () => {
 
         <TextInput
           placeholder="Confirm Password"
+          value={formData.confirmPassword}
+          onChangeText={(value) => handleChange("confirmPassword", value)}
           style={styles.textField}
           placeholderTextColor="gray"
           secureTextEntry={true}
@@ -116,18 +169,24 @@ const Register = () => {
 
         <TextInput
           placeholder="House No./ Bldg./ Unit No./ Street"
+          value={formData.address}
+          onChangeText={(value) => handleChange("address", value)}
           style={styles.textField}
           placeholderTextColor="gray"
         />
 
         <TextInput
           placeholder="Barangay"
+          value={formData.barangay}
+          onChangeText={(value) => handleChange("barangay", value)}
           style={styles.textField}
           placeholderTextColor="gray"
         />
 
         <TextInput
           placeholder="City"
+          value={formData.city}
+          onChangeText={(value) => handleChange("city", value)}
           style={styles.textField}
           placeholderTextColor="gray"
         />
@@ -144,7 +203,7 @@ const Register = () => {
           </Text>
         </View>
 
-        <TouchableOpacity onPress={register} style={styles.buttonLogin}>
+        <TouchableOpacity onPress={handleRegister} style={styles.buttonLogin}>
           <Text style={styles.buttonText}>Register</Text>
         </TouchableOpacity>
       </ScrollView>
