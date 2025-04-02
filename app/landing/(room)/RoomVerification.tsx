@@ -1,27 +1,100 @@
 import {SafeAreaView, StyleSheet, Text, View, Image} from "react-native";
 import React, {useEffect, useState} from "react";
-import {router, useLocalSearchParams} from "expo-router";
+import {useRouter, useLocalSearchParams} from "expo-router";
 import getEmergencyIcon from "@/utils/GetIcon";
-import formatTime from "@/utils/FormatTime";
 import {Ionicons} from "@expo/vector-icons";
+import {StreamChat} from "stream-chat";
+import {useAuth} from "@/context/AuthContext";
+import InitialChatAlert from "@/components/InitialChatAlert";
+import IncomingCall from "@/components/calls/IncomingCall";
+import {
+  CallingState,
+  useCall,
+  useCalls,
+  useCallStateHooks,
+} from "@stream-io/video-react-native-sdk";
 
 export default function RoomVerification() {
-  const {emergencyType, channelId, incidenId} = useLocalSearchParams();
-  const [timer, setTimer] = useState<number>(0);
-  const [startTime] = useState<number>(Date.now());
+  const {emergencyType, channelId, incidentId} = useLocalSearchParams();
+  const [showPopup, setShowPopup] = useState<boolean>(false);
+  const {authState} = useAuth();
   const [isVerified, setIsVerified] = useState<boolean>(false);
+  const [initialMsg, setInitialMsg] = useState<string>("");
+  const [incomingCall, setIncomingCall] = useState<boolean>(false);
+  const router = useRouter();
 
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
-  //     setTimer(elapsedTime);
-  //   }, 1000);
+  // call properties
+  const calls = useCalls();
+  const {useCallCallingState} = useCallStateHooks();
+  const callingState = useCallCallingState();
+  const call = calls?.[0];
+  const isCallCreatedByMe = call?.state.createdBy?.id === call?.currentUserId;
 
-  //   return () => clearInterval(interval);
-  // }, [startTime]);
+  useEffect(() => {
+    if (callingState === CallingState.RINGING && !isCallCreatedByMe) {
+      setIncomingCall(true);
+    }
+  }, [callingState, isCallCreatedByMe]);
+
+  useEffect(() => {
+    const listenForInitialMessage = async () => {
+      try {
+        const chatClient = StreamChat.getInstance(
+          process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY!
+        );
+        await chatClient.connectUser(
+          {id: authState?.user_id!},
+          authState?.token!
+        );
+        const channel = chatClient.channel("messaging", channelId as string);
+        await channel.watch();
+        setShowPopup(true);
+      } catch (error) {
+        console.error("Error listening for initial message:", error);
+      }
+    };
+
+    if (channelId && authState?.user_id) {
+      listenForInitialMessage();
+    }
+  }, [channelId, authState]);
+
+  const handleReply = () => {
+    setShowPopup(false);
+    router.push({
+      pathname: "/landing/(room)/[id]",
+      params: {
+        id: channelId as string,
+      },
+    });
+  };
+
+  const handleAcceptCall = () => {
+    setIncomingCall(false);
+    router.push({
+      pathname: "/landing/(room)/VideoCall",
+      params: {id: channelId as string},
+    });
+  };
+
+  const handleRejectCall = () => {
+    setIncomingCall(false);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
+      <InitialChatAlert
+        visible={showPopup}
+        onClose={() => setShowPopup(false)}
+        onReply={handleReply}
+        message="Your report Medical Incident was received with a location at AS Fortuna St. Mandaue, can you verify the exact location, by giving us a landmark around you?"
+      />
+      <IncomingCall
+        visible={incomingCall}
+        callerName="Dispatch Operator"
+        onAccept={handleAcceptCall}
+        onReject={handleRejectCall}
+      />
       <View style={styles.innerContainer}>
         {/* Emergency Type Section with Timer */}
         <View style={styles.incidentCard}>
@@ -47,7 +120,7 @@ export default function RoomVerification() {
             </View>
           </View>
           <View style={styles.timerSection}>
-            <Text style={styles.timerText}>RECEIVED : {formatTime(timer)}</Text>
+            <Text style={styles.timerText}>RECEIVED : </Text>
           </View>
         </View>
         {/* Verification Status with Dispatch Operator Details */}

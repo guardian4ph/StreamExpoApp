@@ -1,6 +1,6 @@
-import { StyleSheet, Text, KeyboardAvoidingView, Platform } from "react-native";
-import React, { forwardRef, useMemo } from "react";
-import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
+import {StyleSheet, Text, KeyboardAvoidingView, Platform} from "react-native";
+import React, {forwardRef, useMemo} from "react";
+import BottomSheet, {BottomSheetView} from "@gorhom/bottom-sheet";
 import ChatView from "./ChatView";
 import Colors from "../constants/Colors";
 export type Ref = BottomSheet;
@@ -18,16 +18,14 @@ const CustomBottomSheet = forwardRef<Ref, Props>((props, ref) => {
       ref={ref}
       index={0}
       snapPoints={snapPoints}
-      handleIndicatorStyle={{ backgroundColor: Colors.primary }}
-      backgroundStyle={{ backgroundColor: "#fff" }}
-    >
+      handleIndicatorStyle={{backgroundColor: Colors.primary}}
+      backgroundStyle={{backgroundColor: "#fff"}}>
       <BottomSheetView style={styles.contentContainer}>
         <Text style={styles.containerHeadline}>Chat</Text>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={120}
-          style={{ flex: 1 }}
-        >
+          style={{flex: 1}}>
           <ChatView channelId={props.channelId} />
         </KeyboardAvoidingView>
       </BottomSheetView>

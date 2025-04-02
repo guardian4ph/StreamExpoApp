@@ -1,7 +1,14 @@
 import {View, Text, StyleSheet} from "react-native";
-import React from "react";
+import React, {useEffect} from "react";
+// import useLocation from "@/hooks/useLocation";
 
 export default function Profile() {
+  // const {getUserLocation} = useLocation();
+
+  // useEffect(() => {
+  //   getUserLocation();
+  // }, []);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Profile Page</Text>

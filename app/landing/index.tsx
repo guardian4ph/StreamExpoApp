@@ -1,6 +1,6 @@
 import {View, StyleSheet} from "react-native";
 import React from "react";
-import AlertPost from "@/components/landingComponents/AlertPost";
+import AlertPost from "@/components/landing-components/AlertPost";
 
 const Landing = () => {
   return (
