@@ -1,9 +1,11 @@
 import {View, Text, StyleSheet, TouchableOpacity} from "react-native";
 import React from "react";
 import {useAuth} from "@/context/AuthContext";
+import {useIncident} from "@/context/IncidentContext";
 
 export default function ID() {
   const {authState} = useAuth();
+  const {incidentState} = useIncident();
   return (
     <View style={styles.container}>
       <Text style={styles.title}>ID</Text>
@@ -13,6 +15,8 @@ export default function ID() {
       <Text>Token:</Text>
       <Text numberOfLines={3}>{authState?.token || "Not available"}</Text>
       <Text>to be developed</Text>
+      <Text>incident id:</Text>
+      <Text>{incidentState?.emergencyType || "Not available"}</Text>
     </View>
   );
 }

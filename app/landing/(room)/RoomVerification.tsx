@@ -12,17 +12,15 @@ import {
   useCalls,
   useCallStateHooks,
   StreamCall,
-  StreamVideo,
   IncomingCall,
-  useStreamVideoClient,
 } from "@stream-io/video-react-native-sdk";
+import {useIncident} from "@/context/IncidentContext";
 
 const CallPanel = () => {
   const call = useCall();
   const isCallCreatedByMe = call?.isCreatedByMe;
-  const { useCallCallingState } = useCallStateHooks();
+  const {useCallCallingState} = useCallStateHooks();
   const router = useRouter();
-  const client = useStreamVideoClient();
 
   const handleAcceptCall = async () => {
     try {
@@ -30,7 +28,7 @@ const CallPanel = () => {
         await call.accept();
         router.push({
           pathname: "/landing/(room)/VideoCall",
-          params: { id: "fad-call" },
+          params: {id: "fad-call"},
         });
       }
     } catch (error) {
@@ -39,30 +37,31 @@ const CallPanel = () => {
   };
 
   const callingState = useCallCallingState();
-  // Display the incoming call if the call state is RINGING and the call is not created by me, i.e., recieved from others.
   if (callingState === CallingState.RINGING && !isCallCreatedByMe) {
     return (
-      <View style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0,0,0,0.8)',
-        zIndex: 9999,
-        justifyContent: 'center',
-        width: '100%',
-        alignItems: 'center'
-      }}>
-    <IncomingCall onAcceptCallHandler={handleAcceptCall}/>
-    </View>
+      <View
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0,0,0,0.8)",
+          zIndex: 9999,
+          flex: 1,
+          justifyContent: "center",
+          width: "100%",
+          alignItems: "center",
+        }}>
+        <IncomingCall onAcceptCallHandler={handleAcceptCall} />
+      </View>
     );
   }
   return null;
 };
 
 export default function RoomVerification() {
-  const {emergencyType, channelId, incidentId} = useLocalSearchParams();
+  const {incidentState, clearIncident} = useIncident();
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const {authState} = useAuth();
   const [isVerified, setIsVerified] = useState<boolean>(false);
@@ -70,60 +69,115 @@ export default function RoomVerification() {
   const [incomingCall, setIncomingCall] = useState<boolean>(false);
   const router = useRouter();
   const calls = useCalls();
-  const call = useCall();
-
 
   useEffect(() => {
-    const listenForInitialMessage = async () => {
+    if (!incidentState) {
+      router.replace("/landing/(room)/index");
+      return;
+    }
+  }, [incidentState]);
+
+  useEffect(() => {
+    if (incidentState && !incidentState.channelId) {
+      router.replace({
+        pathname: "/landing/(room)/RoomVerification",
+        params: {
+          emergencyType: incidentState.emergencyType,
+          channelId: incidentState.channelId,
+          incidentId: incidentState.incidentId,
+        },
+      });
+    }
+  }, [incidentState]);
+
+  useEffect(() => {
+    let mounted = true;
+    const checkIsIncidentResolved = async () => {
+      if (!incidentState?.incidentId) return;
       try {
-        const chatClient = StreamChat.getInstance(
-          process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY!
+        const response = await fetch(
+          `${process.env.EXPO_PUBLIC_API_URL}/incidents/${incidentState?.incidentId}`
         );
-        await chatClient.connectUser(
-          {id: authState?.user_id!},
-          authState?.token!
-        );
-        const channel = chatClient.channel("messaging", channelId as string);
-        await channel.watch();
-        setShowPopup(true);
+        const incident = await response.json();
+        console.log(incident);
+
+        if (incident.isResolved && mounted) {
+          clearInterval(interval);
+          clearIncident!();
+          router.replace("/landing/(room)/index");
+        }
       } catch (error) {
-        console.error("Error listening for initial message:", error);
+        console.error("Error checking incident status:", error);
       }
     };
 
-    if (channelId && authState?.user_id) {
-      listenForInitialMessage();
-    }
-  }, [channelId, authState]);
+    const interval = setInterval(checkIsIncidentResolved, 3000);
+    checkIsIncidentResolved();
+
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, [incidentState, router]);
+
+  // useEffect(() => {
+  //   const listenForInitialMessage = async () => {
+  //     try {
+  //       const chatClient = StreamChat.getInstance(
+  //         process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY!
+  //       );
+  //       await chatClient.connectUser(
+  //         {id: authState?.user_id!},
+  //         authState?.token!
+  //       );
+  //       const channel = chatClient.channel(
+  //         "messaging",
+  //         incidentState?.channelId as string
+  //       );
+  //       await channel.watch();
+  //       setShowPopup(true);
+  //     } catch (error) {
+  //       console.error("Error listening for initial message:", error);
+  //     }
+  //   };
+
+  //   if (incidentState?.channelId && authState?.user_id) {
+  //     listenForInitialMessage();
+  //   }
+  // }, [incidentState?.channelId, authState]);
 
   const handleReply = () => {
     setShowPopup(false);
     router.push({
       pathname: "/landing/(room)/[id]",
       params: {
-        id: channelId as string,
+        id: incidentState?.channelId as string,
       },
     });
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <InitialChatAlert
+      {/* <InitialChatAlert
         visible={showPopup}
         onClose={() => setShowPopup(false)}
         onReply={handleReply}
         message="Your report Medical Incident was received with a location at AS Fortuna St. Mandaue, can you verify the exact location, by giving us a landmark around you?"
-      />
-    <StreamCall call={calls?.[0]}>
-      <CallPanel />
-    </StreamCall>
+      /> */}
+      {calls && calls.length > 0 && calls[0] ? (
+        <StreamCall call={calls[0]}>
+          <CallPanel />
+        </StreamCall>
+      ) : null}
       <View style={styles.innerContainer}>
         {/* Emergency Type Section with Timer */}
         <View style={styles.incidentCard}>
           <View style={styles.headerSection}>
             <View style={styles.headerRow}>
               <Image
-                source={getEmergencyIcon(emergencyType as string)}
+                source={getEmergencyIcon(
+                  incidentState?.emergencyType as string
+                )}
                 resizeMode="contain"
                 style={styles.medicalIcon}
               />
@@ -133,7 +187,7 @@ export default function RoomVerification() {
                   <Text style={styles.idNumber}>25-03-11-0000</Text>
                 </View>
                 <Text style={styles.incidentType}>
-                  {emergencyType} Incident
+                  {incidentState?.emergencyType} Incident
                 </Text>
                 <Text style={styles.address}>
                   A.S. Fortuna St, Mandaue City
@@ -200,7 +254,7 @@ export default function RoomVerification() {
                         router.push({
                           pathname: "/landing/(room)/[id]",
                           params: {
-                            id: channelId as string,
+                            id: incidentState?.channelId as string,
                           },
                         })
                       }
@@ -213,7 +267,7 @@ export default function RoomVerification() {
                         router.push({
                           pathname: "/landing/(room)/VideoCall",
                           params: {
-                            id: channelId as string,
+                            id: incidentState?.channelId as string,
                           },
                         })
                       }

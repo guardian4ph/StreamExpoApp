@@ -4,8 +4,11 @@ import {Image, TouchableOpacity, View, StyleSheet, Text} from "react-native";
 import Colors from "@/constants/Colors";
 import {Ionicons} from "@expo/vector-icons";
 import {BottomTabBarProps} from "@react-navigation/bottom-tabs";
+import {useIncident} from "@/context/IncidentContext";
 
 function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
+  const {incidentState} = useIncident();
+
   return (
     <View style={styles.tabBarContainer}>
       {state.routes.map((route, index) => {
@@ -27,7 +30,11 @@ function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
             <TouchableOpacity
               key={route.key}
               style={styles.centerButton}
-              onPress={() => navigation.navigate(route.name)}>
+              onPress={() => {
+                navigation.navigate(route.name, {
+                  screen: "index",
+                });
+              }}>
               <Image
                 source={require("@/assets/images/Button.png")}
                 style={styles.centerButtonImage}

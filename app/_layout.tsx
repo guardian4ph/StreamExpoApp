@@ -10,6 +10,7 @@ import {
   User,
 } from "@stream-io/video-react-native-sdk";
 import {OverlayProvider} from "stream-chat-expo";
+import {IncidentProvider, useIncident} from "@/context/IncidentContext";
 
 const STREAM_KEY = process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY;
 
@@ -18,6 +19,7 @@ const InitialLayout = () => {
   const segments = useSegments();
   const router = useRouter();
   const [client, setClient] = useState<StreamVideoClient | null>(null);
+  const {incidentState} = useIncident();
 
   useEffect(() => {
     if (!initialized) return;
@@ -37,7 +39,7 @@ const InitialLayout = () => {
       console.log("Creating a client");
       const user: User = {id: authState.user_id!};
       try {
-        const client = new StreamVideoClient({
+        const client = StreamVideoClient.getOrCreateInstance({
           apiKey: STREAM_KEY!,
           user,
           token: authState.token,
@@ -48,6 +50,19 @@ const InitialLayout = () => {
       }
     }
   }, [authState]);
+
+  useEffect(() => {
+    if (incidentState) {
+      router.replace({
+        pathname: "/landing/(room)/RoomVerification",
+        params: {
+          emergencyType: incidentState.emergencyType,
+          channelId: incidentState.channelId,
+          incidentId: incidentState.incidentId,
+        },
+      });
+    }
+  }, []);
 
   return (
     <>
@@ -66,9 +81,11 @@ const InitialLayout = () => {
 const RootLayout = () => {
   return (
     <AuthProvider>
-      <GestureHandlerRootView style={{flex: 1}}>
-        <InitialLayout />
-      </GestureHandlerRootView>
+      <IncidentProvider>
+        <GestureHandlerRootView style={{flex: 1}}>
+          <InitialLayout />
+        </GestureHandlerRootView>
+      </IncidentProvider>
     </AuthProvider>
   );
 };

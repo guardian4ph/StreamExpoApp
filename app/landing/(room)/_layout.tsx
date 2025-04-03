@@ -14,12 +14,19 @@ export default function RoomLayout() {
           headerStyle: {
             backgroundColor: "#1B4965",
           },
+          gestureEnabled: false,
         }}
       />
       <Stack.Screen name="[id]" />
       <Stack.Screen name="VideoCall" options={{headerShown: false}} />
-      <Stack.Screen name="loadingCall" options={{headerShown: false}} />
-      <Stack.Screen name="RoomVerification" options={{headerShown: false}} />
+      <Stack.Screen
+        name="loadingCall"
+        options={{headerShown: false, gestureEnabled: false}}
+      />
+      <Stack.Screen
+        name="RoomVerification"
+        options={{headerShown: false, gestureEnabled: false}}
+      />
     </Stack>
   );
 }

@@ -4,15 +4,28 @@ import {EmergencyContacts} from "@/assets/data/emergencyContacts";
 import {TouchableOpacity} from "react-native";
 import {useRouter} from "expo-router";
 import {useAuth} from "@/context/AuthContext";
+import {useIncident} from "@/context/IncidentContext";
 
 export default function SelectEmergency() {
   const router = useRouter();
   const {authState} = useAuth();
+  const {incidentState, setCurrentIncident} = useIncident();
 
-  // to get the incident id
-  // useEffect(() => {
-
-  // })
+  useEffect(() => {
+    const checkExistingIncident = async () => {
+      if (incidentState) {
+        router.replace({
+          pathname: "/landing/(room)/RoomVerification",
+          params: {
+            emergencyType: incidentState.emergencyType,
+            channelId: incidentState.channelId,
+            incidentId: incidentState.incidentId,
+          },
+        });
+      }
+    };
+    checkExistingIncident();
+  }, []);
 
   const handleClickEmergency = async (contact: {
     name: string;
@@ -38,6 +51,13 @@ export default function SelectEmergency() {
 
       const data = await response.json();
       console.log("Incident created:", data);
+
+      await setCurrentIncident!({
+        emergencyType: contact.name,
+        channelId: "fad-call",
+        incidentId: data._id,
+        timestamp: Date.now(),
+      });
 
       router.push({
         pathname: "/landing/(room)/loadingCall",
