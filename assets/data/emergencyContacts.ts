@@ -1,7 +1,7 @@
 export const EmergencyContacts = [
   {
     id: 1,
-    name: "Ambulance",
+    name: "Medical",
     icon: require("@/assets/images/AMBU.png"),
     roomId: "newCallByJolo",
   },

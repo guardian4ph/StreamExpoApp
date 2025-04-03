@@ -6,13 +6,60 @@ import {Ionicons} from "@expo/vector-icons";
 import {StreamChat} from "stream-chat";
 import {useAuth} from "@/context/AuthContext";
 import InitialChatAlert from "@/components/InitialChatAlert";
-import IncomingCall from "@/components/calls/IncomingCall";
 import {
   CallingState,
   useCall,
   useCalls,
   useCallStateHooks,
+  StreamCall,
+  StreamVideo,
+  IncomingCall,
+  useStreamVideoClient,
 } from "@stream-io/video-react-native-sdk";
+
+const CallPanel = () => {
+  const call = useCall();
+  const isCallCreatedByMe = call?.isCreatedByMe;
+  const { useCallCallingState } = useCallStateHooks();
+  const router = useRouter();
+  const client = useStreamVideoClient();
+
+  const handleAcceptCall = async () => {
+    try {
+      if (call) {
+        await call.accept();
+        router.push({
+          pathname: "/landing/(room)/VideoCall",
+          params: { id: "fad-call" },
+        });
+      }
+    } catch (error) {
+      console.error("Error accepting call:", error);
+    }
+  };
+
+  const callingState = useCallCallingState();
+  // Display the incoming call if the call state is RINGING and the call is not created by me, i.e., recieved from others.
+  if (callingState === CallingState.RINGING && !isCallCreatedByMe) {
+    return (
+      <View style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0,0,0,0.8)',
+        zIndex: 9999,
+        justifyContent: 'center',
+        width: '100%',
+        alignItems: 'center'
+      }}>
+    <IncomingCall onAcceptCallHandler={handleAcceptCall}/>
+    </View>
+    );
+  }
+  return null;
+};
 
 export default function RoomVerification() {
   const {emergencyType, channelId, incidentId} = useLocalSearchParams();
@@ -22,19 +69,9 @@ export default function RoomVerification() {
   const [initialMsg, setInitialMsg] = useState<string>("");
   const [incomingCall, setIncomingCall] = useState<boolean>(false);
   const router = useRouter();
-
-  // call properties
   const calls = useCalls();
-  const {useCallCallingState} = useCallStateHooks();
-  const callingState = useCallCallingState();
-  const call = calls?.[0];
-  const isCallCreatedByMe = call?.state.createdBy?.id === call?.currentUserId;
+  const call = useCall();
 
-  useEffect(() => {
-    if (callingState === CallingState.RINGING && !isCallCreatedByMe) {
-      setIncomingCall(true);
-    }
-  }, [callingState, isCallCreatedByMe]);
 
   useEffect(() => {
     const listenForInitialMessage = async () => {
@@ -69,18 +106,6 @@ export default function RoomVerification() {
     });
   };
 
-  const handleAcceptCall = () => {
-    setIncomingCall(false);
-    router.push({
-      pathname: "/landing/(room)/VideoCall",
-      params: {id: channelId as string},
-    });
-  };
-
-  const handleRejectCall = () => {
-    setIncomingCall(false);
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <InitialChatAlert
@@ -89,12 +114,9 @@ export default function RoomVerification() {
         onReply={handleReply}
         message="Your report Medical Incident was received with a location at AS Fortuna St. Mandaue, can you verify the exact location, by giving us a landmark around you?"
       />
-      <IncomingCall
-        visible={incomingCall}
-        callerName="Dispatch Operator"
-        onAccept={handleAcceptCall}
-        onReject={handleRejectCall}
-      />
+    <StreamCall call={calls?.[0]}>
+      <CallPanel />
+    </StreamCall>
       <View style={styles.innerContainer}>
         {/* Emergency Type Section with Timer */}
         <View style={styles.incidentCard}>

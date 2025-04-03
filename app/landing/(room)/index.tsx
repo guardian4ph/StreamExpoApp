@@ -9,6 +9,11 @@ export default function SelectEmergency() {
   const router = useRouter();
   const {authState} = useAuth();
 
+  // to get the incident id
+  // useEffect(() => {
+
+  // })
+
   const handleClickEmergency = async (contact: {
     name: string;
     roomId: string;
