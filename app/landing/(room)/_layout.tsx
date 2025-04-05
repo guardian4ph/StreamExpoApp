@@ -7,6 +7,7 @@ export default function RoomLayout() {
       <Stack.Screen
         name="index"
         options={{
+          headerBackVisible: false,
           headerTitle: "Select Emergency",
           headerTitleStyle: {
             color: "white",

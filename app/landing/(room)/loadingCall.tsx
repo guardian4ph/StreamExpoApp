@@ -7,20 +7,26 @@ import {
   Alert,
 } from "react-native";
 import React, {useState, useEffect} from "react";
-import {useLocalSearchParams, useRouter} from "expo-router";
+import {useRouter} from "expo-router";
 import getEmergencyIcon from "@/utils/GetIcon";
+import {useIncident} from "@/context/IncidentContext";
 
 export default function loadingCall() {
-  const {emergencyType, channelId, incidentId} = useLocalSearchParams();
+  const {incidentState} = useIncident();
   const router = useRouter();
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
   useEffect(() => {
     let mounted = true;
+    const abortController = new AbortController();
+
     const checkIncidentStatus = async () => {
+      if (!incidentState?.incidentId) return;
+
       try {
         const response = await fetch(
-          `${process.env.EXPO_PUBLIC_API_URL}/incidents/${incidentId}`
+          `${process.env.EXPO_PUBLIC_API_URL}/incidents/${incidentState.incidentId}`,
+          {signal: abortController.signal}
         );
         const incident = await response.json();
         console.log(incident);
@@ -28,17 +34,23 @@ export default function loadingCall() {
         if (incident.isAccepted && mounted) {
           setIsConnected(true);
           clearInterval(interval);
-          router.push({
-            pathname: "/landing/(room)/RoomVerification",
-            params: {
-              emergencyType,
-              channelId,
-              incidentId,
-            },
-          });
+          setTimeout(() => {
+            if (mounted) {
+              router.push({
+                pathname: "/landing/(room)/RoomVerification",
+                params: {
+                  emergencyType: incidentState.emergencyType,
+                  channelId: incidentState.channelId,
+                  incidentId: incidentState.incidentId,
+                },
+              });
+            }
+          }, 2000);
         }
       } catch (error) {
-        console.error("Error checking incident status:", error);
+        if (error !== "AbortError") {
+          console.error("Error checking incident status:", error);
+        }
       }
     };
 
@@ -48,37 +60,26 @@ export default function loadingCall() {
     return () => {
       mounted = false;
       clearInterval(interval);
+      abortController.abort();
     };
-  }, [incidentId, emergencyType, channelId, router]);
+  }, [incidentState, router]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Reporting {emergencyType} Emergency</Text>
+      <Text style={styles.title}>
+        Reporting {incidentState?.emergencyType} Emergency
+      </Text>
       <Text style={styles.connecting}>
         {isConnected ? "Connected!" : "Connecting..."}
       </Text>
       <View style={styles.iconContainer}>
         <Image
-          source={getEmergencyIcon(emergencyType as string)}
+          source={getEmergencyIcon(incidentState?.emergencyType as string)}
           resizeMode="contain"
           style={styles.emergencyIcon}
         />
       </View>
       <Text style={styles.address}>A. S. Fortuna St, Mandaue City</Text>
-
-      {/* <TouchableOpacity
-        style={styles.proceedButton}
-        onPress={() =>
-          router.push({
-            pathname: "/landing/(room)/RoomVerification",
-            params: {
-              emergencyType: emergencyType,
-              roomId: roomId,
-            },
-          })
-        }>
-        <Text style={styles.cancelText}>Proceed</Text>
-      </TouchableOpacity> */}
 
       <TouchableOpacity
         style={styles.cancelButton}

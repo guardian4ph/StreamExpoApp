@@ -21,28 +21,13 @@ import {useIncident} from "@/context/IncidentContext";
 // const HEIGHT = Dimensions.get("window").height;
 
 const ChatPage = () => {
-  const {id} = useLocalSearchParams<{id: string}>();
   const router = useRouter();
-  const navigation = useNavigation();
-  const {incidentState} = useIncident();
-
-  const hasRedirected = useRef(false);
-
-  useEffect(() => {
-    if (!incidentState && id !== "index" && !hasRedirected.current) {
-      console.log(
-        "No incident state present... redirecting to Emergency Selection Page"
-      );
-      hasRedirected.current = true;
-      router.replace("/landing/(room)/index");
-    }
-  }, [incidentState, id]);
 
   return (
     <View style={{flex: 1}}>
       <View style={styles.container}>
         <View style={styles.videoContainer}>
-          <ChatView channelId={id} />
+          {/* <ChatView channelId={id} /> */}
         </View>
       </View>
     </View>

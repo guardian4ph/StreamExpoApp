@@ -1,6 +1,6 @@
 const getEmergencyIcon = (type: string) => {
   switch (type) {
-    case "Ambulance":
+    case "Medical":
       return require("@/assets/images/AMBU.png");
     case "Police":
       return require("@/assets/images/Crime.png");

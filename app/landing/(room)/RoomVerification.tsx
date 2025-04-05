@@ -23,67 +23,87 @@ export default function RoomVerification() {
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const {authState} = useAuth();
   const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");
-  const [startTime, setStartTime] = useState<number>(0);
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [initialMsg, setInitialMsg] = useState<string>("");
   const [showCancelModal, setShowCancelModal] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const router = useRouter();
   const calls = useCalls();
 
   useEffect(() => {
-    if (!incidentState) {
-      router.replace("/landing/(room)/index");
+    if (!incidentState || incidentState.channelId === "index") {
+      router.replace("/landing/(room)");
       return;
     }
   }, [incidentState]);
 
-  useEffect(() => {
-    if (incidentState && !incidentState.channelId) {
-      router.replace({
-        pathname: "/landing/(room)/RoomVerification",
-        params: {
-          emergencyType: incidentState.emergencyType,
-          channelId: incidentState.channelId,
-          incidentId: incidentState.incidentId,
-        },
-      });
-    }
-  }, [incidentState]);
+  // useEffect(() => {
+  //   if (incidentState?.channelId === "index") {
+  //     router.replace("/landing/(room)/index");
+  //     return;
+  //   }
+
+  //   if (incidentState && !incidentState.channelId) {
+  //     router.replace({
+  //       pathname: "/landing/(room)/RoomVerification",
+  //       params: {
+  //         emergencyType: incidentState.emergencyType,
+  //         channelId: incidentState.channelId,
+  //         incidentId: incidentState.incidentId,
+  //       },
+  //     });
+  //   }
+  // }, [incidentState]);
 
   // realtym updates for incident status..
-  // useEffect(() => {
-  //   let mounted = true;
-  //   const checkIsIncidentResolved = async () => {
-  //     if (!incidentState?.incidentId) return;
-  //     try {
-  //       const response = await fetch(
-  //         `${process.env.EXPO_PUBLIC_API_URL}/incidents/${incidentState?.incidentId}`
-  //       );
-  //       const incident = await response.json();
-  //       console.log(incident);
+  useEffect(() => {
+    let mounted = true;
+    const checkIsIncidentResolved = async () => {
+      if (!incidentState?.incidentId) return;
+      try {
+        const response = await fetch(
+          `${process.env.EXPO_PUBLIC_API_URL}/incidents/${incidentState?.incidentId}`
+        );
+        const incident = await response.json();
 
-  //       if (incident.isResolved && mounted) {
-  //         clearInterval(interval);
-  //         await clearIncident!();
-  //         router.replace("/landing/(room)/index");
-  //       }
+        if (incident.isResolved && mounted) {
+          clearInterval(interval);
+          // Set loading state to prevent UI interactions
+          setIsLoading(true);
+          try {
+            // First clear the incident state
+            await clearIncident!();
+            // Then navigate to index with a slight delay
+            setTimeout(() => {
+              if (mounted) {
+                router.replace("/landing/(room)");
+              }
+            }, 200);
+          } catch (error) {
+            console.error("Error during cleanup:", error);
+            if (mounted) {
+              setIsLoading(false);
+            }
+          }
+          return;
+        }
 
-  //       if (incident.isVerified && mounted) {
-  //         setIsVerified(true);
-  //       }
-  //     } catch (error) {
-  //       console.error("Error checking incident status:", error);
-  //     }
-  //   };
+        if (incident.isVerified && mounted) {
+          setIsVerified(true);
+        }
+      } catch (error) {
+        console.error("Error checking incident status:", error);
+      }
+    };
 
-  //   const interval = setInterval(checkIsIncidentResolved, 3000);
-  //   checkIsIncidentResolved();
+    const interval = setInterval(checkIsIncidentResolved, 3000);
+    checkIsIncidentResolved();
 
-  //   return () => {
-  //     mounted = false;
-  //     clearInterval(interval);
-  //   };
-  // }, [incidentState]);
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, [incidentState]);
 
   // initiate incident timer counter
   useEffect(() => {
@@ -246,28 +266,32 @@ export default function RoomVerification() {
                     <Ionicons
                       name="mail"
                       size={30}
-                      color="#1B4965"
-                      onPress={() =>
-                        router.push({
-                          pathname: "/landing/(room)/[id]",
-                          params: {
-                            id: incidentState?.channelId as string,
-                          },
-                        })
-                      }
+                      color={isLoading ? "#ccc" : "#1B4965"}
+                      onPress={() => {
+                        if (!isLoading) {
+                          router.push({
+                            pathname: "/landing/(room)/[id]",
+                            params: {
+                              id: incidentState?.channelId as string,
+                            },
+                          });
+                        }
+                      }}
                     />
                     <Ionicons
                       name="videocam-sharp"
                       size={30}
-                      color="#1B4965"
-                      onPress={() =>
-                        router.push({
-                          pathname: "/landing/(room)/VideoCall",
-                          params: {
-                            id: incidentState?.channelId as string,
-                          },
-                        })
-                      }
+                      color={isLoading ? "#ccc" : "#1B4965"}
+                      onPress={() => {
+                        if (!isLoading) {
+                          router.push({
+                            pathname: "/landing/(room)/VideoCall",
+                            params: {
+                              id: incidentState?.channelId as string,
+                            },
+                          });
+                        }
+                      }}
                     />
                   </View>
                 </View>
@@ -321,7 +345,8 @@ export default function RoomVerification() {
         ) : null}
 
         <TouchableOpacity
-          style={styles.cancelButtonContainer}
+          style={[styles.cancelButtonContainer, isLoading && {opacity: 0.5}]}
+          disabled={isLoading}
           onPress={() => setShowCancelModal(true)}>
           <Text style={styles.cancelButtonText}>Cancel Report</Text>
         </TouchableOpacity>

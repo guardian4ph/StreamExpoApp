@@ -55,7 +55,8 @@
     "react-native-web": "~0.19.13",
     "stream-chat": "^8.57.6",
     "stream-chat-expo": "^6.6.5",
-    "stream-chat-react-native": "^6.6.5"
+    "stream-chat-react-native": "^6.6.5",
+    "expo-location": "~18.0.10"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

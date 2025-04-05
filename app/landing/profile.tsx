@@ -1,19 +1,14 @@
 import {View, Text, StyleSheet} from "react-native";
 import React, {useEffect} from "react";
 import {useIncident} from "@/context/IncidentContext";
-// import useLocation from "@/hooks/useLocation";
+import useLocation from "@/hooks/useLocation";
 
 export default function Profile() {
-  // const {getUserLocation} = useLocation();
-  const {incidentState, clearIncident} = useIncident();
+  const {getUserLocation} = useLocation();
 
   useEffect(() => {
-    clearIncident!();
+    getUserLocation();
   }, []);
-
-  // useEffect(() => {
-  //   getUserLocation();
-  // }, []);
 
   return (
     <View style={styles.container}>
