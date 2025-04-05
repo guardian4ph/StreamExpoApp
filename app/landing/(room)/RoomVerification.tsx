@@ -391,13 +391,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  innerContainer: {
-    display: "flex",
-    flexDirection: "column",
-    gap: 10,
-    width: "100%",
-    padding: 30,
-  },
+
   incidentCard: {
     backgroundColor: "white",
     borderRadius: 10,
