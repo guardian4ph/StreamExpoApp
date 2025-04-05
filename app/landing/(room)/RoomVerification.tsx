@@ -1,72 +1,32 @@
-import {SafeAreaView, StyleSheet, Text, View, Image} from "react-native";
+import {
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  TouchableOpacity,
+} from "react-native";
 import React, {useEffect, useState} from "react";
-import {useRouter, useLocalSearchParams} from "expo-router";
+import {useRouter} from "expo-router";
 import getEmergencyIcon from "@/utils/GetIcon";
 import {Ionicons} from "@expo/vector-icons";
 import {StreamChat} from "stream-chat";
 import {useAuth} from "@/context/AuthContext";
 import InitialChatAlert from "@/components/InitialChatAlert";
-import {
-  CallingState,
-  useCall,
-  useCalls,
-  useCallStateHooks,
-  StreamCall,
-  IncomingCall,
-} from "@stream-io/video-react-native-sdk";
+import {useCalls, StreamCall} from "@stream-io/video-react-native-sdk";
 import {useIncident} from "@/context/IncidentContext";
-
-const CallPanel = () => {
-  const call = useCall();
-  const isCallCreatedByMe = call?.isCreatedByMe;
-  const {useCallCallingState} = useCallStateHooks();
-  const router = useRouter();
-
-  const handleAcceptCall = async () => {
-    try {
-      if (call) {
-        await call.accept();
-        router.push({
-          pathname: "/landing/(room)/VideoCall",
-          params: {id: "fad-call"},
-        });
-      }
-    } catch (error) {
-      console.error("Error accepting call:", error);
-    }
-  };
-
-  const callingState = useCallCallingState();
-  if (callingState === CallingState.RINGING && !isCallCreatedByMe) {
-    return (
-      <View
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: "rgba(0,0,0,0.8)",
-          zIndex: 9999,
-          flex: 1,
-          justifyContent: "center",
-          width: "100%",
-          alignItems: "center",
-        }}>
-        <IncomingCall onAcceptCallHandler={handleAcceptCall} />
-      </View>
-    );
-  }
-  return null;
-};
+import CallPanel from "@/components/calls/CallPanel";
+import CancelIncidentModal from "@/components/incidents/cancel-incident-modal";
 
 export default function RoomVerification() {
   const {incidentState, clearIncident} = useIncident();
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const {authState} = useAuth();
+  const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");
+  const [startTime, setStartTime] = useState<number>(0);
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [initialMsg, setInitialMsg] = useState<string>("");
-  const [incomingCall, setIncomingCall] = useState<boolean>(false);
+  const [showCancelModal, setShowCancelModal] = useState<boolean>(false);
   const router = useRouter();
   const calls = useCalls();
 
@@ -90,35 +50,61 @@ export default function RoomVerification() {
     }
   }, [incidentState]);
 
+  // realtym updates for incident status..
+  // useEffect(() => {
+  //   let mounted = true;
+  //   const checkIsIncidentResolved = async () => {
+  //     if (!incidentState?.incidentId) return;
+  //     try {
+  //       const response = await fetch(
+  //         `${process.env.EXPO_PUBLIC_API_URL}/incidents/${incidentState?.incidentId}`
+  //       );
+  //       const incident = await response.json();
+  //       console.log(incident);
+
+  //       if (incident.isResolved && mounted) {
+  //         clearInterval(interval);
+  //         await clearIncident!();
+  //         router.replace("/landing/(room)/index");
+  //       }
+
+  //       if (incident.isVerified && mounted) {
+  //         setIsVerified(true);
+  //       }
+  //     } catch (error) {
+  //       console.error("Error checking incident status:", error);
+  //     }
+  //   };
+
+  //   const interval = setInterval(checkIsIncidentResolved, 3000);
+  //   checkIsIncidentResolved();
+
+  //   return () => {
+  //     mounted = false;
+  //     clearInterval(interval);
+  //   };
+  // }, [incidentState]);
+
+  // initiate incident timer counter
   useEffect(() => {
-    let mounted = true;
-    const checkIsIncidentResolved = async () => {
-      if (!incidentState?.incidentId) return;
-      try {
-        const response = await fetch(
-          `${process.env.EXPO_PUBLIC_API_URL}/incidents/${incidentState?.incidentId}`
-        );
-        const incident = await response.json();
-        console.log(incident);
+    const initialTime = Date.now();
 
-        if (incident.isResolved && mounted) {
-          clearInterval(interval);
-          clearIncident!();
-          router.replace("/landing/(room)/index");
-        }
-      } catch (error) {
-        console.error("Error checking incident status:", error);
-      }
-    };
+    const timerInterval = setInterval(() => {
+      const elapsed = Date.now() - initialTime;
+      const hours = Math.floor(elapsed / (1000 * 60 * 60))
+        .toString()
+        .padStart(2, "0");
+      const minutes = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60))
+        .toString()
+        .padStart(2, "0");
+      const seconds = Math.floor((elapsed % (1000 * 60)) / 1000)
+        .toString()
+        .padStart(2, "0");
+      setElapsedTime(`${hours}:${minutes}:${seconds}`);
+    }, 1000);
 
-    const interval = setInterval(checkIsIncidentResolved, 3000);
-    checkIsIncidentResolved();
-
-    return () => {
-      mounted = false;
-      clearInterval(interval);
-    };
-  }, [incidentState, router]);
+    return () => clearInterval(timerInterval);
+  }, []);
 
   // useEffect(() => {
   //   const listenForInitialMessage = async () => {
@@ -164,6 +150,11 @@ export default function RoomVerification() {
         onReply={handleReply}
         message="Your report Medical Incident was received with a location at AS Fortuna St. Mandaue, can you verify the exact location, by giving us a landmark around you?"
       /> */}
+      <CancelIncidentModal
+        visible={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        onSubmit={() => console.log("test cancel")}
+      />
       {calls && calls.length > 0 && calls[0] ? (
         <StreamCall call={calls[0]}>
           <CallPanel />
@@ -196,7 +187,7 @@ export default function RoomVerification() {
             </View>
           </View>
           <View style={styles.timerSection}>
-            <Text style={styles.timerText}>RECEIVED : </Text>
+            <Text style={styles.timerText}>RECEIVED: {elapsedTime}</Text>
           </View>
         </View>
         {/* Verification Status with Dispatch Operator Details */}
@@ -211,7 +202,13 @@ export default function RoomVerification() {
               <View style={styles.headerText}>
                 <View style={styles.statusRow}>
                   <View>
-                    <Text style={styles.verification}>
+                    <Text
+                      style={[
+                        styles.verification,
+                        isVerified
+                          ? styles.verifiedText
+                          : styles.unverifiedText,
+                      ]}>
                       {isVerified ? "VERIFIED" : "UNVERIFIED"}
                     </Text>
                     <Text style={styles.address}>Incident Status</Text>
@@ -278,6 +275,56 @@ export default function RoomVerification() {
             </View>
           </View>
         </View>
+
+        {/*ambulance info */}
+        {isVerified ? (
+          <View>
+            <View style={styles.incidentCard}>
+              <View style={styles.headerSection}>
+                <View style={styles.headerRow}>
+                  <Image
+                    source={require("@/assets/images/AMBU.png")}
+                    resizeMode="contain"
+                    style={styles.logoImage}
+                  />
+                  <View style={styles.headerText}>
+                    <Text style={styles.ambulanceId}>AMBU 123</Text>
+                    <Text style={styles.address}>
+                      Bantay Mandaue Command Center
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              {/* ETA setcion */}
+              <View style={styles.etaContainer}>
+                <View style={styles.etaStatus}>
+                  <Text style={styles.etaStatusText}>ENROUTE</Text>
+                </View>
+                <View style={styles.etaDetails}>
+                  <View style={styles.etaItem}>
+                    <Text style={styles.etaLabel}>ETA</Text>
+                    <Text style={styles.etaValue}>4min</Text>
+                  </View>
+                  <View style={styles.etaItem}>
+                    <Text style={styles.etaLabel}>DIS</Text>
+                    <Text style={styles.etaValue}>600m</Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.mapButtonContainer}>
+                <Ionicons name="map" size={24} color="#1B4965" />
+                <Text style={styles.mapButtonText}>View Map</Text>
+              </View>
+            </View>
+          </View>
+        ) : null}
+
+        <TouchableOpacity
+          style={styles.cancelButtonContainer}
+          onPress={() => setShowCancelModal(true)}>
+          <Text style={styles.cancelButtonText}>Cancel Report</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -333,8 +380,13 @@ const styles = StyleSheet.create({
   verification: {
     fontSize: 24,
     fontWeight: "bold",
-    color: "red",
     marginBottom: 5,
+  },
+  verifiedText: {
+    color: "green",
+  },
+  unverifiedText: {
+    color: "red",
   },
   address: {
     fontSize: 14,
@@ -379,5 +431,80 @@ const styles = StyleSheet.create({
   iconContainer: {
     flexDirection: "row",
     gap: 15,
+  },
+  ambulanceId: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#ff6b6b",
+    marginBottom: 5,
+  },
+  etaContainer: {
+    flexDirection: "row",
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+  },
+  etaStatus: {
+    flex: 1,
+    backgroundColor: "#1B4965",
+    padding: 15,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  etaStatusText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 18,
+  },
+  etaDetails: {
+    flex: 1,
+    backgroundColor: "#1B4965",
+    padding: 15,
+    borderLeftWidth: 1,
+    borderLeftColor: "white",
+  },
+  etaItem: {
+    marginBottom: 5,
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
+  },
+  etaLabel: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  etaValue: {
+    color: "#ff6b6b",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+  mapButtonContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+    gap: 10,
+  },
+  mapButtonText: {
+    color: "#1B4965",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  cancelButtonContainer: {
+    backgroundColor: "#ff6b6b",
+    padding: 12,
+    borderRadius: 6,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 10,
+  },
+
+  cancelButtonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
   },
 });
