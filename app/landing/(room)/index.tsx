@@ -5,11 +5,13 @@ import {TouchableOpacity} from "react-native";
 import {useRouter} from "expo-router";
 import {useAuth} from "@/context/AuthContext";
 import {useIncident} from "@/context/IncidentContext";
+import useLocation from "@/hooks/useLocation";
 
 export default function SelectEmergency() {
   const router = useRouter();
   const {authState} = useAuth();
   const {incidentState, setCurrentIncident} = useIncident();
+  const {getUserLocation} = useLocation();
 
   useEffect(() => {
     const checkExistingIncident = async () => {
@@ -27,11 +29,17 @@ export default function SelectEmergency() {
     checkExistingIncident();
   }, []);
 
-  const handleClickEmergency = async (contact: {
-    name: string;
-    roomId: string;
-  }) => {
+  const handleClickEmergency = async (contact: {name: string}) => {
     try {
+      const locationData = await getUserLocation();
+      let formattedAddress = "Unknown location";
+      if (locationData?.response && locationData.response.length > 0) {
+        const loc = locationData.response[0];
+        formattedAddress = `${loc.street || ""}, ${loc.city || ""}, ${
+          loc.region || ""
+        }`;
+      }
+
       const response = await fetch(
         `${process.env.EXPO_PUBLIC_API_URL}/incidents`,
         {
@@ -45,6 +53,12 @@ export default function SelectEmergency() {
             isResolved: false,
             isAccepted: false,
             userId: authState?.user_id,
+            incidentDetails: {
+              coordinates: {
+                lat: locationData?.latitude || null,
+                lon: locationData?.longitude || null,
+              },
+            },
           }),
         }
       );
@@ -57,16 +71,14 @@ export default function SelectEmergency() {
         channelId: "fad-call",
         incidentId: data._id,
         timestamp: Date.now(),
-      });
-
-      router.push({
-        pathname: "/landing/(room)/loadingCall",
-        params: {
-          emergencyType: contact.name,
-          channelId: "fad-call",
-          incidentId: data._id,
+        location: {
+          lat: locationData?.latitude,
+          lon: locationData?.longitude,
+          address: formattedAddress,
         },
       });
+
+      router.push("/landing/(room)/loadingCall");
     } catch (error) {
       console.error("Error creating incident:", error);
     }

@@ -54,7 +54,7 @@ export default function loadingCall() {
       }
     };
 
-    const interval = setInterval(checkIncidentStatus, 5000);
+    const interval = setInterval(checkIncidentStatus, 4000);
     checkIncidentStatus();
 
     return () => {
@@ -66,26 +66,32 @@ export default function loadingCall() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>
-        Reporting {incidentState?.emergencyType} Emergency
-      </Text>
-      <Text style={styles.connecting}>
-        {isConnected ? "Connected!" : "Connecting..."}
-      </Text>
-      <View style={styles.iconContainer}>
-        <Image
-          source={getEmergencyIcon(incidentState?.emergencyType as string)}
-          resizeMode="contain"
-          style={styles.emergencyIcon}
-        />
+      <View style={styles.contentContainer}>
+        <Text style={styles.title}>
+          Reporting {incidentState?.emergencyType} Emergency
+        </Text>
+        <Text style={styles.connecting}>
+          {isConnected ? "Connected!" : "Connecting..."}
+        </Text>
+        <View style={styles.iconContainer}>
+          <Image
+            source={getEmergencyIcon(incidentState?.emergencyType as string)}
+            resizeMode="contain"
+            style={styles.emergencyIcon}
+          />
+        </View>
+        <Text style={styles.address}>
+          {incidentState?.location?.address || "Location unavailable"}
+        </Text>
       </View>
-      <Text style={styles.address}>A. S. Fortuna St, Mandaue City</Text>
 
-      <TouchableOpacity
-        style={styles.cancelButton}
-        onPress={() => router.back()}>
-        <Text style={styles.cancelText}>Cancel</Text>
-      </TouchableOpacity>
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity
+          style={styles.cancelButton}
+          onPress={() => router.back()}>
+          <Text style={styles.cancelText}>Cancel</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -94,18 +100,23 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
-    alignItems: "center",
     padding: 20,
+    justifyContent: "space-between",
+  },
+  contentContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingBottom: 80,
   },
   title: {
     fontSize: 18,
-    marginTop: 100,
     color: "#333",
+    marginBottom: 20,
   },
   connecting: {
     fontSize: 24,
     fontWeight: "bold",
-    marginTop: 80,
     marginBottom: 20,
   },
   iconContainer: {
@@ -122,20 +133,16 @@ const styles = StyleSheet.create({
   address: {
     fontSize: 16,
     color: "#666",
-    marginTop: 40,
+    marginTop: 20,
+    textAlign: "center",
+    paddingHorizontal: 10,
   },
-  proceedButton: {
-    position: "absolute",
-    bottom: 100,
-    backgroundColor: "green",
-    paddingVertical: 15,
-    paddingHorizontal: 40,
-    borderRadius: 6,
-    width: "80%",
+  buttonContainer: {
+    width: "100%",
+    alignItems: "center",
+    marginBottom: 20,
   },
   cancelButton: {
-    position: "absolute",
-    bottom: 40,
     backgroundColor: "#FF6B6B",
     paddingVertical: 15,
     paddingHorizontal: 40,

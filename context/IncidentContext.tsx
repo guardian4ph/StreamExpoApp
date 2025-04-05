@@ -6,11 +6,21 @@ interface IncidentData {
   channelId: string;
   incidentId: string;
   timestamp: number;
+  location?: {
+    lat?: number;
+    lon?: number;
+    address?: string;
+  };
 }
 
 interface IncidentContextProps {
   incidentState: IncidentData | null;
   setCurrentIncident: (data: IncidentData) => Promise<void>;
+  updateIncidentLocation: (locationData: {
+    latitude: number;
+    longitude: number;
+    address: string;
+  }) => Promise<void>;
   clearIncident: () => Promise<void>;
 }
 
@@ -44,6 +54,29 @@ export const IncidentProvider = ({children}: any) => {
     }
   };
 
+  const updateIncidentLocation = async (locationData: {
+    latitude: number;
+    longitude: number;
+    address: string;
+  }) => {
+    if (!incidentState) return;
+
+    try {
+      const updatedIncident = {
+        ...incidentState,
+        location: locationData,
+      };
+
+      await SecureStore.setItemAsync(
+        INCIDENT_KEY,
+        JSON.stringify(updatedIncident)
+      );
+      setIncidentState(updatedIncident);
+    } catch (error) {
+      console.error("Error updating incident location:", error);
+    }
+  };
+
   const clearIncident = async () => {
     try {
       await SecureStore.deleteItemAsync(INCIDENT_KEY);
@@ -56,6 +89,7 @@ export const IncidentProvider = ({children}: any) => {
   const value = {
     incidentState,
     setCurrentIncident,
+    updateIncidentLocation,
     clearIncident,
   };
 

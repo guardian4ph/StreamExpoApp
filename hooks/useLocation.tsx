@@ -24,6 +24,7 @@ const useLocation = () => {
         longitude,
       });
       return {latitude, longitude, response};
+      console.log(response); // Array of addres
     }
     return null;
   };

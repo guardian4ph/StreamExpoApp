@@ -1,15 +1,8 @@
 import {View, Text, StyleSheet} from "react-native";
 import React, {useEffect} from "react";
 import {useIncident} from "@/context/IncidentContext";
-import useLocation from "@/hooks/useLocation";
 
 export default function Profile() {
-  const {getUserLocation} = useLocation();
-
-  useEffect(() => {
-    getUserLocation();
-  }, []);
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Profile Page</Text>

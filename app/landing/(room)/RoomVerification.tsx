@@ -5,6 +5,8 @@ import {
   View,
   Image,
   TouchableOpacity,
+  Platform,
+  ScrollView,
 } from "react-native";
 import React, {useEffect, useState} from "react";
 import {useRouter} from "expo-router";
@@ -163,7 +165,7 @@ export default function RoomVerification() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.safeArea}>
       {/* <InitialChatAlert
         visible={showPopup}
         onClose={() => setShowPopup(false)}
@@ -180,182 +182,210 @@ export default function RoomVerification() {
           <CallPanel />
         </StreamCall>
       ) : null}
-      <View style={styles.innerContainer}>
-        {/* Emergency Type Section with Timer */}
-        <View style={styles.incidentCard}>
-          <View style={styles.headerSection}>
-            <View style={styles.headerRow}>
-              <Image
-                source={getEmergencyIcon(
-                  incidentState?.emergencyType as string
-                )}
-                resizeMode="contain"
-                style={styles.medicalIcon}
-              />
-              <View style={styles.headerText}>
-                <View style={styles.idSection}>
-                  <Text style={styles.idLabel}>ID:</Text>
-                  <Text style={styles.idNumber}>25-03-11-0000</Text>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollViewContent}
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.innerContainer}>
+          {/* Emergency Type Section with Timer */}
+          <View style={styles.incidentCard}>
+            <View style={styles.headerSection}>
+              <View style={styles.headerRow}>
+                <Image
+                  source={getEmergencyIcon(
+                    incidentState?.emergencyType as string
+                  )}
+                  resizeMode="contain"
+                  style={styles.medicalIcon}
+                />
+                <View style={styles.headerText}>
+                  <View style={styles.idSection}>
+                    <Text style={styles.idLabel}>ID:</Text>
+                    <Text style={styles.idNumber}>25-03-11-0000</Text>
+                  </View>
+                  <Text style={styles.incidentType}>
+                    {incidentState?.emergencyType} Incident
+                  </Text>
+                  <Text style={styles.address}>
+                    {incidentState?.location?.address || "Location unavailable"}
+                  </Text>
                 </View>
-                <Text style={styles.incidentType}>
-                  {incidentState?.emergencyType} Incident
-                </Text>
-                <Text style={styles.address}>
-                  A.S. Fortuna St, Mandaue City
-                </Text>
               </View>
             </View>
+            <View style={styles.timerSection}>
+              <Text style={styles.timerText}>RECEIVED: {elapsedTime}</Text>
+            </View>
           </View>
-          <View style={styles.timerSection}>
-            <Text style={styles.timerText}>RECEIVED: {elapsedTime}</Text>
-          </View>
-        </View>
-        {/* Verification Status with Dispatch Operator Details */}
-        <View style={styles.incidentCard}>
-          <View style={styles.headerSection}>
-            <View style={styles.headerRow}>
-              <Image
-                source={require("@/assets/images/banner-icon.png")}
-                resizeMode="contain"
-                style={styles.logoImage}
-              />
-              <View style={styles.headerText}>
-                <View style={styles.statusRow}>
-                  <View>
-                    <Text
-                      style={[
-                        styles.verification,
-                        isVerified
-                          ? styles.verifiedText
-                          : styles.unverifiedText,
-                      ]}>
-                      {isVerified ? "VERIFIED" : "UNVERIFIED"}
-                    </Text>
-                    <Text style={styles.address}>Incident Status</Text>
+          {/* Verification Status with Dispatch Operator Details */}
+          <View style={styles.incidentCard}>
+            <View style={styles.headerSection}>
+              <View style={styles.headerRow}>
+                <Image
+                  source={require("@/assets/images/banner-icon.png")}
+                  resizeMode="contain"
+                  style={styles.logoImage}
+                />
+                <View style={styles.headerText}>
+                  <View style={styles.statusRow}>
+                    <View>
+                      <Text
+                        style={[
+                          styles.verification,
+                          isVerified
+                            ? styles.verifiedText
+                            : styles.unverifiedText,
+                        ]}>
+                        {isVerified ? "VERIFIED" : "UNVERIFIED"}
+                      </Text>
+                      <Text style={styles.address}>Incident Status</Text>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            </View>
+            <View style={styles.subHeading}>
+              <Text style={{color: "white", textAlign: "center"}}>
+                Sending nearest asset at the incident location...
+              </Text>
+            </View>
+            <View style={styles.headerSection}>
+              <View style={styles.headerRow}>
+                <Image
+                  source={require("@/assets/images/avatar.jpg")}
+                  resizeMode="contain"
+                  style={styles.logoImage}
+                />
+                <View style={styles.headerText}>
+                  <View style={styles.statusRow}>
+                    <View>
+                      <Text
+                        style={{
+                          color: "#1B4965",
+                          fontWeight: "bold",
+                          fontSize: 18,
+                        }}>
+                        nameOperator
+                      </Text>
+                      <Text>Dispatch Operator</Text>
+                    </View>
+                    <View style={styles.iconContainer}>
+                      <Ionicons
+                        name="mail"
+                        size={30}
+                        color={isLoading ? "#ccc" : "#1B4965"}
+                        onPress={() => {
+                          if (!isLoading) {
+                            router.push({
+                              pathname: "/landing/(room)/[id]",
+                              params: {
+                                id: incidentState?.channelId as string,
+                              },
+                            });
+                          }
+                        }}
+                      />
+                      <Ionicons
+                        name="videocam-sharp"
+                        size={30}
+                        color={isLoading ? "#ccc" : "#1B4965"}
+                        onPress={() => {
+                          if (!isLoading) {
+                            router.push({
+                              pathname: "/landing/(room)/VideoCall",
+                              params: {
+                                id: incidentState?.channelId as string,
+                              },
+                            });
+                          }
+                        }}
+                      />
+                    </View>
                   </View>
                 </View>
               </View>
             </View>
           </View>
-          <View style={styles.subHeading}>
-            <Text style={{color: "white", textAlign: "center"}}>
-              Sending nearest asset at the incident location...
-            </Text>
-          </View>
-          <View style={styles.headerSection}>
-            <View style={styles.headerRow}>
-              <Image
-                source={require("@/assets/images/avatar.jpg")}
-                resizeMode="contain"
-                style={styles.logoImage}
-              />
-              <View style={styles.headerText}>
-                <View style={styles.statusRow}>
-                  <View>
-                    <Text
-                      style={{
-                        color: "#1B4965",
-                        fontWeight: "bold",
-                        fontSize: 18,
-                      }}>
-                      nameOperator
-                    </Text>
-                    <Text>Dispatch Operator</Text>
-                  </View>
-                  <View style={styles.iconContainer}>
-                    <Ionicons
-                      name="mail"
-                      size={30}
-                      color={isLoading ? "#ccc" : "#1B4965"}
-                      onPress={() => {
-                        if (!isLoading) {
-                          router.push({
-                            pathname: "/landing/(room)/[id]",
-                            params: {
-                              id: incidentState?.channelId as string,
-                            },
-                          });
-                        }
-                      }}
+
+          {/*ambulance info */}
+          {isVerified ? (
+            <View style={styles.ambulanceContainer}>
+              <View style={styles.incidentCard}>
+                <View style={styles.headerSection}>
+                  <View style={styles.headerRow}>
+                    <Image
+                      source={require("@/assets/images/AMBU.png")}
+                      resizeMode="contain"
+                      style={styles.logoImage}
                     />
-                    <Ionicons
-                      name="videocam-sharp"
-                      size={30}
-                      color={isLoading ? "#ccc" : "#1B4965"}
-                      onPress={() => {
-                        if (!isLoading) {
-                          router.push({
-                            pathname: "/landing/(room)/VideoCall",
-                            params: {
-                              id: incidentState?.channelId as string,
-                            },
-                          });
-                        }
-                      }}
-                    />
+                    <View style={styles.headerText}>
+                      <Text style={styles.ambulanceId}>AMBU 123</Text>
+                      <Text style={styles.address}>
+                        Bantay Mandaue Command Center
+                      </Text>
+                    </View>
                   </View>
+                </View>
+
+                {/* ETA setcion */}
+                <View style={styles.etaContainer}>
+                  <View style={styles.etaStatus}>
+                    <Text style={styles.etaStatusText}>ENROUTE</Text>
+                  </View>
+                  <View style={styles.etaDetails}>
+                    <View style={styles.etaItem}>
+                      <Text style={styles.etaLabel}>ETA</Text>
+                      <Text style={styles.etaValue}>4min</Text>
+                    </View>
+                    <View style={styles.etaItem}>
+                      <Text style={styles.etaLabel}>DIS</Text>
+                      <Text style={styles.etaValue}>600m</Text>
+                    </View>
+                  </View>
+                </View>
+                <View style={styles.mapButtonContainer}>
+                  <Ionicons name="map" size={24} color="#1B4965" />
+                  <Text style={styles.mapButtonText}>View Map</Text>
                 </View>
               </View>
             </View>
-          </View>
+          ) : null}
+
+          <TouchableOpacity
+            style={[styles.cancelButtonContainer, isLoading && {opacity: 0.5}]}
+            disabled={isLoading}
+            onPress={() => setShowCancelModal(true)}>
+            <Text style={styles.cancelButtonText}>Cancel Report</Text>
+          </TouchableOpacity>
         </View>
-
-        {/*ambulance info */}
-        {isVerified ? (
-          <View>
-            <View style={styles.incidentCard}>
-              <View style={styles.headerSection}>
-                <View style={styles.headerRow}>
-                  <Image
-                    source={require("@/assets/images/AMBU.png")}
-                    resizeMode="contain"
-                    style={styles.logoImage}
-                  />
-                  <View style={styles.headerText}>
-                    <Text style={styles.ambulanceId}>AMBU 123</Text>
-                    <Text style={styles.address}>
-                      Bantay Mandaue Command Center
-                    </Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* ETA setcion */}
-              <View style={styles.etaContainer}>
-                <View style={styles.etaStatus}>
-                  <Text style={styles.etaStatusText}>ENROUTE</Text>
-                </View>
-                <View style={styles.etaDetails}>
-                  <View style={styles.etaItem}>
-                    <Text style={styles.etaLabel}>ETA</Text>
-                    <Text style={styles.etaValue}>4min</Text>
-                  </View>
-                  <View style={styles.etaItem}>
-                    <Text style={styles.etaLabel}>DIS</Text>
-                    <Text style={styles.etaValue}>600m</Text>
-                  </View>
-                </View>
-              </View>
-              <View style={styles.mapButtonContainer}>
-                <Ionicons name="map" size={24} color="#1B4965" />
-                <Text style={styles.mapButtonText}>View Map</Text>
-              </View>
-            </View>
-          </View>
-        ) : null}
-
-        <TouchableOpacity
-          style={[styles.cancelButtonContainer, isLoading && {opacity: 0.5}]}
-          disabled={isLoading}
-          onPress={() => setShowCancelModal(true)}>
-          <Text style={styles.cancelButtonText}>Cancel Report</Text>
-        </TouchableOpacity>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#f3f5f5",
+  },
+  scrollView: {
+    flex: 1,
+    width: "100%",
+  },
+  scrollViewContent: {
+    flexGrow: 1,
+    paddingBottom: Platform.OS === "ios" ? 20 : 10,
+  },
+  innerContainer: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    width: "100%",
+    padding: 20,
+    paddingBottom: 30,
+  },
+  ambulanceContainer: {
+    marginBottom: 5,
+  },
   container: {
     flex: 1,
     justifyContent: "center",
@@ -524,9 +554,9 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 10,
+    marginTop: 15,
+    marginBottom: 10,
   },
-
   cancelButtonText: {
     color: "white",
     fontSize: 18,
