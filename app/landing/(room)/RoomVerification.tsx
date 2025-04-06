@@ -52,12 +52,9 @@ export default function RoomVerification() {
 
         if (incident.isResolved && mounted) {
           clearInterval(interval);
-          // Set loading state to prevent UI interactions
           setIsLoading(true);
           try {
-            // First clear the incident state
             await clearIncident!();
-            // Then navigate to index with a slight delay
             setTimeout(() => {
               if (mounted) {
                 router.replace("/landing/(room)");
@@ -79,7 +76,6 @@ export default function RoomVerification() {
         console.error("Error checking incident status:", error);
       }
     };
-
     const interval = setInterval(checkIsIncidentResolved, 3000);
     checkIsIncidentResolved();
 
@@ -205,7 +201,7 @@ export default function RoomVerification() {
               <Text style={styles.timerText}>RECEIVED: {elapsedTime}</Text>
             </View>
           </View>
-          {/* Verification Status with Dispatch Operator Details */}
+          {/* verification status  */}
           <View style={styles.incidentCard}>
             <View style={styles.headerSection}>
               <View style={styles.headerRow}>
