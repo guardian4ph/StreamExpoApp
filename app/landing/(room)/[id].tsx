@@ -1,38 +1,27 @@
-import {
-  View,
-  StyleSheet,
-  Share,
-  Dimensions,
-  TouchableOpacity,
-} from "react-native";
-import React, {useState, useEffect, useRef} from "react";
-
+import {View, StyleSheet} from "react-native";
+import React from "react";
 import Spinner from "react-native-loading-spinner-overlay";
-import {useLocalSearchParams, useRouter, useNavigation} from "expo-router";
-import Toast from "react-native-toast-message";
-import CustomCallControls from "../../../components/CustomCallControls";
-import CustomTopView from "../../../components/CustomTopView";
 import ChatView from "@/components/ChatView";
-import CustomBottomSheet from "@/components/CustomBottomSheet";
-import {Ionicons} from "@expo/vector-icons";
 import {useIncident} from "@/context/IncidentContext";
+import {useLocalSearchParams} from "expo-router";
 
 // const WIDTH = Dimensions.get("window").width;
 // const HEIGHT = Dimensions.get("window").height;
 
 const ChatPage = () => {
-  const router = useRouter();
+  const {id} = useLocalSearchParams<{id: string}>();
 
   return (
     <View style={{flex: 1}}>
       <View style={styles.container}>
         <View style={styles.videoContainer}>
-          {/* <ChatView channelId={id} /> */}
+          <ChatView channelId={id} />
         </View>
       </View>
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   videoContainer: {
     flex: 1,

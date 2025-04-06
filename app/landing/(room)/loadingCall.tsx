@@ -12,7 +12,7 @@ import getEmergencyIcon from "@/utils/GetIcon";
 import {useIncident} from "@/context/IncidentContext";
 
 export default function loadingCall() {
-  const {incidentState} = useIncident();
+  const {incidentState, clearIncident} = useIncident();
   const router = useRouter();
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
@@ -64,6 +64,15 @@ export default function loadingCall() {
     };
   }, [incidentState, router]);
 
+  const handleCancel = () => {
+    Alert.alert(
+      "Cancel Incident",
+      "Are you sure you want to cancel the incident?"
+    );
+    clearIncident!();
+    router.push("/");
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.contentContainer}>
@@ -86,9 +95,7 @@ export default function loadingCall() {
       </View>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => router.back()}>
+        <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
           <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
       </View>

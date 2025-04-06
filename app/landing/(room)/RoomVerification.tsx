@@ -39,24 +39,6 @@ export default function RoomVerification() {
     }
   }, [incidentState]);
 
-  // useEffect(() => {
-  //   if (incidentState?.channelId === "index") {
-  //     router.replace("/landing/(room)/index");
-  //     return;
-  //   }
-
-  //   if (incidentState && !incidentState.channelId) {
-  //     router.replace({
-  //       pathname: "/landing/(room)/RoomVerification",
-  //       params: {
-  //         emergencyType: incidentState.emergencyType,
-  //         channelId: incidentState.channelId,
-  //         incidentId: incidentState.incidentId,
-  //       },
-  //     });
-  //   }
-  // }, [incidentState]);
-
   // realtym updates for incident status..
   useEffect(() => {
     let mounted = true;
@@ -128,31 +110,38 @@ export default function RoomVerification() {
     return () => clearInterval(timerInterval);
   }, []);
 
-  // useEffect(() => {
-  //   const listenForInitialMessage = async () => {
-  //     try {
-  //       const chatClient = StreamChat.getInstance(
-  //         process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY!
-  //       );
-  //       await chatClient.connectUser(
-  //         {id: authState?.user_id!},
-  //         authState?.token!
-  //       );
-  //       const channel = chatClient.channel(
-  //         "messaging",
-  //         incidentState?.channelId as string
-  //       );
-  //       await channel.watch();
-  //       setShowPopup(true);
-  //     } catch (error) {
-  //       console.error("Error listening for initial message:", error);
-  //     }
-  //   };
+  useEffect(() => {
+    const listenForInitialMessage = async () => {
+      try {
+        const chatClient = StreamChat.getInstance(
+          process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY!
+        );
+        await chatClient.connectUser(
+          {id: authState?.user_id!},
+          authState?.token!
+        );
+        const channel = chatClient.channel(
+          "messaging",
+          incidentState?.channelId as string
+        );
+        await channel.watch();
 
-  //   if (incidentState?.channelId && authState?.user_id) {
-  //     listenForInitialMessage();
-  //   }
-  // }, [incidentState?.channelId, authState]);
+        const response = await channel.query({messages: {limit: 10}});
+        const messages = response.messages || [];
+        if (messages.length > 0) {
+          const firstMessage = messages[0].text || "New message received";
+          setInitialMsg(firstMessage);
+          setShowPopup(true);
+        }
+      } catch (error) {
+        console.error("Error listening for initial message:", error);
+      }
+    };
+
+    if (incidentState?.channelId && authState?.user_id) {
+      listenForInitialMessage();
+    }
+  }, [incidentState?.channelId, authState]);
 
   const handleReply = () => {
     setShowPopup(false);
@@ -166,12 +155,12 @@ export default function RoomVerification() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      {/* <InitialChatAlert
+      <InitialChatAlert
         visible={showPopup}
         onClose={() => setShowPopup(false)}
         onReply={handleReply}
-        message="Your report Medical Incident was received with a location at AS Fortuna St. Mandaue, can you verify the exact location, by giving us a landmark around you?"
-      /> */}
+        message={initialMsg || "You have a new message from the operator."}
+      />
       <CancelIncidentModal
         visible={showCancelModal}
         onClose={() => setShowCancelModal(false)}

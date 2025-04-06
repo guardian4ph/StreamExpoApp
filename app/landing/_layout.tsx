@@ -83,7 +83,6 @@ export default function MainLayout() {
           headerShown: true,
           headerStyle: {
             backgroundColor: "#1B4965",
-            height: 110,
           },
           headerTitle: "Emergency Alerts",
           headerTitleStyle: {
@@ -94,7 +93,7 @@ export default function MainLayout() {
           },
           headerTitleAlign: "left",
           tabBarIcon: ({color}) => (
-            <Ionicons name="alert-circle" size={30} color={color} />
+            <Ionicons name="alert-circle" size={24} color={color} />
           ),
         }}
       />
@@ -103,7 +102,7 @@ export default function MainLayout() {
         options={{
           title: "Profile",
           tabBarIcon: ({color}) => (
-            <Ionicons name="person" size={30} color={color} />
+            <Ionicons name="person" size={24} color={color} />
           ),
         }}
       />
@@ -113,7 +112,7 @@ export default function MainLayout() {
         options={{
           title: "ID",
           tabBarIcon: ({color}) => (
-            <Ionicons name="card" size={30} color={color} />
+            <Ionicons name="card" size={24} color={color} />
           ),
         }}
       />
@@ -122,7 +121,7 @@ export default function MainLayout() {
         options={{
           title: "Settings",
           tabBarIcon: ({color}) => (
-            <Ionicons name="settings" size={30} color={color} />
+            <Ionicons name="settings" size={24} color={color} />
           ),
         }}
       />
@@ -133,7 +132,7 @@ export default function MainLayout() {
 const styles = StyleSheet.create({
   tabBarContainer: {
     flexDirection: "row",
-    height: 80,
+    height: 65,
     backgroundColor: "#1B4965",
     justifyContent: "space-around",
     alignItems: "center",
@@ -144,7 +143,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     height: "100%",
-    paddingVertical: 15,
+    paddingVertical: 5,
   },
   tabButtonContent: {
     alignItems: "center",
@@ -159,16 +158,17 @@ const styles = StyleSheet.create({
   centerButton: {
     justifyContent: "center",
     alignItems: "center",
-    height: 80,
+    height: 40,
     width: 80,
-    bottom: 20,
+    bottom: 10,
     position: "relative",
   },
 
   centerButtonImage: {
-    width: 80,
-    height: 80,
+    width: 70,
+    height: 70,
   },
+
   tabButtonFocused: {
     backgroundColor: "rgba(255, 255, 255, 0.1)",
     padding: 15,
