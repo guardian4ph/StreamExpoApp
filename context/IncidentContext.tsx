@@ -5,6 +5,7 @@ interface IncidentData {
   emergencyType: string;
   channelId: string;
   incidentId: string;
+  dispatcher?: string;
   timestamp: number;
   location?: {
     lat?: number;

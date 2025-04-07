@@ -19,13 +19,13 @@ export default function RoomLayout() {
         }}
       />
       <Stack.Screen name="[id]" />
-      <Stack.Screen name="VideoCall" options={{headerShown: false}} />
+      <Stack.Screen name="video-call" options={{headerShown: false}} />
       <Stack.Screen
-        name="loadingCall"
+        name="loading-call"
         options={{headerShown: false, gestureEnabled: false}}
       />
       <Stack.Screen
-        name="RoomVerification"
+        name="room-verification"
         options={{headerShown: false, gestureEnabled: false}}
       />
     </Stack>

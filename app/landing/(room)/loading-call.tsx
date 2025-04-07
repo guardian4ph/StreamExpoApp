@@ -11,7 +11,7 @@ import {useRouter} from "expo-router";
 import getEmergencyIcon from "@/utils/GetIcon";
 import {useIncident} from "@/context/IncidentContext";
 
-export default function loadingCall() {
+export default function ConnectingCallPage() {
   const {incidentState, clearIncident} = useIncident();
   const router = useRouter();
   const [isConnected, setIsConnected] = useState<boolean>(false);
@@ -37,7 +37,7 @@ export default function loadingCall() {
           setTimeout(() => {
             if (mounted) {
               router.push({
-                pathname: "/landing/(room)/RoomVerification",
+                pathname: "/landing/(room)/room-verification",
                 params: {
                   emergencyType: incidentState.emergencyType,
                   channelId: incidentState.channelId,
@@ -94,11 +94,13 @@ export default function loadingCall() {
         </Text>
       </View>
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
-          <Text style={styles.cancelText}>Cancel</Text>
-        </TouchableOpacity>
-      </View>
+      {!isConnected && (
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
+            <Text style={styles.cancelText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }

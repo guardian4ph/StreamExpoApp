@@ -54,7 +54,7 @@ const InitialLayout = () => {
   useEffect(() => {
     if (incidentState) {
       router.replace({
-        pathname: "/landing/(room)/RoomVerification",
+        pathname: "/landing/(room)/room-verification",
         params: {
           emergencyType: incidentState.emergencyType,
           channelId: incidentState.channelId,

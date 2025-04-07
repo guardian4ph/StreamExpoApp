@@ -20,7 +20,7 @@ export default function CallPanel() {
       if (call) {
         await call.accept();
         router.push({
-          pathname: "/landing/(room)/VideoCall",
+          pathname: "/landing/(room)/video-call",
           params: {id: "fad-call"},
         });
       }

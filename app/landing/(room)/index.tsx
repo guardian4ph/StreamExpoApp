@@ -17,7 +17,7 @@ export default function SelectEmergency() {
     const checkExistingIncident = async () => {
       if (incidentState) {
         router.replace({
-          pathname: "/landing/(room)/RoomVerification",
+          pathname: "/landing/(room)/room-verification",
           params: {
             emergencyType: incidentState.emergencyType,
             channelId: incidentState.channelId,
@@ -78,7 +78,7 @@ export default function SelectEmergency() {
         },
       });
 
-      router.push("/landing/(room)/loadingCall");
+      router.push("/landing/(room)/loading-call");
     } catch (error) {
       console.error("Error creating incident:", error);
     }

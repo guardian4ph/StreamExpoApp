@@ -19,8 +19,9 @@ import {useCalls, StreamCall} from "@stream-io/video-react-native-sdk";
 import {useIncident} from "@/context/IncidentContext";
 import CallPanel from "@/components/calls/CallPanel";
 import CancelIncidentModal from "@/components/incidents/cancel-incident-modal";
+import {useDispatcherDetails} from "@/hooks/useDispatcherDetails";
 
-export default function RoomVerification() {
+export default function IncidentRoomVerification() {
   const {incidentState, clearIncident} = useIncident();
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const {authState} = useAuth();
@@ -29,6 +30,9 @@ export default function RoomVerification() {
   const [initialMsg, setInitialMsg] = useState<string>("");
   const [showCancelModal, setShowCancelModal] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const {dispatcher, isLoading: dispatcherLoading} = useDispatcherDetails(
+    incidentState?.dispatcher || null
+  );
   const router = useRouter();
   const calls = useCalls();
 
@@ -233,62 +237,65 @@ export default function RoomVerification() {
                 Sending nearest asset at the incident location...
               </Text>
             </View>
-            <View style={styles.headerSection}>
-              <View style={styles.headerRow}>
-                <Image
-                  source={require("@/assets/images/avatar.jpg")}
-                  resizeMode="contain"
-                  style={styles.logoImage}
-                />
-                <View style={styles.headerText}>
-                  <View style={styles.statusRow}>
-                    <View>
-                      <Text
-                        style={{
-                          color: "#1B4965",
-                          fontWeight: "bold",
-                          fontSize: 18,
-                        }}>
-                        nameOperator
-                      </Text>
-                      <Text>Dispatch Operator</Text>
-                    </View>
-                    <View style={styles.iconContainer}>
-                      <Ionicons
-                        name="mail"
-                        size={30}
-                        color={isLoading ? "#ccc" : "#1B4965"}
-                        onPress={() => {
-                          if (!isLoading) {
-                            router.push({
-                              pathname: "/landing/(room)/[id]",
-                              params: {
-                                id: incidentState?.channelId as string,
-                              },
-                            });
-                          }
-                        }}
-                      />
-                      <Ionicons
-                        name="videocam-sharp"
-                        size={30}
-                        color={isLoading ? "#ccc" : "#1B4965"}
-                        onPress={() => {
-                          if (!isLoading) {
-                            router.push({
-                              pathname: "/landing/(room)/VideoCall",
-                              params: {
-                                id: incidentState?.channelId as string,
-                              },
-                            });
-                          }
-                        }}
-                      />
+
+            {!isVerified ? (
+              <View style={styles.headerSection}>
+                <View style={styles.headerRow}>
+                  <Image
+                    source={require("@/assets/images/avatar.png")}
+                    resizeMode="contain"
+                    style={styles.logoImage}
+                  />
+                  <View style={styles.headerText}>
+                    <View style={styles.statusRow}>
+                      <View>
+                        <Text
+                          style={{
+                            color: "#1B4965",
+                            fontWeight: "bold",
+                            fontSize: 18,
+                          }}>
+                          nameOperator
+                        </Text>
+                        <Text>Dispatch Operator</Text>
+                      </View>
+                      <View style={styles.iconContainer}>
+                        <Ionicons
+                          name="mail"
+                          size={30}
+                          color={isLoading ? "#ccc" : "#1B4965"}
+                          onPress={() => {
+                            if (!isLoading) {
+                              router.push({
+                                pathname: "/landing/(room)/[id]",
+                                params: {
+                                  id: incidentState?.channelId as string,
+                                },
+                              });
+                            }
+                          }}
+                        />
+                        <Ionicons
+                          name="videocam-sharp"
+                          size={30}
+                          color={isLoading ? "#ccc" : "#1B4965"}
+                          onPress={() => {
+                            if (!isLoading) {
+                              router.push({
+                                pathname: "/landing/(room)/video-call",
+                                params: {
+                                  id: incidentState?.channelId as string,
+                                },
+                              });
+                            }
+                          }}
+                        />
+                      </View>
                     </View>
                   </View>
                 </View>
               </View>
-            </View>
+            ) : null}
           </View>
 
           {/*ambulance info */}

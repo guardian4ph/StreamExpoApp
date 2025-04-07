@@ -23,10 +23,10 @@ const VideoCall = () => {
   const handleCallEnd = async () => {
     try {
       setCall(null);
-      router.replace("/landing/(room)/RoomVerification");
+      router.replace("/landing/(room)/room-verification");
     } catch (error) {
       console.error("Error ending call:", error);
-      router.replace("/landing/(room)/RoomVerification");
+      router.replace("/landing/(room)/room-verification");
     }
   };
 
@@ -39,7 +39,7 @@ const VideoCall = () => {
           text1: "Call Ended",
           text2: "Returning to room verification",
         });
-        router.replace("/landing/(room)/RoomVerification");
+        router.replace("/landing/(room)/room-verification");
       }
 
       if (event.type === "call.reaction_new") {
