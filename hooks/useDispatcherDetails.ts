@@ -12,8 +12,6 @@ interface DispatcherDetails {
 
 export const useDispatcherDetails = (dispatcherId: string | null) => {
   const [dispatcher, setDispatcher] = useState<DispatcherDetails | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDispatcherDetails = async () => {
@@ -22,30 +20,25 @@ export const useDispatcherDetails = (dispatcherId: string | null) => {
         return;
       }
 
-      setIsLoading(true);
-      setError(null);
-
       try {
         const response = await fetch(
           `${process.env.EXPO_PUBLIC_API_URL}/users/${dispatcherId}`
         );
 
         if (!response.ok) {
-          throw new Error("Failed to fetch dispatcher details");
+          setDispatcher(null);
+          return;
         }
 
         const data = await response.json();
         setDispatcher(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "An error occurred");
         setDispatcher(null);
-      } finally {
-        setIsLoading(false);
       }
     };
 
     fetchDispatcherDetails();
   }, [dispatcherId]);
 
-  return {dispatcher, isLoading, error};
+  return dispatcher;
 };

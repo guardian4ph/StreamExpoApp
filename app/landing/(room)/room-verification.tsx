@@ -22,7 +22,7 @@ import CancelIncidentModal from "@/components/incidents/cancel-incident-modal";
 import {useDispatcherDetails} from "@/hooks/useDispatcherDetails";
 
 export default function IncidentRoomVerification() {
-  const {incidentState, clearIncident} = useIncident();
+  const {incidentState, clearIncident, setCurrentIncident} = useIncident();
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const {authState} = useAuth();
   const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");
@@ -30,9 +30,7 @@ export default function IncidentRoomVerification() {
   const [initialMsg, setInitialMsg] = useState<string>("");
   const [showCancelModal, setShowCancelModal] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const {dispatcher, isLoading: dispatcherLoading} = useDispatcherDetails(
-    incidentState?.dispatcher || null
-  );
+  const dispatcher = useDispatcherDetails(incidentState?.dispatcher || null);
   const router = useRouter();
   const calls = useCalls();
 
@@ -54,6 +52,23 @@ export default function IncidentRoomVerification() {
         );
         const incident = await response.json();
 
+        if (incident.isVerified && mounted) {
+          setIsVerified(true);
+        }
+
+        if (
+          incident.dispatcher &&
+          (!incidentState.dispatcher ||
+            incident.dispatcher !== incidentState.dispatcher)
+        ) {
+          console.log("Dispatcher assigned:", incident.dispatcher);
+          const updatedIncident = {
+            ...incidentState,
+            dispatcher: incident.dispatcher,
+          };
+          await setCurrentIncident!(updatedIncident);
+        }
+
         if (incident.isResolved && mounted) {
           clearInterval(interval);
           setIsLoading(true);
@@ -71,10 +86,6 @@ export default function IncidentRoomVerification() {
             }
           }
           return;
-        }
-
-        if (incident.isVerified && mounted) {
-          setIsVerified(true);
         }
       } catch (error) {
         console.error("Error checking incident status:", error);
@@ -152,6 +163,8 @@ export default function IncidentRoomVerification() {
       },
     });
   };
+
+  // console.log("dispatcher: ", dispatcher);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -255,7 +268,7 @@ export default function IncidentRoomVerification() {
                             fontWeight: "bold",
                             fontSize: 18,
                           }}>
-                          nameOperator
+                          {dispatcher?.firstName}
                         </Text>
                         <Text>Dispatch Operator</Text>
                       </View>
