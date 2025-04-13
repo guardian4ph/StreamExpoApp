@@ -21,7 +21,7 @@ const LATITUDE_DELTA = 0.0922;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 const GOOGLE_MAPS_API_KEY =
   process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ||
-  "AIzaSyAJjCD4TVrZk6u-OxFvk00OYpBqSMB_RVo";
+  "";
 
 export default function MapViewScreen() {
   const {incidentState} = useIncident();
