@@ -13,6 +13,10 @@ interface IncidentData {
     lon?: number;
     address?: string;
   };
+  responderCoordinates?: {
+    lat?: number;
+    lon?: number;
+  };
 }
 
 interface IncidentContextProps {

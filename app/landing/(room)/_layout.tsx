@@ -33,6 +33,7 @@ export default function RoomLayout() {
         name="room-verification"
         options={{headerShown: false, gestureEnabled: false}}
       />
+      <Stack.Screen name="map-view" options={{headerShown: false}} />
     </Stack>
   );
 }

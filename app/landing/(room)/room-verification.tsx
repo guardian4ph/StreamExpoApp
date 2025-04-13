@@ -362,10 +362,12 @@ export default function IncidentRoomVerification() {
                     </View>
                   </View>
                 </View>
-                <View style={styles.mapButtonContainer}>
+                <TouchableOpacity
+                  style={styles.mapButtonContainer}
+                  onPress={() => router.push("/landing/(room)/map-view")}>
                   <Ionicons name="map" size={24} color="#1B4965" />
                   <Text style={styles.mapButtonText}>View Map</Text>
-                </View>
+                </TouchableOpacity>
               </View>
             </View>
           ) : null}

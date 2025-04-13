@@ -9,6 +9,18 @@ import {useIncident} from "@/context/IncidentContext";
 function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
   const {incidentState} = useIncident();
 
+  const currentRoute = state.routes[state.index];
+  const nestedState = currentRoute.state as {
+    index: number;
+    routes: Array<{name: string}>;
+  };
+  if (
+    currentRoute.name === "(room)" &&
+    nestedState?.routes?.[nestedState.index]?.name === "map-view"
+  ) {
+    return null;
+  }
+
   return (
     <View style={styles.tabBarContainer}>
       {state.routes.map((route, index) => {
