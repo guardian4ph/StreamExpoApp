@@ -7,6 +7,7 @@ interface IncidentData {
   incidentId: string;
   dispatcher?: string;
   timestamp: number;
+  responderStatus?: "enroute" | "onscene" | "medicalFacility" | "rtb" | "close";
   location?: {
     lat?: number;
     lon?: number;

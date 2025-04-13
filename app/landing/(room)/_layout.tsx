@@ -18,7 +18,12 @@ export default function RoomLayout() {
           gestureEnabled: false,
         }}
       />
-      <Stack.Screen name="[id]" />
+      <Stack.Screen
+        name="[id]"
+        options={{
+          headerTitle: "Message Dispatch Operator",
+        }}
+      />
       <Stack.Screen name="video-call" options={{headerShown: false}} />
       <Stack.Screen
         name="loading-call"

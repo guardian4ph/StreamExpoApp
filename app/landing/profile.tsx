@@ -3,6 +3,12 @@ import React, {useEffect} from "react";
 import {useIncident} from "@/context/IncidentContext";
 
 export default function Profile() {
+  // const {clearIncident} = useIncident();
+
+  // useEffect(() => {
+  //   clearIncident!();
+  // }, []);
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Profile Page</Text>

@@ -1,5 +1,6 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
+.env
 # dependencies
 node_modules/
 
@@ -8,6 +9,15 @@ node_modules/
 dist/
 web-build/
 expo-env.d.ts
+
+# Android
+android/.gradle
+android/app/build
+android/build
+android/local.properties
+android/*.iml
+android/.idea/
+
 
 # Native
 *.orig.*

@@ -20,6 +20,7 @@ import {useIncident} from "@/context/IncidentContext";
 import CallPanel from "@/components/calls/CallPanel";
 import CancelIncidentModal from "@/components/incidents/cancel-incident-modal";
 import {useDispatcherDetails} from "@/hooks/useDispatcherDetails";
+import formatResponderStatus from "@/utils/FormatResponderStatus";
 
 export default function IncidentRoomVerification() {
   const {incidentState, clearIncident, setCurrentIncident} = useIncident();
@@ -27,10 +28,12 @@ export default function IncidentRoomVerification() {
   const {authState} = useAuth();
   const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");
   const [isVerified, setIsVerified] = useState<boolean>(false);
+  const [isAmbulanceComing, setIsAmbulanceComing] = useState<boolean>(false);
   const [initialMsg, setInitialMsg] = useState<string>("");
   const [showCancelModal, setShowCancelModal] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const dispatcher = useDispatcherDetails(incidentState?.dispatcher || null);
+  const [responderStatus, setResponderStatus] = useState<string>("enroute");
   const router = useRouter();
   const calls = useCalls();
 
@@ -56,6 +59,10 @@ export default function IncidentRoomVerification() {
           setIsVerified(true);
         }
 
+        if (incident.isAcceptedResponder && mounted) {
+          setIsAmbulanceComing(true);
+        }
+
         if (
           incident.dispatcher &&
           (!incidentState.dispatcher ||
@@ -67,6 +74,10 @@ export default function IncidentRoomVerification() {
             dispatcher: incident.dispatcher,
           };
           await setCurrentIncident!(updatedIncident);
+        }
+
+        if (incident.responderStatus && mounted) {
+          setResponderStatus(incident.responderStatus);
         }
 
         if (incident.isResolved && mounted) {
@@ -203,7 +214,9 @@ export default function IncidentRoomVerification() {
                 <View style={styles.headerText}>
                   <View style={styles.idSection}>
                     <Text style={styles.idLabel}>ID:</Text>
-                    <Text style={styles.idNumber}>25-03-11-0000</Text>
+                    <Text style={styles.idNumber}>
+                      {incidentState?.incidentId.substring(0, 18)}
+                    </Text>
                   </View>
                   <Text style={styles.incidentType}>
                     {incidentState?.emergencyType} Incident
@@ -312,7 +325,7 @@ export default function IncidentRoomVerification() {
           </View>
 
           {/*ambulance info */}
-          {isVerified ? (
+          {isAmbulanceComing && isVerified ? (
             <View style={styles.ambulanceContainer}>
               <View style={styles.incidentCard}>
                 <View style={styles.headerSection}>
@@ -334,7 +347,9 @@ export default function IncidentRoomVerification() {
                 {/* ETA setcion */}
                 <View style={styles.etaContainer}>
                   <View style={styles.etaStatus}>
-                    <Text style={styles.etaStatusText}>ENROUTE</Text>
+                    <Text style={styles.etaStatusText}>
+                      {formatResponderStatus(responderStatus)}
+                    </Text>
                   </View>
                   <View style={styles.etaDetails}>
                     <View style={styles.etaItem}>
