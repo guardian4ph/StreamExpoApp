@@ -46,12 +46,10 @@ export const AuthProvider = ({children}: any) => {
 
   useEffect(() => {
     const loadToken = async () => {
-      // Load token on startup
       const data = await SecureStore.getItemAsync(TOKEN_KEY);
 
       if (data) {
         const object = JSON.parse(data);
-        // Set our context state
         setAuthState({
           token: object.token,
           authenticated: true,
@@ -79,14 +77,12 @@ export const AuthProvider = ({children}: any) => {
         throw new Error(json.message || "Login failed");
       }
 
-      // Set our context state
       setAuthState({
         token: json.token,
         authenticated: true,
         user_id: json.user.id,
       });
 
-      // Store user data in secure storage
       await SecureStore.setItemAsync(TOKEN_KEY, JSON.stringify(json));
       return json;
     } catch (e) {
@@ -132,14 +128,12 @@ export const AuthProvider = ({children}: any) => {
         throw new Error(json.message || "Registration failed");
       }
 
-      // Set our context state using the _id from the response
       setAuthState({
         token: json.token,
         authenticated: true,
         user_id: json._id,
       });
 
-      // Store with the correct structure
       const userData = {
         token: json.token,
         user: {
@@ -164,10 +158,7 @@ export const AuthProvider = ({children}: any) => {
   };
 
   const logout = async () => {
-    // Delete token from storage
     await SecureStore.deleteItemAsync(TOKEN_KEY);
-
-    // Reset auth state
     setAuthState({
       token: null,
       authenticated: false,

@@ -133,7 +133,7 @@ export default function IncidentRoomVerification() {
         );
         const channel = chatClient.channel(
           "messaging",
-          incidentState?.channelId as string
+          incidentState?.incidentId.substring(5, 9)
         );
         await channel.watch();
 

@@ -9,13 +9,15 @@ import {useLocalSearchParams} from "expo-router";
 // const HEIGHT = Dimensions.get("window").height;
 
 const ChatPage = () => {
-  const {id} = useLocalSearchParams<{id: string}>();
+  const {incidentState} = useIncident();
+
+  const id = incidentState?.incidentId.substring(5, 9);
 
   return (
     <View style={{flex: 1}}>
       <View style={styles.container}>
         <View style={styles.videoContainer}>
-          <ChatView channelId={id} />
+          <ChatView channelId={id!} />
         </View>
       </View>
     </View>
