@@ -5,9 +5,10 @@ import {
   TouchableOpacity,
   Text,
   Image,
+  ActivityIndicator,
   Platform,
 } from "react-native";
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useRef, useMemo} from "react";
 import MapView, {Marker, PROVIDER_GOOGLE, Region} from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions";
 import {useIncident} from "@/context/IncidentContext";
@@ -19,7 +20,7 @@ import GetIcon from "@/utils/GetIcon";
 
 const {width, height} = Dimensions.get("window");
 const ASPECT_RATIO = width / height;
-const LATITUDE_DELTA = 0.0922;
+const LATITUDE_DELTA = 0.01; // Reduced from 0.0922 for closer zoom
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
 
@@ -28,16 +29,75 @@ export default function MapViewScreen() {
   const [responderStatus, setResponderStatus] = useState(
     incidentState?.responderStatus || "enroute"
   );
-  // Make sure responder and incident have different initial coordinates
-  const [responderCoords, setResponderCoords] = useState({
-    latitude: 10.38029,
-    longitude: 123.96444,
-  });
   const [distance, setDistance] = useState<string>("--");
   const [duration, setDuration] = useState<string>("--");
   const [mapRegion, setMapRegion] = useState<Region | null>(null);
   const [directionsError, setDirectionsError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const mapRef = useRef<MapView>(null);
   const router = useRouter();
+
+  const responderCoords = useMemo(
+    () => ({
+      latitude: 10.373,
+      longitude: 123.9545,
+    }),
+    []
+  );
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const initializeMap = async () => {
+      try {
+        setIsLoading(true);
+
+        if (!isMounted) return;
+
+        if (incidentState?.location?.lat && incidentState?.location?.lon) {
+          const userCoords = {
+            latitude: incidentState?.location?.lat,
+            longitude: incidentState?.location?.lon,
+          };
+
+          const midLat = (userCoords.latitude + incidentState.location.lat) / 2;
+          const midLon =
+            (userCoords.longitude + incidentState.location.lon) / 2;
+
+          const latDelta =
+            Math.abs(userCoords.latitude - incidentState.location.lat) * 1.5;
+          const lonDelta =
+            Math.abs(userCoords.longitude - incidentState.location.lon) * 1.5;
+
+          setMapRegion({
+            latitude: midLat,
+            longitude: midLon,
+            latitudeDelta: Math.max(latDelta, LATITUDE_DELTA),
+            longitudeDelta: Math.max(lonDelta, LONGITUDE_DELTA),
+          });
+        } else {
+          setMapRegion({
+            latitude: incidentState?.location?.lat!,
+            longitude: incidentState?.location?.lon!,
+            latitudeDelta: LATITUDE_DELTA,
+            longitudeDelta: LONGITUDE_DELTA,
+          });
+        }
+      } catch (error) {
+        console.error("Error initializing map:", error);
+      } finally {
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    initializeMap();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [incidentState?.location?.lat, incidentState?.location?.lon]);
 
   useEffect(() => {
     let mounted = true;
@@ -57,10 +117,14 @@ export default function MapViewScreen() {
             latitude: incident.responderCoordinates.lat,
             longitude: incident.responderCoordinates.lon,
           };
-          setResponderCoords(newCoords);
+          // setResponderCoords(newCoords);
 
-          // map updates
-          if (incidentState?.location?.lat && incidentState?.location?.lon) {
+          // map updates - only if we already have a map region
+          if (
+            incidentState?.location?.lat &&
+            incidentState?.location?.lon &&
+            mapRegion
+          ) {
             const midLat =
               (newCoords.latitude + incidentState.location.lat) / 2;
             const midLon =
@@ -92,6 +156,15 @@ export default function MapViewScreen() {
     };
   }, [incidentState]);
 
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#3498db" />
+        <Text style={styles.loadingText}>Loading map...</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
@@ -99,45 +172,50 @@ export default function MapViewScreen() {
       </TouchableOpacity>
 
       <MapView
+        ref={mapRef}
         style={styles.map}
         provider={PROVIDER_GOOGLE}
-        region={
-          mapRegion || {
-            latitude: 10.38029,
-            longitude: 123.96444,
-            latitudeDelta: LATITUDE_DELTA,
-            longitudeDelta: LONGITUDE_DELTA,
-          }
-        }>
-        {/* incident Marker */}
+        region={mapRegion!}
+        showsUserLocation={true}
+        showsMyLocationButton={true}
+        loadingEnabled={true}
+        loadingIndicatorColor="#3498db"
+        loadingBackgroundColor="#f9f9f9">
+        {/* incident Marker (VOLUNTEER USER) */}
         <Marker
           coordinate={{
-            latitude: incidentState?.location?.lat || 10.3157,
-            longitude: incidentState?.location?.lon || 123.8854,
+            latitude: incidentState?.location?.lat!,
+            longitude: incidentState?.location?.lon!,
           }}
           title="Incident Location"
-          description={incidentState?.location?.address}>
-          <Image
-            source={GetEmergencyIcon(incidentState?.emergencyType || "General")}
-            style={styles.markerIcon}
-          />
+          description="You are Here!">
+          <View style={styles.markerWrapper}>
+            <Image
+              source={GetEmergencyIcon(incidentState?.emergencyType!)}
+              style={styles.markerIcon}
+            />
+          </View>
         </Marker>
+
         {/* responder marker */}
         <Marker
           coordinate={responderCoords}
           title="Responder Location"
-          description="Ambulance location">
-          <Image
-            source={GetIcon(incidentState?.emergencyType || "General")}
-            style={styles.markerIcon}
-          />
+          description="Responder">
+          <View style={styles.markerWrapper}>
+            <Image
+              source={GetIcon(incidentState?.emergencyType!)}
+              style={styles.markerIcon}
+            />
+          </View>
         </Marker>
+
         {/* directions from responder to incident */}
         <MapViewDirections
           origin={responderCoords}
           destination={{
-            latitude: incidentState?.location?.lat || 10.3157,
-            longitude: incidentState?.location?.lon || 123.8854,
+            latitude: incidentState?.location?.lat!,
+            longitude: incidentState?.location?.lon!,
           }}
           apikey={GOOGLE_MAPS_API_KEY!}
           strokeWidth={4}
@@ -205,12 +283,31 @@ export default function MapViewScreen() {
 }
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#f9f9f9",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#666",
+  },
   container: {
     flex: 1,
   },
-  markerIcon: {
+  markerWrapper: {
     width: 40,
-    height: 40,
+    height: 35,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "hidden",
+    backgroundColor: "transparent",
+  },
+  markerIcon: {
+    width: "100%",
+    height: "100%",
     resizeMode: "contain",
   },
   map: {

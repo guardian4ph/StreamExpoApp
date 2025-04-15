@@ -95,5 +95,16 @@
     <string>Automatic</string>
     <key>UIViewControllerBasedStatusBarAppearance</key>
     <false/>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>$(PRODUCT_NAME) needs access to location when open to show your current location on the map</string>
+    
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>$(PRODUCT_NAME) needs access to location when open to show your current location on the map</string>
+    
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>$(PRODUCT_NAME) needs access to location when in the background to show your current location on the map</string>
+
+    <key>GMSApiKey</key>
+    <string>AIzaSyAJjCD4TVrZk6u-OxFvk00OYpBqSMB_RVo</string>
   </dict>
 </plist>
