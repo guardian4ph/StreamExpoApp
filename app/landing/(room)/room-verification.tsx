@@ -8,7 +8,7 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, useRef} from "react";
 import {useRouter} from "expo-router";
 import GetIcon from "@/utils/GetIcon";
 import {Ionicons} from "@expo/vector-icons";
@@ -21,6 +21,7 @@ import CallPanel from "@/components/calls/CallPanel";
 import CancelIncidentModal from "@/components/incidents/cancel-incident-modal";
 import {useDispatcherDetails} from "@/hooks/useDispatcherDetails";
 import formatResponderStatus from "@/utils/FormatResponderStatus";
+import {useSound} from "@/utils/PlaySound";
 
 export default function IncidentRoomVerification() {
   const {incidentState, clearIncident, setCurrentIncident} = useIncident();
@@ -36,6 +37,8 @@ export default function IncidentRoomVerification() {
   const [responderStatus, setResponderStatus] = useState<string>("enroute");
   const router = useRouter();
   const calls = useCalls();
+  const {playSound} = useSound(require("@/assets/sounds/sound_notif.mp3"));
+  const hasPlayedVerificationSound = useRef(false);
 
   useEffect(() => {
     if (!incidentState || incidentState.channelId === "index") {
@@ -56,6 +59,10 @@ export default function IncidentRoomVerification() {
         const incident = await response.json();
 
         if (incident.isVerified && mounted) {
+          if (!isVerified && !hasPlayedVerificationSound.current) {
+            playSound();
+            hasPlayedVerificationSound.current = true;
+          }
           setIsVerified(true);
         }
 
