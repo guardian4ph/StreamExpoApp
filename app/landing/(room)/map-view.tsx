@@ -14,20 +14,21 @@ import {useIncident} from "@/context/IncidentContext";
 import {Ionicons} from "@expo/vector-icons";
 import {useRouter} from "expo-router";
 import formatResponderStatus from "@/utils/FormatResponderStatus";
+import GetEmergencyIcon from "@/utils/GetEmergencyIcon";
+import GetIcon from "@/utils/GetIcon";
 
 const {width, height} = Dimensions.get("window");
 const ASPECT_RATIO = width / height;
 const LATITUDE_DELTA = 0.0922;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
-const GOOGLE_MAPS_API_KEY =
-  process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ||
-  "";
+const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 export default function MapViewScreen() {
   const {incidentState} = useIncident();
   const [responderStatus, setResponderStatus] = useState(
     incidentState?.responderStatus || "enroute"
   );
+  // Make sure responder and incident have different initial coordinates
   const [responderCoords, setResponderCoords] = useState({
     latitude: 10.38029,
     longitude: 123.96444,
@@ -51,7 +52,6 @@ export default function MapViewScreen() {
           setResponderStatus(incident.responderStatus);
         }
 
-        // Update responder coordinates if available
         if (incident.responderCoordinates && mounted) {
           const newCoords = {
             latitude: incident.responderCoordinates.lat,
@@ -59,7 +59,7 @@ export default function MapViewScreen() {
           };
           setResponderCoords(newCoords);
 
-          // Update map region to show both points
+          // map updates
           if (incidentState?.location?.lat && incidentState?.location?.lon) {
             const midLat =
               (newCoords.latitude + incidentState.location.lat) / 2;
@@ -109,25 +109,30 @@ export default function MapViewScreen() {
             longitudeDelta: LONGITUDE_DELTA,
           }
         }>
-        {/* Incident Location Marker */}
+        {/* incident Marker */}
         <Marker
           coordinate={{
             latitude: incidentState?.location?.lat || 10.3157,
             longitude: incidentState?.location?.lon || 123.8854,
           }}
           title="Incident Location"
-          description={incidentState?.location?.address}
-          pinColor="red"
-        />
-        {/* Responder Location Marker */}
+          description={incidentState?.location?.address}>
+          <Image
+            source={GetEmergencyIcon(incidentState?.emergencyType || "General")}
+            style={styles.markerIcon}
+          />
+        </Marker>
+        {/* responder marker */}
         <Marker
           coordinate={responderCoords}
           title="Responder Location"
-          description="Ambulance location"
-          pinColor="blue"
-        />
-        {/* Directions between responder and incident */}
-        // Inside your return statement, update the MapViewDirections component:
+          description="Ambulance location">
+          <Image
+            source={GetIcon(incidentState?.emergencyType || "General")}
+            style={styles.markerIcon}
+          />
+        </Marker>
+        {/* directions from responder to incident */}
         <MapViewDirections
           origin={responderCoords}
           destination={{
@@ -150,7 +155,7 @@ export default function MapViewScreen() {
             setDirectionsError(errorMessage);
           }}
         />
-        {/* Add this below the MapView to show any errors */}
+        {/* err handling */}
         {directionsError && (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>Error: {directionsError}</Text>
@@ -202,6 +207,11 @@ export default function MapViewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  markerIcon: {
+    width: 40,
+    height: 40,
+    resizeMode: "contain",
   },
   map: {
     width: width,

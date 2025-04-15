@@ -90,7 +90,7 @@ const VideoCall = () => {
             <CallContent
               CallControls={CustomCallControls}
               layout="grid"
-              onHangupCallHandler={handleCallEnd}
+              // onHangupCallHandler={handleCallEnd}
             />
           </View>
         </StreamCall>

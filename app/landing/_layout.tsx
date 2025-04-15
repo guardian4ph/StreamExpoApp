@@ -116,6 +116,16 @@ export default function MainLayout() {
           tabBarIcon: ({color}) => (
             <Ionicons name="person" size={24} color={color} />
           ),
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: "#1B4965",
+          },
+          headerTitleStyle: {
+            color: "white",
+            fontSize: 20,
+            fontWeight: "bold",
+            marginLeft: 10,
+          },
         }}
       />
       <Tabs.Screen name="(room)" options={{}} />

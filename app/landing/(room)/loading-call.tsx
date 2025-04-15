@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import React, {useState, useEffect} from "react";
 import {useRouter} from "expo-router";
-import getEmergencyIcon from "@/utils/GetIcon";
+import GetIcon from "@/utils/GetIcon";
 import {useIncident} from "@/context/IncidentContext";
 
 export default function ConnectingCallPage() {
@@ -84,7 +84,7 @@ export default function ConnectingCallPage() {
         </Text>
         <View style={styles.iconContainer}>
           <Image
-            source={getEmergencyIcon(incidentState?.emergencyType as string)}
+            source={GetIcon(incidentState?.emergencyType as string)}
             resizeMode="contain"
             style={styles.emergencyIcon}
           />

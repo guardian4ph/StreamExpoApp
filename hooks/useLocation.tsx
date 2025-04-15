@@ -1,6 +1,8 @@
 import React, {useState} from "react";
 import * as Location from "expo-location";
 
+const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
+
 const useLocation = () => {
   const [errorMsg, setErrorMsg] = useState("");
   const [lat, setLat] = useState<number | null>(null);
@@ -19,12 +21,37 @@ const useLocation = () => {
       const {latitude, longitude} = coords;
       setLat(latitude);
       setLon(longitude);
-      let response = await Location.reverseGeocodeAsync({
-        latitude,
-        longitude,
-      });
-      return {latitude, longitude, response};
-      console.log(response); // Array of addres
+
+      try {
+        const response = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`
+        );
+        const data = await response.json();
+
+        if (data.status === "OK" && data.results.length > 0) {
+          return {
+            latitude,
+            longitude,
+            response: [
+              {
+                street: data.results[0].formatted_address,
+                city: data.results[0].address_components.find((c: any) =>
+                  c.types.includes("locality")
+                )?.long_name,
+                region: data.results[0].address_components.find((c: any) =>
+                  c.types.includes("administrative_area_level_1")
+                )?.long_name,
+                country: data.results[0].address_components.find((c: any) =>
+                  c.types.includes("country")
+                )?.long_name,
+              },
+            ],
+          };
+        }
+      } catch (error) {
+        console.error("Error geocoding with Google Maps:", error);
+        setErrorMsg("Failed to get address information");
+      }
     }
     return null;
   };

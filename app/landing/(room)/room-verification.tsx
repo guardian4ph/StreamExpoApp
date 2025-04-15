@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import React, {useEffect, useState} from "react";
 import {useRouter} from "expo-router";
-import getEmergencyIcon from "@/utils/GetIcon";
+import GetIcon from "@/utils/GetIcon";
 import {Ionicons} from "@expo/vector-icons";
 import {StreamChat} from "stream-chat";
 import {useAuth} from "@/context/AuthContext";
@@ -205,9 +205,7 @@ export default function IncidentRoomVerification() {
             <View style={styles.headerSection}>
               <View style={styles.headerRow}>
                 <Image
-                  source={getEmergencyIcon(
-                    incidentState?.emergencyType as string
-                  )}
+                  source={GetIcon(incidentState?.emergencyType as string)}
                   resizeMode="contain"
                   style={styles.medicalIcon}
                 />

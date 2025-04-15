@@ -1,4 +1,11 @@
-import {SafeAreaView, StyleSheet, Text, View, Image} from "react-native";
+import {
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  View,
+  Image,
+  Dimensions,
+} from "react-native";
 import {
   CallingState,
   useCall,
@@ -8,6 +15,8 @@ import {
   IncomingCall,
 } from "@stream-io/video-react-native-sdk";
 import {useRouter, useLocalSearchParams} from "expo-router";
+
+const {width, height} = Dimensions.get("window");
 
 export default function CallPanel() {
   const call = useCall();
@@ -32,23 +41,24 @@ export default function CallPanel() {
   const callingState = useCallCallingState();
   if (callingState === CallingState.RINGING && !isCallCreatedByMe) {
     return (
-      <View
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: "rgba(0,0,0,0.8)",
-          zIndex: 9999,
-          flex: 1,
-          justifyContent: "center",
-          width: "100%",
-          alignItems: "center",
-        }}>
+      <View style={styles.fullScreenContainer}>
         <IncomingCall onAcceptCallHandler={handleAcceptCall} />
       </View>
     );
   }
   return null;
 }
+
+const styles = StyleSheet.create({
+  fullScreenContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: width,
+    height: height,
+    backgroundColor: "rgba(0,0,0,0.8)",
+    zIndex: 9999,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+});

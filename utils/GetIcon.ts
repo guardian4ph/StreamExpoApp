@@ -1,4 +1,4 @@
-const getEmergencyIcon = (type: string) => {
+const GetIcon = (type: string) => {
   switch (type) {
     case "Medical":
       return require("@/assets/images/AMBU.png");
@@ -13,4 +13,4 @@ const getEmergencyIcon = (type: string) => {
   }
 };
 
-export default getEmergencyIcon;
+export default GetIcon;

@@ -21,9 +21,9 @@ export default function AlertPost() {
     <View key={alert.id} style={styles.alertContainer}>
       <View style={styles.alertHeader}>
         <Image
-          source={require("@/assets/images/Medical.png")}
+          source={require("@/assets/images/emergencyMedical.png")}
           style={{width: 45, height: 45}}
-          defaultSource={require("@/assets/images/Medical.png")}
+          defaultSource={require("@/assets/images/emergencyMedical.png")}
         />
         <View>
           <Text style={styles.opCenter}>{alert.opCenter}</Text>
