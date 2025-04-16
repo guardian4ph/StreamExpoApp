@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   Platform,
 } from "react-native";
-import React, {useState, useEffect, useRef, useMemo} from "react";
+import React, {useState, useEffect, useRef, useMemo, useCallback} from "react";
 import MapView, {Marker, PROVIDER_GOOGLE, Region} from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions";
 import {useIncident} from "@/context/IncidentContext";
@@ -20,7 +20,7 @@ import GetIcon from "@/utils/GetIcon";
 
 const {width, height} = Dimensions.get("window");
 const ASPECT_RATIO = width / height;
-const LATITUDE_DELTA = 0.01; // Reduced from 0.0922 for closer zoom
+const LATITUDE_DELTA = 0.005;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
 
@@ -36,6 +36,9 @@ export default function MapViewScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const mapRef = useRef<MapView>(null);
   const router = useRouter();
+  const incidentIdRef = useRef(incidentState?.incidentId);
+  const fetchIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef(true);
 
   const responderCoords = useMemo(
     () => ({
@@ -45,29 +48,127 @@ export default function MapViewScreen() {
     []
   );
 
+  const incidentCoords = useMemo(() => {
+    if (!incidentState?.location?.lat || !incidentState?.location?.lon) {
+      return null;
+    }
+    return {
+      latitude: incidentState.location.lat,
+      longitude: incidentState.location.lon,
+    };
+  }, [incidentState?.location?.lat, incidentState?.location?.lon]);
+
+  const emergencyIcon = useMemo(() => {
+    return GetEmergencyIcon(incidentState?.emergencyType || "");
+  }, [incidentState?.emergencyType]);
+
+  const responderIcon = useMemo(() => {
+    return GetIcon(incidentState?.emergencyType || "");
+  }, [incidentState?.emergencyType]);
+
+  const formattedResponderStatus = useMemo(() => {
+    return formatResponderStatus(responderStatus);
+  }, [responderStatus]);
+
+  // initialize map func
+  const initializeMap = useCallback(async () => {
+    if (!isMountedRef.current) return;
+
+    try {
+      setIsLoading(true);
+
+      if (!incidentCoords) {
+        setIsLoading(false);
+        return;
+      }
+
+      const userCoords = incidentCoords;
+
+      // Calculate center point between incident and responder
+      const midLat = (userCoords.latitude + responderCoords.latitude) / 2;
+      const midLon = (userCoords.longitude + responderCoords.longitude) / 2;
+
+      // Calculate appropriate zoom level based on distance between points
+      const latDelta =
+        Math.abs(userCoords.latitude - responderCoords.latitude) * 1.2;
+      const lonDelta =
+        Math.abs(userCoords.longitude - responderCoords.longitude) * 1.2;
+
+      // Set minimum zoom level to prevent excessive zooming out
+      const minLatDelta = 0.005;
+      const minLonDelta = minLatDelta * ASPECT_RATIO;
+
+      setMapRegion({
+        latitude: midLat,
+        longitude: midLon,
+        latitudeDelta: Math.max(latDelta, minLatDelta),
+        longitudeDelta: Math.max(lonDelta, minLonDelta),
+      });
+    } catch (error) {
+      console.error("Error initializing map:", error);
+    } finally {
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
+    }
+  }, [incidentCoords, responderCoords]);
+
   useEffect(() => {
-    let isMounted = true;
+    initializeMap();
+  }, [initializeMap]);
 
-    const initializeMap = async () => {
-      try {
-        setIsLoading(true);
+  useEffect(() => {
+    if (mapRef.current && incidentCoords && !isLoading) {
+      const timer = setTimeout(() => {
+        if (mapRef.current && incidentCoords) {
+          mapRef.current.fitToSuppliedMarkers(["incident", "responder"], {
+            edgePadding: {top: 50, right: 50, bottom: 50, left: 50},
+            animated: true,
+          });
+        }
+      }, 500);
 
-        if (!isMounted) return;
+      return () => clearTimeout(timer);
+    }
+  }, [incidentCoords, isLoading]);
 
-        if (incidentState?.location?.lat && incidentState?.location?.lon) {
-          const userCoords = {
-            latitude: incidentState?.location?.lat,
-            longitude: incidentState?.location?.lon,
-          };
+  // to check 4 status changes (enroute, onscene, etfc)..
+  const checkIncidentStatus = useCallback(async () => {
+    if (!incidentState?.incidentId || !isMountedRef.current) return;
 
-          const midLat = (userCoords.latitude + incidentState.location.lat) / 2;
-          const midLon =
-            (userCoords.longitude + incidentState.location.lon) / 2;
+    try {
+      const response = await fetch(
+        `${process.env.EXPO_PUBLIC_API_URL}/incidents/${incidentState.incidentId}`
+      );
+      const incident = await response.json();
+
+      if (!isMountedRef.current) return;
+
+      if (
+        incident.responderStatus &&
+        incident.responderStatus !== responderStatus
+      ) {
+        setResponderStatus(incident.responderStatus);
+      }
+
+      if (incident.responderCoordinates && mapRegion && incidentCoords) {
+        const newCoords = {
+          latitude: incident.responderCoordinates.lat,
+          longitude: incident.responderCoordinates.lon,
+        };
+
+        const coordsChanged =
+          Math.abs(newCoords.latitude - responderCoords.latitude) > 0.0001 ||
+          Math.abs(newCoords.longitude - responderCoords.longitude) > 0.0001;
+
+        if (coordsChanged) {
+          const midLat = (newCoords.latitude + incidentCoords.latitude) / 2;
+          const midLon = (newCoords.longitude + incidentCoords.longitude) / 2;
 
           const latDelta =
-            Math.abs(userCoords.latitude - incidentState.location.lat) * 1.5;
+            Math.abs(newCoords.latitude - incidentCoords.latitude) * 1.5;
           const lonDelta =
-            Math.abs(userCoords.longitude - incidentState.location.lon) * 1.5;
+            Math.abs(newCoords.longitude - incidentCoords.longitude) * 1.5;
 
           setMapRegion({
             latitude: midLat,
@@ -75,86 +176,76 @@ export default function MapViewScreen() {
             latitudeDelta: Math.max(latDelta, LATITUDE_DELTA),
             longitudeDelta: Math.max(lonDelta, LONGITUDE_DELTA),
           });
-        } else {
-          setMapRegion({
-            latitude: incidentState?.location?.lat!,
-            longitude: incidentState?.location?.lon!,
-            latitudeDelta: LATITUDE_DELTA,
-            longitudeDelta: LONGITUDE_DELTA,
-          });
-        }
-      } catch (error) {
-        console.error("Error initializing map:", error);
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
         }
       }
-    };
+    } catch (error) {
+      console.error("Error checking incident status:", error);
+    }
+  }, [
+    incidentState?.incidentId,
+    responderStatus,
+    mapRegion,
+    incidentCoords,
+    responderCoords,
+  ]);
 
-    initializeMap();
+  const handleDirectionsReady = useCallback(
+    (result: any) => {
+      if (!isMountedRef.current) return;
 
-    return () => {
-      isMounted = false;
-    };
-  }, [incidentState?.location?.lat, incidentState?.location?.lon]);
+      const newDistance = `${result.distance.toFixed(2)} km`;
+      const newDuration = `${Math.ceil(result.duration)} min`;
+
+      if (distance !== newDistance) {
+        setDistance(newDistance);
+      }
+
+      if (duration !== newDuration) {
+        setDuration(newDuration);
+      }
+
+      setDirectionsError(null);
+    },
+    [distance, duration]
+  );
+
+  const handleDirectionsError = useCallback((errorMessage: any) => {
+    console.error("Directions API error:", errorMessage);
+    if (isMountedRef.current) {
+      setDirectionsError(errorMessage);
+    }
+  }, []);
 
   useEffect(() => {
-    let mounted = true;
-    const checkIncidentStatus = async () => {
-      if (!incidentState?.incidentId) return;
-      try {
-        const response = await fetch(
-          `${process.env.EXPO_PUBLIC_API_URL}/incidents/${incidentState?.incidentId}`
-        );
-        const incident = await response.json();
-        if (incident.responderStatus && mounted) {
-          setResponderStatus(incident.responderStatus);
-        }
+    initializeMap();
+  }, [initializeMap]);
 
-        if (incident.responderCoordinates && mounted) {
-          const newCoords = {
-            latitude: incident.responderCoordinates.lat,
-            longitude: incident.responderCoordinates.lon,
-          };
-          // setResponderCoords(newCoords);
+  useEffect(() => {
+    isMountedRef.current = true;
 
-          // map updates - only if we already have a map region
-          if (
-            incidentState?.location?.lat &&
-            incidentState?.location?.lon &&
-            mapRegion
-          ) {
-            const midLat =
-              (newCoords.latitude + incidentState.location.lat) / 2;
-            const midLon =
-              (newCoords.longitude + incidentState.location.lon) / 2;
+    if (incidentIdRef.current !== incidentState?.incidentId) {
+      if (fetchIntervalRef.current) {
+        clearInterval(fetchIntervalRef.current);
+      }
+      incidentIdRef.current = incidentState?.incidentId;
+    }
 
-            const latDelta =
-              Math.abs(newCoords.latitude - incidentState.location.lat) * 1.5;
-            const lonDelta =
-              Math.abs(newCoords.longitude - incidentState.location.lon) * 1.5;
+    checkIncidentStatus();
 
-            setMapRegion({
-              latitude: midLat,
-              longitude: midLon,
-              latitudeDelta: Math.max(latDelta, LATITUDE_DELTA),
-              longitudeDelta: Math.max(lonDelta, LONGITUDE_DELTA),
-            });
-          }
-        }
-      } catch (error) {
-        console.error("Error checking incident status:", error);
+    fetchIntervalRef.current = setInterval(checkIncidentStatus, 3000);
+
+    return () => {
+      isMountedRef.current = false;
+      if (fetchIntervalRef.current) {
+        clearInterval(fetchIntervalRef.current);
+        fetchIntervalRef.current = null;
       }
     };
+  }, [incidentState?.incidentId, checkIncidentStatus]);
 
-    const interval = setInterval(checkIncidentStatus, 3000);
-    checkIncidentStatus();
-    return () => {
-      mounted = false;
-      clearInterval(interval);
-    };
-  }, [incidentState]);
+  const handleBackPress = useCallback(() => {
+    router.back();
+  }, [router]);
 
   if (isLoading) {
     return (
@@ -165,9 +256,10 @@ export default function MapViewScreen() {
     );
   }
 
+  // #actual MAP UI VIEW
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+      <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
         <Ionicons name="arrow-back" size={28} color="#1B4965" />
       </TouchableOpacity>
 
@@ -182,57 +274,46 @@ export default function MapViewScreen() {
         loadingIndicatorColor="#3498db"
         loadingBackgroundColor="#f9f9f9">
         {/* incident Marker (VOLUNTEER USER) */}
-        <Marker
-          coordinate={{
-            latitude: incidentState?.location?.lat!,
-            longitude: incidentState?.location?.lon!,
-          }}
-          title="Incident Location"
-          description="You are Here!">
-          <View style={styles.markerWrapper}>
-            <Image
-              source={GetEmergencyIcon(incidentState?.emergencyType!)}
-              style={styles.markerIcon}
-            />
-          </View>
-        </Marker>
+        {incidentCoords && (
+          <Marker
+            identifier="incident"
+            coordinate={incidentCoords}
+            title="Incident Location"
+            description="You are Here!"
+            anchor={{x: 0.5, y: 0.5}}>
+            <View style={styles.markerWrapper}>
+              <Image source={emergencyIcon} style={styles.markerIcon} />
+            </View>
+          </Marker>
+        )}
 
         {/* responder marker */}
         <Marker
+          identifier="responder"
           coordinate={responderCoords}
           title="Responder Location"
-          description="Responder">
+          description="Responder"
+          anchor={{x: 0.5, y: 0.5}}>
           <View style={styles.markerWrapper}>
-            <Image
-              source={GetIcon(incidentState?.emergencyType!)}
-              style={styles.markerIcon}
-            />
+            <Image source={responderIcon} style={styles.markerIcon} />
           </View>
         </Marker>
 
         {/* directions from responder to incident */}
-        <MapViewDirections
-          origin={responderCoords}
-          destination={{
-            latitude: incidentState?.location?.lat!,
-            longitude: incidentState?.location?.lon!,
-          }}
-          apikey={GOOGLE_MAPS_API_KEY!}
-          strokeWidth={4}
-          strokeColor="#1B4965"
-          mode="DRIVING"
-          optimizeWaypoints={true}
-          onReady={(result) => {
-            console.log("Directions ready:", result);
-            setDistance(`${result.distance.toFixed(2)} km`);
-            setDuration(`${Math.ceil(result.duration)} min`);
-            setDirectionsError(null);
-          }}
-          onError={(errorMessage) => {
-            console.error("Directions API error:", errorMessage);
-            setDirectionsError(errorMessage);
-          }}
-        />
+        {incidentCoords && (
+          <MapViewDirections
+            origin={responderCoords}
+            destination={incidentCoords}
+            apikey={GOOGLE_MAPS_API_KEY!}
+            strokeWidth={4}
+            strokeColor="#1B4965"
+            mode="DRIVING"
+            optimizeWaypoints={true}
+            onReady={handleDirectionsReady}
+            onError={handleDirectionsError}
+          />
+        )}
+
         {/* err handling */}
         {directionsError && (
           <View style={styles.errorContainer}>
@@ -262,7 +343,7 @@ export default function MapViewScreen() {
           <View style={styles.etaContainer}>
             <View style={styles.etaStatus}>
               <Text style={styles.etaStatusText}>
-                {formatResponderStatus(responderStatus)}
+                {formattedResponderStatus}
               </Text>
             </View>
             <View style={styles.etaDetails}>
