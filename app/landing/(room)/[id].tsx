@@ -12,7 +12,7 @@ const ChatPage = () => {
   const {incidentState} = useIncident();
 
   const hash = incidentState?.incidentId.substring(5, 9);
-  const id = `${incidentState?.emergencyType}-${hash}`;
+  const id = `${incidentState?.emergencyType.toLowerCase()}-${hash}`;
 
   return (
     <View style={{flex: 1}}>

@@ -12,11 +12,11 @@ import {useGetUserInfo} from "@/hooks/useGetUserInfo";
 import {useIncident} from "@/context/IncidentContext";
 
 export default function Profile() {
-  // const {clearIncident} = useIncident();
+  const {clearIncident} = useIncident();
 
-  // useEffect(() => {
-  //   clearIncident!();
-  // }, []);
+  useEffect(() => {
+    clearIncident!();
+  }, []);
 
   const {userInfo, loading, error} = useGetUserInfo();
 

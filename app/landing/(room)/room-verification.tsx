@@ -141,6 +141,8 @@ export default function IncidentRoomVerification() {
 
   useEffect(() => {
     const listenForInitialMessage = async () => {
+      const hash = incidentState?.incidentId.substring(5, 9);
+      const channelId = `${incidentState?.emergencyType.toLowerCase()}-${hash}`;
       try {
         const chatClient = StreamChat.getInstance(
           process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY!
@@ -149,10 +151,7 @@ export default function IncidentRoomVerification() {
           {id: authState?.user_id!},
           authState?.token!
         );
-        const channel = chatClient.channel(
-          "messaging",
-          incidentState?.incidentId.substring(5, 9)
-        );
+        const channel = chatClient.channel("messaging", channelId);
         await channel.watch();
 
         const response = await channel.query({messages: {limit: 10}});
