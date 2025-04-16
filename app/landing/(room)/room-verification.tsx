@@ -22,6 +22,7 @@ import CancelIncidentModal from "@/components/incidents/cancel-incident-modal";
 import {useDispatcherDetails} from "@/hooks/useDispatcherDetails";
 import formatResponderStatus from "@/utils/FormatResponderStatus";
 import {useSound} from "@/utils/PlaySound";
+import RingingSound from "@/components/calls/RingingSound";
 
 export default function IncidentRoomVerification() {
   const {incidentState, clearIncident, setCurrentIncident} = useIncident();
@@ -198,6 +199,7 @@ export default function IncidentRoomVerification() {
       />
       {calls && calls.length > 0 && calls[0] ? (
         <StreamCall call={calls[0]}>
+          <RingingSound />
           <CallPanel />
         </StreamCall>
       ) : null}

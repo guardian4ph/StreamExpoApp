@@ -23,9 +23,11 @@ const VideoCall = () => {
   const handleCallEnd = async () => {
     try {
       setCall(null);
+      await call?.leave();
       router.replace("/landing/(room)/room-verification");
     } catch (error) {
       console.error("Error ending call:", error);
+      await call?.leave();
       router.replace("/landing/(room)/room-verification");
     }
   };
@@ -87,11 +89,7 @@ const VideoCall = () => {
       {call && (
         <StreamCall call={call}>
           <View style={styles.container}>
-            <CallContent
-              CallControls={CustomCallControls}
-              layout="grid"
-              // onHangupCallHandler={handleCallEnd}
-            />
+            <CallContent layout="grid" onHangupCallHandler={handleCallEnd} />
           </View>
         </StreamCall>
       )}
