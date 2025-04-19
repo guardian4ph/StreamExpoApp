@@ -10,6 +10,7 @@ import React, {useState, useEffect} from "react";
 import {useRouter} from "expo-router";
 import GetIcon from "@/utils/GetIcon";
 import {useIncident} from "@/context/IncidentContext";
+import GetEmergencyIcon from "@/utils/GetEmergencyIcon";
 
 export default function ConnectingCallPage() {
   const {incidentState, clearIncident} = useIncident();
@@ -84,7 +85,7 @@ export default function ConnectingCallPage() {
         </Text>
         <View style={styles.iconContainer}>
           <Image
-            source={GetIcon(incidentState?.emergencyType as string)}
+            source={GetEmergencyIcon(incidentState?.emergencyType as string)}
             resizeMode="contain"
             style={styles.emergencyIcon}
           />
