@@ -7,8 +7,9 @@ import {
   TouchableOpacity,
   Platform,
   ScrollView,
+  AppState,
 } from "react-native";
-import React, {useEffect, useState, useRef} from "react";
+import React, {useEffect, useState, useRef, useCallback, useMemo} from "react";
 import {useRouter} from "expo-router";
 import GetIcon from "@/utils/GetIcon";
 import {Ionicons} from "@expo/vector-icons";
@@ -23,6 +24,7 @@ import {useDispatcherDetails} from "@/hooks/useDispatcherDetails";
 import formatResponderStatus from "@/utils/FormatResponderStatus";
 import {useSound} from "@/utils/PlaySound";
 import RingingSound from "@/components/calls/RingingSound";
+import {getIncidentById} from "@/api/useFetchIncident";
 
 export default function IncidentRoomVerification() {
   const {incidentState, clearIncident, setCurrentIncident} = useIncident();
@@ -40,6 +42,10 @@ export default function IncidentRoomVerification() {
   const calls = useCalls();
   const {playSound} = useSound(require("@/assets/sounds/sound_notif.mp3"));
   const hasPlayedVerificationSound = useRef(false);
+  const [pollingInterval, setPollingInterval] = useState<number>(3000);
+  const appState = useRef(AppState.currentState);
+  const lastFetchTime = useRef<number>(0);
+  const isFetching = useRef<boolean>(false);
 
   useEffect(() => {
     if (!incidentState || incidentState.channelId === "index") {
@@ -49,81 +55,116 @@ export default function IncidentRoomVerification() {
   }, [incidentState]);
 
   // realtym updates for incident status..
-  useEffect(() => {
-    let mounted = true;
-    const checkIsIncidentResolved = async () => {
-      if (!incidentState?.incidentId) return;
-      try {
-        const response = await fetch(
-          `${process.env.EXPO_PUBLIC_API_URL}/incidents/${incidentState?.incidentId}`
-        );
-        const incident = await response.json();
+  const checkIsIncidentResolved = useCallback(async () => {
+    if (isFetching.current) return;
 
-        if (incident.isVerified && mounted) {
-          if (!isVerified && !hasPlayedVerificationSound.current) {
-            playSound();
-            hasPlayedVerificationSound.current = true;
-          }
-          setIsVerified(true);
-        }
+    // request throtleing
+    const now = Date.now();
+    if (now - lastFetchTime.current < pollingInterval * 0.8) return;
 
-        if (incident.isAcceptedResponder && mounted) {
-          setIsAmbulanceComing(true);
-        }
+    if (!incidentState?.incidentId) return;
 
-        if (
-          incident.dispatcher &&
-          (!incidentState.dispatcher ||
-            incident.dispatcher !== incidentState.dispatcher)
-        ) {
-          console.log("Dispatcher assigned:", incident.dispatcher);
-          const updatedIncident = {
-            ...incidentState,
-            dispatcher: incident.dispatcher,
-          };
-          await setCurrentIncident!(updatedIncident);
-        }
+    try {
+      isFetching.current = true;
+      lastFetchTime.current = now;
 
-        if (incident.responderStatus && mounted) {
-          setResponderStatus(incident.responderStatus);
-        }
+      const incident = await getIncidentById(incidentState?.incidentId);
 
-        if (incident.isResolved && mounted) {
-          clearInterval(interval);
-          setIsLoading(true);
-          try {
-            await clearIncident!();
-            setTimeout(() => {
-              if (mounted) {
-                router.replace("/landing/(room)");
-              }
-            }, 200);
-          } catch (error) {
-            console.error("Error during cleanup:", error);
-            if (mounted) {
-              setIsLoading(false);
-            }
-          }
-          return;
+      if (incident.isVerified) {
+        if (!isVerified && !hasPlayedVerificationSound.current) {
+          playSound();
+          hasPlayedVerificationSound.current = true;
         }
-      } catch (error) {
-        console.error("Error checking incident status:", error);
+        setIsVerified(true);
       }
-    };
-    const interval = setInterval(checkIsIncidentResolved, 3000);
-    checkIsIncidentResolved();
+
+      if (incident.isAcceptedResponder) {
+        setIsAmbulanceComing(true);
+      }
+
+      if (
+        incident.dispatcher &&
+        (!incidentState.dispatcher ||
+          incident.dispatcher !== incidentState.dispatcher)
+      ) {
+        console.log("Dispatcher assigned:", incident.dispatcher);
+        const updatedIncident = {
+          ...incidentState,
+          dispatcher: incident.dispatcher,
+        };
+        await setCurrentIncident!(updatedIncident);
+      }
+
+      if (incident.responderStatus) {
+        setResponderStatus(incident.responderStatus);
+      }
+
+      if (incident.isResolved) {
+        setIsLoading(true);
+        try {
+          await clearIncident!();
+          setTimeout(() => {
+            router.replace("/landing/(room)");
+          }, 200);
+        } catch (error) {
+          console.error("Error during cleanup:", error);
+          setIsLoading(false);
+        }
+        return true; // stop polling if incident is resolved
+      }
+    } catch (error) {
+      console.error("Error checking incident status:", error);
+    } finally {
+      isFetching.current = false;
+    }
+    return false;
+  }, [
+    incidentState?.incidentId,
+    isVerified,
+    pollingInterval,
+    incidentState?.dispatcher,
+    playSound,
+    clearIncident,
+    router,
+    setCurrentIncident,
+    incidentState,
+  ]);
+
+  const formattedResponderStatus = useMemo(() => {
+    return formatResponderStatus(responderStatus);
+  }, [responderStatus]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (
+        appState.current.match(/inactive|background/) &&
+        nextAppState === "active"
+      ) {
+        setPollingInterval(3000);
+        checkIsIncidentResolved();
+      } else if (
+        appState.current === "active" &&
+        nextAppState.match(/inactive|background/)
+      ) {
+        setPollingInterval(10000);
+      }
+
+      appState.current = nextAppState;
+    });
 
     return () => {
-      mounted = false;
-      clearInterval(interval);
+      subscription.remove();
     };
-  }, [incidentState]);
+  }, [checkIsIncidentResolved]);
 
-  // initiate incident timer counter
+  // running time function
   useEffect(() => {
     const initialTime = Date.now();
+    let mounted = true;
 
     const timerInterval = setInterval(() => {
+      if (!mounted) return;
+
       const elapsed = Date.now() - initialTime;
       const hours = Math.floor(elapsed / (1000 * 60 * 60))
         .toString()
@@ -137,8 +178,39 @@ export default function IncidentRoomVerification() {
       setElapsedTime(`${hours}:${minutes}:${seconds}`);
     }, 1000);
 
-    return () => clearInterval(timerInterval);
+    return () => {
+      mounted = false;
+      clearInterval(timerInterval);
+    };
   }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    let intervalId: NodeJS.Timeout | null = null;
+
+    const runPolling = async () => {
+      if (!mounted) return;
+
+      const shouldStop = await checkIsIncidentResolved();
+
+      if (shouldStop) {
+        if (intervalId) {
+          clearInterval(intervalId);
+          intervalId = null;
+        }
+      }
+    };
+    runPolling();
+
+    intervalId = setInterval(runPolling, pollingInterval);
+
+    return () => {
+      mounted = false;
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [checkIsIncidentResolved, pollingInterval]);
 
   useEffect(() => {
     const listenForInitialMessage = async () => {
@@ -182,99 +254,70 @@ export default function IncidentRoomVerification() {
     });
   };
 
-  // console.log("dispatcher: ", dispatcher);
-
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <InitialChatAlert
-        visible={showPopup}
-        onClose={() => setShowPopup(false)}
-        onReply={handleReply}
-        message={initialMsg || "You have a new message from the operator."}
-      />
-      <CancelIncidentModal
-        visible={showCancelModal}
-        onClose={() => setShowCancelModal(false)}
-        onSubmit={() => console.log("test cancel")}
-      />
+    <>
       {calls && calls.length > 0 && calls[0] ? (
-        <StreamCall call={calls[0]}>
-          <RingingSound />
-          <CallPanel />
-        </StreamCall>
+        <View style={styles.callContainer}>
+          <StreamCall call={calls[0]}>
+            <RingingSound />
+            <CallPanel />
+          </StreamCall>
+        </View>
       ) : null}
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollViewContent}
-        showsVerticalScrollIndicator={false}>
-        <View style={styles.innerContainer}>
-          {/* Emergency Type Section with Timer */}
-          <View style={styles.incidentCard}>
-            <View style={styles.headerSection}>
-              <View style={styles.headerRow}>
-                <Image
-                  source={GetIcon(incidentState?.emergencyType as string)}
-                  resizeMode="contain"
-                  style={styles.medicalIcon}
-                />
-                <View style={styles.headerText}>
-                  <View style={styles.idSection}>
-                    <Text style={styles.idLabel}>ID:</Text>
-                    <Text style={styles.idNumber}>
-                      {incidentState?.incidentId.substring(0, 18)}
-                    </Text>
-                  </View>
-                  <Text style={styles.incidentType}>
-                    {incidentState?.emergencyType} Incident
-                  </Text>
-                  <Text style={styles.address}>
-                    {incidentState?.location?.address || "Location unavailable"}
-                  </Text>
-                </View>
-              </View>
-            </View>
-            <View style={styles.timerSection}>
-              <Text style={styles.timerText}>RECEIVED: {elapsedTime}</Text>
-            </View>
-          </View>
-          {/* verification status  */}
-          <View style={styles.incidentCard}>
-            <View style={styles.headerSection}>
-              <View style={styles.headerRow}>
-                <Image
-                  source={require("@/assets/images/banner-icon.png")}
-                  resizeMode="contain"
-                  style={styles.logoImage}
-                />
-                <View style={styles.headerText}>
-                  <View style={styles.statusRow}>
-                    <View>
-                      <Text
-                        style={[
-                          styles.verification,
-                          isVerified
-                            ? styles.verifiedText
-                            : styles.unverifiedText,
-                        ]}>
-                        {isVerified ? "VERIFIED" : "UNVERIFIED"}
-                      </Text>
-                      <Text style={styles.address}>Incident Status</Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
-            </View>
-            <View style={styles.subHeading}>
-              <Text style={{color: "white", textAlign: "center"}}>
-                Sending nearest asset at the incident location...
-              </Text>
-            </View>
+      <SafeAreaView style={styles.safeArea}>
+        <InitialChatAlert
+          visible={showPopup}
+          onClose={() => setShowPopup(false)}
+          onReply={handleReply}
+          message={initialMsg || "You have a new message from the operator."}
+        />
+        <CancelIncidentModal
+          visible={showCancelModal}
+          onClose={() => setShowCancelModal(false)}
+          onSubmit={() => console.log("test cancel")}
+        />
 
-            {!isVerified ? (
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollViewContent}
+          showsVerticalScrollIndicator={false}>
+          <View style={styles.innerContainer}>
+            {/* Emergency Type Section with Timer */}
+            <View style={styles.incidentCard}>
               <View style={styles.headerSection}>
                 <View style={styles.headerRow}>
                   <Image
-                    source={require("@/assets/images/avatar.png")}
+                    source={GetIcon(incidentState?.emergencyType as string)}
+                    resizeMode="contain"
+                    style={styles.medicalIcon}
+                  />
+                  <View style={styles.headerText}>
+                    <View style={styles.idSection}>
+                      <Text style={styles.idLabel}>ID:</Text>
+                      <Text style={styles.idNumber}>
+                        {incidentState?.incidentId.substring(0, 18)}
+                      </Text>
+                    </View>
+                    <Text style={styles.incidentType}>
+                      {incidentState?.emergencyType} Incident
+                    </Text>
+                    <Text style={styles.address}>
+                      {incidentState?.location?.address ||
+                        "Location unavailable"}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+              <View style={styles.timerSection}>
+                <Text style={styles.timerText}>RECEIVED: {elapsedTime}</Text>
+              </View>
+            </View>
+            {/* verification status  */}
+            <View style={styles.incidentCard}>
+              <View style={styles.headerSection}>
+                <View style={styles.headerRow}>
+                  <Image
+                    source={require("@/assets/images/banner-icon.png")}
                     resizeMode="contain"
                     style={styles.logoImage}
                   />
@@ -282,111 +325,137 @@ export default function IncidentRoomVerification() {
                     <View style={styles.statusRow}>
                       <View>
                         <Text
-                          style={{
-                            color: "#1B4965",
-                            fontWeight: "bold",
-                            fontSize: 18,
-                          }}>
-                          {dispatcher?.firstName}
+                          style={[
+                            styles.verification,
+                            isVerified
+                              ? styles.verifiedText
+                              : styles.unverifiedText,
+                          ]}>
+                          {isVerified ? "VERIFIED" : "UNVERIFIED"}
                         </Text>
-                        <Text>Dispatch Operator</Text>
-                      </View>
-                      <View style={styles.iconContainer}>
-                        <Ionicons
-                          name="mail"
-                          size={30}
-                          color={isLoading ? "#ccc" : "#1B4965"}
-                          onPress={() => {
-                            if (!isLoading) {
-                              router.push({
-                                pathname: "/landing/(room)/[id]",
-                                params: {
-                                  id: incidentState?.channelId as string,
-                                },
-                              });
-                            }
-                          }}
-                        />
-                        <Ionicons
-                          name="videocam-sharp"
-                          size={30}
-                          color={isLoading ? "#ccc" : "#1B4965"}
-                          onPress={() => {
-                            if (!isLoading) {
-                              router.push({
-                                pathname: "/landing/(room)/video-call",
-                                params: {
-                                  id: incidentState?.channelId as string,
-                                },
-                              });
-                            }
-                          }}
-                        />
+                        <Text style={styles.address}>Incident Status</Text>
                       </View>
                     </View>
                   </View>
                 </View>
               </View>
-            ) : null}
-          </View>
+              <View style={styles.subHeading}>
+                <Text style={{color: "white", textAlign: "center"}}>
+                  Sending nearest asset at the incident location...
+                </Text>
+              </View>
 
-          {/*ambulance info */}
-          {isAmbulanceComing && isVerified ? (
-            <View style={styles.ambulanceContainer}>
-              <View style={styles.incidentCard}>
+              {!isVerified ? (
                 <View style={styles.headerSection}>
                   <View style={styles.headerRow}>
                     <Image
-                      source={require("@/assets/images/AMBU.png")}
+                      source={require("@/assets/images/avatar.png")}
                       resizeMode="contain"
                       style={styles.logoImage}
                     />
                     <View style={styles.headerText}>
-                      <Text style={styles.ambulanceId}>AMBU 123</Text>
-                      <Text style={styles.address}>
-                        Bantay Mandaue Command Center
+                      <View style={styles.statusRow}>
+                        <View>
+                          <Text
+                            style={{
+                              color: "#1B4965",
+                              fontWeight: "bold",
+                              fontSize: 18,
+                            }}>
+                            {dispatcher?.firstName}
+                          </Text>
+                          <Text>Dispatch Operator</Text>
+                        </View>
+                        <View style={styles.iconContainer}>
+                          <Ionicons
+                            name="mail"
+                            size={30}
+                            color={isLoading ? "#ccc" : "#1B4965"}
+                            onPress={() => {
+                              if (!isLoading) {
+                                router.push({
+                                  pathname: "/landing/(room)/[id]",
+                                  params: {
+                                    id: incidentState?.channelId as string,
+                                  },
+                                });
+                              }
+                            }}
+                          />
+                          <Ionicons
+                            name="videocam-sharp"
+                            size={30}
+                            color={isLoading ? "#ccc" : "#1B4965"}
+                            onPress={() => {
+                              if (!isLoading) {
+                                router.push({
+                                  pathname: "/landing/(room)/video-call",
+                                  params: {
+                                    id: incidentState?.channelId as string,
+                                  },
+                                });
+                              }
+                            }}
+                          />
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              ) : null}
+            </View>
+
+            {/*ambulance info */}
+            {isAmbulanceComing && isVerified ? (
+              <View style={styles.ambulanceContainer}>
+                <View style={styles.incidentCard}>
+                  <View style={styles.headerSection}>
+                    <View style={styles.headerRow}>
+                      <Image
+                        source={require("@/assets/images/AMBU.png")}
+                        resizeMode="contain"
+                        style={styles.logoImage}
+                      />
+                      <View style={styles.headerText}>
+                        <Text style={styles.ambulanceId}>AMBU 123</Text>
+                        <Text style={styles.address}>
+                          Bantay Mandaue Command Center
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  {/* ETA section */}
+                  <View style={styles.etaContainer}>
+                    <View style={styles.etaStatus}>
+                      <Text style={styles.etaStatusText}>
+                        {formattedResponderStatus}
                       </Text>
                     </View>
-                  </View>
-                </View>
-
-                {/* ETA setcion */}
-                <View style={styles.etaContainer}>
-                  <View style={styles.etaStatus}>
-                    <Text style={styles.etaStatusText}>
-                      {formatResponderStatus(responderStatus)}
-                    </Text>
-                  </View>
-                  <View style={styles.etaDetails}>
-                    <View style={styles.etaItem}>
-                      <Text style={styles.etaLabel}>ETA</Text>
-                      <Text style={styles.etaValue}>4min</Text>
-                    </View>
-                    <View style={styles.etaItem}>
-                      <Text style={styles.etaLabel}>DIS</Text>
-                      <Text style={styles.etaValue}>600m</Text>
+                    <View style={styles.etaDetails}>
+                      <View style={styles.etaItem}>
+                        <Text style={styles.etaLabel}>ETA</Text>
+                        <Text style={styles.etaValue}>4min</Text>
+                      </View>
+                      <View style={styles.etaItem}>
+                        <Text style={styles.etaLabel}>DIS</Text>
+                        <Text style={styles.etaValue}>600m</Text>
+                      </View>
                     </View>
                   </View>
+                  <TouchableOpacity
+                    style={styles.mapButtonContainer}
+                    onPress={() => router.push("/landing/(room)/map-view")}>
+                    <Ionicons name="map" size={24} color="#1B4965" />
+                    <Text style={styles.mapButtonText}>View Map</Text>
+                  </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                  style={styles.mapButtonContainer}
-                  onPress={() => router.push("/landing/(room)/map-view")}>
-                  <Ionicons name="map" size={24} color="#1B4965" />
-                  <Text style={styles.mapButtonText}>View Map</Text>
-                </TouchableOpacity>
               </View>
-            </View>
-          ) : null}
-
-          <TouchableOpacity
-            style={[styles.cancelButtonContainer, isLoading && {opacity: 0.5}]}
-            disabled={isLoading}
-            onPress={() => setShowCancelModal(true)}>
-            <Text style={styles.cancelButtonText}>Cancel Report</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+            ) : null}
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </>
   );
 }
 
@@ -583,5 +652,15 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 18,
     fontWeight: "bold",
+  },
+  callContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    margin: 0,
+    padding: 0,
+    zIndex: 9999,
   },
 });
