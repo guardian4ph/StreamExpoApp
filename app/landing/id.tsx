@@ -7,29 +7,57 @@ export default function ID() {
   const {authState} = useAuth();
   const {incidentState} = useIncident();
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>ID</Text>
-      <Text>User ID:</Text>
-      <Text>{authState?.user_id || "Not available"}</Text>
+    <View style={styles.wrapper}>
+      <View style={styles.container}>
+        <Text style={styles.label}>User ID:</Text>
+        <Text style={styles.value}>{authState?.user_id || "N/A"}</Text>
 
-      <Text>Token:</Text>
-      <Text numberOfLines={3}>{authState?.token || "Not available"}</Text>
-      <Text>to be developed</Text>
-      <Text>incident id:</Text>
-      <Text>{incidentState?.emergencyType || "Not available"}</Text>
+        <Text style={styles.label}>Token:</Text>
+
+        <Text style={styles.value} numberOfLines={1} ellipsizeMode="tail">
+          {authState?.token ? `${authState.token.substring(0, 15)}...` : "N/A"}
+        </Text>
+
+        <Text style={styles.label}>Incident Type:</Text>
+        <Text style={styles.value}>
+          {incidentState?.emergencyType || "N/A"}
+        </Text>
+
+        <Text style={styles.label}>Incident ID:</Text>
+        <Text style={styles.value} numberOfLines={1} ellipsizeMode="tail">
+          {incidentState?.incidentId
+            ? `${incidentState.incidentId.substring(0, 15)}...`
+            : "N/A"}
+        </Text>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  wrapper: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
     backgroundColor: "#fff",
+    paddingTop: 10,
+    paddingLeft: 10,
+    alignItems: "flex-start",
   },
-  title: {
-    fontSize: 24,
+
+  container: {
+    backgroundColor: "rgba(200, 200, 200, 0.1)",
+    padding: 5,
+    borderRadius: 4,
+  },
+
+  label: {
+    fontSize: 10,
+    color: "#555",
     fontWeight: "bold",
+  },
+
+  value: {
+    fontSize: 10,
+    color: "#777",
+    marginBottom: 4,
   },
 });

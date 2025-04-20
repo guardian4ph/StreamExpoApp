@@ -39,6 +39,16 @@ export default function MapViewScreen() {
   const incidentIdRef = useRef(incidentState?.incidentId);
   const fetchIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef(true);
+  const [hospitalCoords, setHospitalCoords] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [isRoutingToHospital, setIsRoutingToHospital] =
+    useState<boolean>(false);
+
+  const hospitalIcon = useMemo(() => {
+    return require("@/assets/images/hospital.png");
+  }, []);
 
   const responderCoords = useMemo(
     () => ({
@@ -84,17 +94,14 @@ export default function MapViewScreen() {
 
       const userCoords = incidentCoords;
 
-      // Calculate center point between incident and responder
       const midLat = (userCoords.latitude + responderCoords.latitude) / 2;
       const midLon = (userCoords.longitude + responderCoords.longitude) / 2;
 
-      // Calculate appropriate zoom level based on distance between points
       const latDelta =
         Math.abs(userCoords.latitude - responderCoords.latitude) * 1.2;
       const lonDelta =
         Math.abs(userCoords.longitude - responderCoords.longitude) * 1.2;
 
-      // Set minimum zoom level to prevent excessive zooming out
       const minLatDelta = 0.005;
       const minLonDelta = minLatDelta * ASPECT_RATIO;
 
@@ -121,7 +128,12 @@ export default function MapViewScreen() {
     if (mapRef.current && incidentCoords && !isLoading) {
       const timer = setTimeout(() => {
         if (mapRef.current && incidentCoords) {
-          mapRef.current.fitToSuppliedMarkers(["incident", "responder"], {
+          const markers =
+            isRoutingToHospital && hospitalCoords
+              ? ["incident", "responder", "hospital"]
+              : ["incident", "responder"];
+
+          mapRef.current.fitToSuppliedMarkers(markers, {
             edgePadding: {top: 50, right: 50, bottom: 50, left: 50},
             animated: true,
           });
@@ -130,7 +142,7 @@ export default function MapViewScreen() {
 
       return () => clearTimeout(timer);
     }
-  }, [incidentCoords, isLoading]);
+  }, [incidentCoords, isLoading, isRoutingToHospital, hospitalCoords]);
 
   // to check 4 status changes (enroute, onscene, etfc)..
   const checkIncidentStatus = useCallback(async () => {
@@ -142,6 +154,8 @@ export default function MapViewScreen() {
       );
       const incident = await response.json();
 
+      if (!incident || !incident.responderStatus) return;
+
       if (!isMountedRef.current) return;
 
       if (
@@ -149,6 +163,40 @@ export default function MapViewScreen() {
         incident.responderStatus !== responderStatus
       ) {
         setResponderStatus(incident.responderStatus);
+      }
+
+      if (incident.selectedHospital) {
+        if (
+          incident.selectedHospital &&
+          incident.selectedHospital.coordinates
+        ) {
+          const hospitalLocation = {
+            latitude: incident.selectedHospital.coordinates.lat,
+            longitude: incident.selectedHospital.coordinates.lng,
+          };
+
+          setHospitalCoords(hospitalLocation);
+          setIsRoutingToHospital(true);
+        } else {
+          try {
+            const hospitalResponse = await fetch(
+              `${process.env.EXPO_PUBLIC_API_URL}/hospitals/${incident.selectedHospital}`
+            );
+            const hospitalData = await hospitalResponse.json();
+
+            if (hospitalData.coordinates) {
+              const hospitalLocation = {
+                latitude: hospitalData.coordinates.lat,
+                longitude: hospitalData.coordinates.lng,
+              };
+
+              setHospitalCoords(hospitalLocation);
+              setIsRoutingToHospital(true);
+            }
+          } catch (hospitalError) {
+            console.error("Error fetching hospital data:", hospitalError);
+          }
+        }
       }
 
       if (incident.responderCoordinates && mapRegion && incidentCoords) {
@@ -162,20 +210,40 @@ export default function MapViewScreen() {
           Math.abs(newCoords.longitude - responderCoords.longitude) > 0.0001;
 
         if (coordsChanged) {
-          const midLat = (newCoords.latitude + incidentCoords.latitude) / 2;
-          const midLon = (newCoords.longitude + incidentCoords.longitude) / 2;
+          if (isRoutingToHospital && hospitalCoords && incidentCoords) {
+            const midLat =
+              (hospitalCoords.latitude + incidentCoords.latitude) / 2;
+            const midLon =
+              (hospitalCoords.longitude + incidentCoords.longitude) / 2;
 
-          const latDelta =
-            Math.abs(newCoords.latitude - incidentCoords.latitude) * 1.5;
-          const lonDelta =
-            Math.abs(newCoords.longitude - incidentCoords.longitude) * 1.5;
+            const latDelta =
+              Math.abs(hospitalCoords.latitude - incidentCoords.latitude) * 1.5;
+            const lonDelta =
+              Math.abs(hospitalCoords.longitude - incidentCoords.longitude) *
+              1.5;
 
-          setMapRegion({
-            latitude: midLat,
-            longitude: midLon,
-            latitudeDelta: Math.max(latDelta, LATITUDE_DELTA),
-            longitudeDelta: Math.max(lonDelta, LONGITUDE_DELTA),
-          });
+            setMapRegion({
+              latitude: midLat,
+              longitude: midLon,
+              latitudeDelta: Math.max(latDelta, LATITUDE_DELTA),
+              longitudeDelta: Math.max(lonDelta, LONGITUDE_DELTA),
+            });
+          } else {
+            const midLat = (newCoords.latitude + incidentCoords.latitude) / 2;
+            const midLon = (newCoords.longitude + incidentCoords.longitude) / 2;
+
+            const latDelta =
+              Math.abs(newCoords.latitude - incidentCoords.latitude) * 1.5;
+            const lonDelta =
+              Math.abs(newCoords.longitude - incidentCoords.longitude) * 1.5;
+
+            setMapRegion({
+              latitude: midLat,
+              longitude: midLon,
+              latitudeDelta: Math.max(latDelta, LATITUDE_DELTA),
+              longitudeDelta: Math.max(lonDelta, LONGITUDE_DELTA),
+            });
+          }
         }
       }
     } catch (error) {
@@ -187,6 +255,8 @@ export default function MapViewScreen() {
     mapRegion,
     incidentCoords,
     responderCoords,
+    hospitalCoords,
+    isRoutingToHospital,
   ]);
 
   const handleDirectionsReady = useCallback(
@@ -274,7 +344,7 @@ export default function MapViewScreen() {
         loadingIndicatorColor="#3498db"
         loadingBackgroundColor="#f9f9f9">
         {/* incident Marker (VOLUNTEER USER) */}
-        {incidentCoords && (
+        {incidentCoords && !isRoutingToHospital && (
           <Marker
             identifier="incident"
             coordinate={incidentCoords}
@@ -299,14 +369,28 @@ export default function MapViewScreen() {
           </View>
         </Marker>
 
-        {/* directions from responder to incident */}
+        {/* Hospital markre */}
+        {hospitalCoords && (
+          <Marker
+            identifier="hospital"
+            coordinate={hospitalCoords}
+            title="Hospital"
+            description="Destination Hospital"
+            anchor={{x: 0.5, y: 0.5}}>
+            <View style={styles.markerWrapper}>
+              <Image source={hospitalIcon} style={styles.markerIcon} />
+            </View>
+          </Marker>
+        )}
+
+        {/* directions lines */}
         {incidentCoords && (
           <MapViewDirections
             origin={responderCoords}
-            destination={incidentCoords}
+            destination={isRoutingToHospital ? hospitalCoords! : incidentCoords}
             apikey={GOOGLE_MAPS_API_KEY!}
             strokeWidth={4}
-            strokeColor="#1B4965"
+            strokeColor={isRoutingToHospital ? "#ff6b6b" : "#1B4965"}
             mode="DRIVING"
             optimizeWaypoints={true}
             onReady={handleDirectionsReady}
@@ -334,7 +418,9 @@ export default function MapViewScreen() {
               <View style={styles.headerText}>
                 <Text style={styles.ambulanceId}>AMBU 123</Text>
                 <Text style={styles.address}>
-                  Bantay Mandaue Command Center
+                  {isRoutingToHospital
+                    ? "En Route to Hospital"
+                    : "Bantay Mandaue Command Center"}
                 </Text>
               </View>
             </View>
@@ -343,7 +429,7 @@ export default function MapViewScreen() {
           <View style={styles.etaContainer}>
             <View style={styles.etaStatus}>
               <Text style={styles.etaStatusText}>
-                {formattedResponderStatus}
+                {isRoutingToHospital ? "TO HOSPITAL" : formattedResponderStatus}
               </Text>
             </View>
             <View style={styles.etaDetails}>
