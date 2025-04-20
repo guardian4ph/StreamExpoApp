@@ -379,11 +379,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   markerWrapper: {
-    width: 40,
-    height: 35,
+    width: 30,
+    height: 30,
     alignItems: "center",
     justifyContent: "center",
-    overflow: "hidden",
     backgroundColor: "transparent",
   },
   markerIcon: {

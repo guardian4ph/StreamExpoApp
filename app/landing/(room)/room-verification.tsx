@@ -454,6 +454,20 @@ export default function IncidentRoomVerification() {
             ) : null}
           </View>
         </ScrollView>
+
+        <View style={styles.cancelButtonWrapper}>
+          <TouchableOpacity
+            style={[
+              styles.cancelButtonContainer,
+              showCancelModal && styles.disabledButton,
+            ]}
+            onPress={() => setShowCancelModal(true)}
+            disabled={showCancelModal}>
+            <Text style={styles.cancelButtonText}>
+              {showCancelModal ? "Cancelling..." : "Cancel Report"}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     </>
   );
@@ -639,20 +653,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
   },
-  cancelButtonContainer: {
-    backgroundColor: "#ff6b6b",
-    padding: 12,
-    borderRadius: 6,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 15,
-    marginBottom: 10,
-  },
-  cancelButtonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
   callContainer: {
     position: "absolute",
     top: 0,
@@ -662,5 +662,27 @@ const styles = StyleSheet.create({
     margin: 0,
     padding: 0,
     zIndex: 9999,
+  },
+  cancelButtonWrapper: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: "#f3f5f5",
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+  },
+  cancelButtonContainer: {
+    backgroundColor: "#ff6b6b",
+    paddingVertical: 10,
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  cancelButtonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
+  disabledButton: {
+    backgroundColor: "#cccccc",
   },
 });

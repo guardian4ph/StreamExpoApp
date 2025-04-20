@@ -1,5 +1,12 @@
 import {Ionicons} from "@expo/vector-icons";
-import {View, Text, TouchableOpacity, StyleSheet, Modal} from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  Modal,
+  Image,
+} from "react-native";
 
 type Props = {
   visible: boolean;
@@ -27,10 +34,14 @@ export default function InitialChatAlert({
 
           <View style={styles.messageContainer}>
             <View style={styles.messageHeader}>
-              <Ionicons
+              {/* <Ionicons
                 name="person-circle-outline"
                 size={24}
                 color="#1B4965"
+              /> */}
+              <Image
+                source={require("@/assets/images/userAvatar.png")}
+                style={styles.avatar}
               />
               <Text style={styles.sender}>Dispatch Operator</Text>
             </View>
@@ -113,5 +124,10 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "500",
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
   },
 });
