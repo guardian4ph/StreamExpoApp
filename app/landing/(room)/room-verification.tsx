@@ -46,6 +46,7 @@ export default function IncidentRoomVerification() {
   const appState = useRef(AppState.currentState);
   const lastFetchTime = useRef<number>(0);
   const isFetching = useRef<boolean>(false);
+  const hasShownMessagePopup = useRef<boolean>(false);
 
   useEffect(() => {
     if (!incidentState || incidentState.channelId === "index") {
@@ -214,6 +215,8 @@ export default function IncidentRoomVerification() {
 
   useEffect(() => {
     const listenForInitialMessage = async () => {
+      if (hasShownMessagePopup.current) return;
+
       const hash = incidentState?.incidentId.substring(5, 9);
       const channelId = `${incidentState?.emergencyType.toLowerCase()}-${hash}`;
       try {
@@ -233,6 +236,7 @@ export default function IncidentRoomVerification() {
           const firstMessage = messages[0].text || "New message received";
           setInitialMsg(firstMessage);
           setShowPopup(true);
+          hasShownMessagePopup.current = true;
         }
       } catch (error) {
         console.error("Error listening for initial message:", error);

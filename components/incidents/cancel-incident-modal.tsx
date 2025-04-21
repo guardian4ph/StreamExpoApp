@@ -8,6 +8,7 @@ import {
   Pressable,
 } from "react-native";
 import React, {useState} from "react";
+import {useIncident} from "@/context/IncidentContext";
 
 interface CancelIncidentModalProps {
   visible: boolean;
@@ -21,10 +22,10 @@ export default function CancelIncidentModal({
   onSubmit,
 }: CancelIncidentModalProps) {
   const [reason, setReason] = useState("");
+  const {clearIncident} = useIncident();
 
   const handleSubmit = () => {
-    onSubmit(reason);
-    setReason("");
+    clearIncident!();
   };
 
   return (
