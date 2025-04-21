@@ -263,7 +263,7 @@ export default function IncidentRoomVerification() {
       {calls && calls.length > 0 && calls[0] ? (
         <View style={styles.callContainer}>
           <StreamCall call={calls[0]}>
-            <RingingSound />
+            {/* <RingingSound /> */}
             <CallPanel />
           </StreamCall>
         </View>
