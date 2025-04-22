@@ -52,7 +52,7 @@ export default function CloseIncidentDrawer({
   const handleSubmit = async () => {
     onClose();
     clearIncident!();
-    console.log("incidentState cleared!");
+    // console.log("incidentState cleared!");
     router.replace("/landing/(room)/");
   };
 

@@ -30,7 +30,7 @@ export default function ConnectingCallPage() {
           {signal: abortController.signal}
         );
         const incident = await response.json();
-        console.log(incident);
+        // console.log(incident);
 
         if (incident.isAccepted && mounted) {
           setIsConnected(true);

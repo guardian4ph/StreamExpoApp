@@ -64,7 +64,7 @@ export default function SelectEmergency() {
       );
 
       const data = await response.json();
-      console.log("Incident created:", data);
+      // console.log("Incident created:", data);
 
       await setCurrentIncident!({
         emergencyType: contact.name,
