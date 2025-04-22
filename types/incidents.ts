@@ -19,6 +19,7 @@ export interface Incident {
   responderStatus?: string;
   isResolved: boolean;
   isAccepted: boolean;
+  isFinished: boolean;
   createdAt: string;
   updatedAt: string;
 }

@@ -49,9 +49,6 @@ export default function SelectEmergency() {
           },
           body: JSON.stringify({
             incidentType: contact.name,
-            isVerified: false,
-            isResolved: false,
-            isAccepted: false,
             userId: authState?.user_id,
             incidentDetails: {
               coordinates: {
@@ -70,6 +67,8 @@ export default function SelectEmergency() {
         emergencyType: contact.name,
         channelId: "fad-call",
         incidentId: data._id,
+        isAccepted: data.isAccepted,
+        isFinished: data.isFinished,
         timestamp: Date.now(),
         location: {
           lat: locationData?.latitude,

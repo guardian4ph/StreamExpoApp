@@ -71,7 +71,7 @@ export default function ConnectingCallPage() {
       "Are you sure you want to cancel the incident?"
     );
     clearIncident!();
-    router.push("/");
+    router.replace("/landing/(room)");
   };
 
   return (

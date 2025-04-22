@@ -100,7 +100,7 @@ export default function IncidentRoomVerification() {
         setResponderStatus(incident.responderStatus);
       }
 
-      if (incident.isResolved) {
+      if (incident.isFinished) {
         setIsLoading(true);
         try {
           await clearIncident!();

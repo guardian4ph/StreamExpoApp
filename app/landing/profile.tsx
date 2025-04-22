@@ -6,17 +6,11 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import React, {useEffect} from "react";
+import React from "react";
 import {Ionicons} from "@expo/vector-icons";
 import {useGetUserInfo} from "@/hooks/useGetUserInfo";
-import {useIncident} from "@/context/IncidentContext";
 
 export default function Profile() {
-  // const {clearIncident} = useIncident();
-
-  // useEffect(() => {
-  //   clearIncident!();
-  // }, []);
 
   const {userInfo, loading, error} = useGetUserInfo();
 

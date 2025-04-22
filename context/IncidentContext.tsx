@@ -5,6 +5,8 @@ interface IncidentData {
   emergencyType: string;
   channelId: string;
   incidentId: string;
+  isAccepted: boolean;
+  isFinished: boolean;
   dispatcher?: string;
   timestamp: number;
   responderStatus?: "enroute" | "onscene" | "medicalFacility" | "rtb" | "close";

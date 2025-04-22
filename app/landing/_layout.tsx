@@ -16,7 +16,8 @@ function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
   };
   if (
     currentRoute.name === "(room)" &&
-    nestedState?.routes?.[nestedState.index]?.name === "map-view"
+    (nestedState?.routes?.[nestedState.index]?.name === "map-view"
+      || nestedState?.routes?.[nestedState.index]?.name === "loading-call") 
   ) {
     return null;
   }
