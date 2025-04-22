@@ -1,24 +1,25 @@
 import "react-native-gesture-handler";
-
-import { Slot, Stack, useSegments } from "expo-router";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { AuthProvider, useAuth } from "@/context/AuthContext";
-import { useEffect, useState } from "react";
-import { useRouter } from "expo-router";
+import {Slot, Stack, useSegments} from "expo-router";
+import {GestureHandlerRootView} from "react-native-gesture-handler";
+import {AuthProvider, useAuth} from "@/context/AuthContext";
+import {useEffect, useState} from "react";
+import {useRouter} from "expo-router";
 import {
   StreamVideoClient,
   StreamVideo,
   User,
 } from "@stream-io/video-react-native-sdk";
-import { OverlayProvider } from "stream-chat-expo";
+import {OverlayProvider} from "stream-chat-expo";
+import {IncidentProvider, useIncident} from "@/context/IncidentContext";
 
 const STREAM_KEY = process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY;
 
 const InitialLayout = () => {
-  const { authState, initialized } = useAuth();
+  const {authState, initialized} = useAuth();
   const segments = useSegments();
   const router = useRouter();
   const [client, setClient] = useState<StreamVideoClient | null>(null);
+  const {incidentState} = useIncident();
 
   useEffect(() => {
     if (!initialized) return;
@@ -29,16 +30,16 @@ const InitialLayout = () => {
     } else if (!authState?.authenticated) {
       console.log("NOT Authenticated ");
       client?.disconnectUser();
-      router.replace("/");
+      router.replace("/(auth)");
     }
   }, [authState, initialized]);
 
   useEffect(() => {
     if (authState?.authenticated && authState.token) {
       console.log("Creating a client");
-      const user: User = { id: authState.user_id! };
+      const user: User = {id: authState.user_id!};
       try {
-        const client = new StreamVideoClient({
+        const client = StreamVideoClient.getOrCreateInstance({
           apiKey: STREAM_KEY!,
           user,
           token: authState.token,
@@ -50,13 +51,22 @@ const InitialLayout = () => {
     }
   }, [authState]);
 
+  useEffect(() => {
+    if (incidentState) {
+      router.replace({
+        pathname: "/landing/(room)/room-verification",
+        params: {
+          emergencyType: incidentState.emergencyType,
+          channelId: incidentState.channelId,
+          incidentId: incidentState.incidentId,
+        },
+      });
+    }
+  }, []);
+
   return (
     <>
-      {!client && (
-        <Stack>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-        </Stack>
-      )}
+      {!client && <Slot />}
       {client && (
         <StreamVideo client={client}>
           <OverlayProvider>
@@ -71,9 +81,11 @@ const InitialLayout = () => {
 const RootLayout = () => {
   return (
     <AuthProvider>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <InitialLayout />
-      </GestureHandlerRootView>
+      <IncidentProvider>
+        <GestureHandlerRootView style={{flex: 1}}>
+          <InitialLayout />
+        </GestureHandlerRootView>
+      </IncidentProvider>
     </AuthProvider>
   );
 };

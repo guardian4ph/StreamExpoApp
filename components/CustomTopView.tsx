@@ -1,11 +1,11 @@
-import { useCallStateHooks } from "@stream-io/video-react-native-sdk";
-import { View, StyleSheet, Text } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
+import {useCallStateHooks} from "@stream-io/video-react-native-sdk";
+import {View, StyleSheet, Text} from "react-native";
+import {Ionicons} from "@expo/vector-icons";
 import Colors from "@/constants/Colors";
 
 // Custom View to display the number of participants in the call
 const CustomTopView = () => {
-  const { useParticipants } = useCallStateHooks();
+  const {useParticipants} = useCallStateHooks();
   const participants = useParticipants();
 
   return (

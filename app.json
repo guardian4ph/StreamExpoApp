@@ -1,15 +1,15 @@
 {
   "expo": {
-    "name": "client",
+    "name": "GuardianPH Volunteer",
     "slug": "client",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/banner-icon.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash-icon.png",
+      "image": "./assets/images/banner-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -23,7 +23,6 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.client",
       "permissions": [
         "android.permission.BLUETOOTH",
         "android.permission.BLUETOOTH_CONNECT",
@@ -34,7 +33,12 @@
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.RECORD_AUDIO",
         "android.permission.SYSTEM_ALERT_WINDOW",
-        "android.permission.WAKE_LOCK"
+        "android.permission.WAKE_LOCK",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE_LOCATION"
       ]
     },
     "web": {
@@ -46,7 +50,6 @@
       "expo-router",
       "expo-secure-store",
       "@stream-io/video-react-native-sdk",
-      "expo-build-properties",
       [
         "@config-plugins/react-native-webrtc",
         {
@@ -54,7 +57,27 @@
           "microphonePermission": "$(PRODUCT_NAME) requires microphone access in order to capture and transmit audio"
         }
       ],
-      "expo-build-properties"
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location.",
+          "locationWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location while the app is in use.",
+          "isIosBackgroundLocationEnabled": true,
+          "isAndroidBackgroundLocationEnabled": true,
+          "isAndroidForegroundServiceEnabled": true
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraMavenRepos": [
+              "../../node_modules/@notifee/react-native/android/libs"
+            ],
+            "minSdkVersion": 24
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
@@ -64,7 +87,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "9c2e1c56-87bc-4b7d-b2b2-c18a48137f64"
+        "projectId": "b844354e-4af8-40b1-852f-dd86ffe3c8d7"
       }
     }
   }
