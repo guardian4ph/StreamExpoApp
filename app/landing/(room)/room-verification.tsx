@@ -23,7 +23,7 @@ import CancelIncidentModal from "@/components/incidents/cancel-incident-modal";
 import {useDispatcherDetails} from "@/hooks/useDispatcherDetails";
 import formatResponderStatus from "@/utils/FormatResponderStatus";
 import {useSound} from "@/utils/PlaySound";
-import RingingSound from "@/components/calls/RingingSound";
+import * as SecureStore from "expo-secure-store";
 import {getIncidentById} from "@/api/useFetchIncident";
 
 export default function IncidentRoomVerification() {
@@ -41,12 +41,10 @@ export default function IncidentRoomVerification() {
   const router = useRouter();
   const calls = useCalls();
   const {playSound} = useSound(require("@/assets/sounds/sound_notif.mp3"));
-  const hasPlayedVerificationSound = useRef(false);
   const [pollingInterval, setPollingInterval] = useState<number>(3000);
   const appState = useRef(AppState.currentState);
   const lastFetchTime = useRef<number>(0);
   const isFetching = useRef<boolean>(false);
-  const hasShownMessagePopup = useRef<boolean>(false);
 
   useEffect(() => {
     if (!incidentState || incidentState.channelId === "index") {
@@ -72,9 +70,17 @@ export default function IncidentRoomVerification() {
       const incident = await getIncidentById(incidentState?.incidentId);
 
       if (incident.isVerified) {
-        if (!isVerified && !hasPlayedVerificationSound.current) {
-          playSound();
-          hasPlayedVerificationSound.current = true;
+        if (!isVerified) {
+          const soundPlayedKey = `sound_played_${incidentState.incidentId.substring(
+            5,
+            9
+          )}`;
+          const soundPlayed = await SecureStore.getItemAsync(soundPlayedKey);
+
+          if (!soundPlayed) {
+            playSound();
+            await SecureStore.setItemAsync(soundPlayedKey, "true");
+          }
         }
         setIsVerified(true);
       }
@@ -111,7 +117,7 @@ export default function IncidentRoomVerification() {
           console.error("Error during cleanup:", error);
           setIsLoading(false);
         }
-        return true; // stop polling if incident is resolved
+        return true; // stop polling if incident is finished/resolved
       }
     } catch (error) {
       console.error("Error checking incident status:", error);
@@ -213,9 +219,17 @@ export default function IncidentRoomVerification() {
     };
   }, [checkIsIncidentResolved, pollingInterval]);
 
-  useEffect(() => {
-    const listenForInitialMessage = async () => {
-      if (hasShownMessagePopup.current) return;
+  const listenForInitialMessage = useMemo(() => {
+    return async () => {
+      if (!incidentState?.incidentId) return;
+
+      const popupShownKey = `popup_shown_${incidentState.incidentId.substring(
+        5,
+        9
+      )}`;
+      const popupShown = await SecureStore.getItemAsync(popupShownKey);
+      // if popup has been shown and naa sa secureStore, do not show anymore.
+      if (popupShown) return;
 
       const hash = incidentState?.incidentId.substring(5, 9);
       const channelId = `${incidentState?.emergencyType.toLowerCase()}-${hash}`;
@@ -236,17 +250,19 @@ export default function IncidentRoomVerification() {
           const firstMessage = messages[0].text || "New message received";
           setInitialMsg(firstMessage);
           setShowPopup(true);
-          hasShownMessagePopup.current = true;
+          await SecureStore.setItemAsync(popupShownKey, "true");
         }
       } catch (error) {
         console.error("Error listening for initial message:", error);
       }
     };
+  }, [incidentState?.incidentId, authState]);
 
+  useEffect(() => {
     if (incidentState?.channelId && authState?.user_id) {
       listenForInitialMessage();
     }
-  }, [incidentState?.channelId, authState]);
+  }, [incidentState?.channelId, authState?.user_id, listenForInitialMessage]);
 
   const handleReply = () => {
     setShowPopup(false);
