@@ -109,6 +109,18 @@ export default function IncidentRoomVerification() {
       if (incident.isFinished) {
         setIsLoading(true);
         try {
+          const soundPlayedKey = `sound_played_${incidentState.incidentId.substring(
+            5,
+            9
+          )}`;
+          const popupShownKey = `popup_shown_${incidentState.incidentId.substring(
+            5,
+            9
+          )}`;
+          await Promise.all([
+            SecureStore.deleteItemAsync(soundPlayedKey),
+            SecureStore.deleteItemAsync(popupShownKey),
+          ]);
           await clearIncident!();
           setTimeout(() => {
             router.replace("/landing/(room)");
