@@ -10,9 +10,9 @@ import React, {useEffect, useState, useCallback} from "react";
 import {EmergencyContacts} from "@/assets/data/emergencyContacts";
 import {TouchableOpacity} from "react-native";
 import {useRouter} from "expo-router";
-import {useAuth} from "@/context/AuthContext";
 import {useIncident} from "@/context/IncidentContext";
 import useLocation from "@/hooks/useLocation";
+import {useAuthStore} from "@/context/useAuthStore";
 
 interface LocationData {
   latitude: number;
@@ -27,7 +27,6 @@ interface LocationData {
 
 export default function SelectEmergency() {
   const router = useRouter();
-  const {authState} = useAuth();
   const {incidentState, setCurrentIncident} = useIncident();
   const {getUserLocation} = useLocation();
   const [isLoading, setIsLoading] = useState(false);
@@ -36,6 +35,7 @@ export default function SelectEmergency() {
   >(null);
   const [locationData, setLocationData] = useState<LocationData | null>(null);
   const [locationFetched, setLocationFetched] = useState(false);
+  const {user_id} = useAuthStore();
 
   // should fetch location when user lands on dius page
   useEffect(() => {
@@ -93,7 +93,7 @@ export default function SelectEmergency() {
             },
             body: JSON.stringify({
               incidentType: contactName,
-              userId: authState?.user_id,
+              userId: user_id,
               incidentDetails: {
                 coordinates: {
                   lat: locData?.latitude || null,
@@ -114,7 +114,7 @@ export default function SelectEmergency() {
         throw error;
       }
     },
-    [authState?.user_id]
+    [user_id]
   );
 
   const handleClickEmergency = async (contact: {name: string}) => {

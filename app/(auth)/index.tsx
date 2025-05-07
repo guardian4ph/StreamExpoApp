@@ -15,17 +15,14 @@ import {
 } from "react-native";
 import React, {useState} from "react";
 import Spinner from "react-native-loading-spinner-overlay";
-import {useAuth} from "@/context/AuthContext";
 import {useRouter} from "expo-router";
-
-const WIDTH = Dimensions.get("window").width;
-const HEIGHT = Dimensions.get("window").height;
+import {useAuthStore} from "@/context/useAuthStore";
 
 export default function LogIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const {onLogin, onLogout, onRegister} = useAuth();
+  const {login} = useAuthStore();
   const router = useRouter();
 
   const logIn = async () => {
@@ -40,7 +37,7 @@ export default function LogIn() {
         "Attempting login with URL:",
         process.env.EXPO_PUBLIC_API_URL
       );
-      const result = await onLogin!(email, password);
+      const result = await login(email, password);
 
       if (result?.error) {
         Alert.alert("Error", result.msg);
@@ -63,7 +60,6 @@ export default function LogIn() {
     Keyboard.dismiss();
   };
 
-  // Handle text input submission
   const handleSubmitEditing = () => {
     if (email && password) {
       logIn();

@@ -1,7 +1,6 @@
 import React from "react";
 import {Tabs} from "expo-router";
 import {Image, TouchableOpacity, View, StyleSheet, Text} from "react-native";
-import Colors from "@/constants/Colors";
 import {Ionicons} from "@expo/vector-icons";
 import {BottomTabBarProps} from "@react-navigation/bottom-tabs";
 import {useIncident} from "@/context/IncidentContext";
@@ -16,68 +15,70 @@ function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
   };
   if (
     currentRoute.name === "(room)" &&
-    (nestedState?.routes?.[nestedState.index]?.name === "map-view"
-      || nestedState?.routes?.[nestedState.index]?.name === "loading-call") 
+    (nestedState?.routes?.[nestedState.index]?.name === "map-view" ||
+      nestedState?.routes?.[nestedState.index]?.name === "loading-call")
   ) {
     return null;
   }
 
   return (
     <View style={styles.tabBarContainer}>
-      {state.routes.map((route, index) => {
-        const {options} = descriptors[route.key];
-        const isFocused = state.index === index;
+      {state.routes
+        .filter((route) => route.name !== "profile")
+        .map((route, index) => {
+          const {options} = descriptors[route.key];
+          const isFocused = state.index === index;
 
-        let labelText: string;
-        if (typeof options.tabBarLabel === "string") {
-          labelText = options.tabBarLabel;
-        } else if (typeof options.title === "string") {
-          labelText = options.title;
-        } else {
-          labelText = route.name;
-        }
+          let labelText: string;
+          if (typeof options.tabBarLabel === "string") {
+            labelText = options.tabBarLabel;
+          } else if (typeof options.title === "string") {
+            labelText = options.title;
+          } else {
+            labelText = route.name;
+          }
 
-        // for report button
-        if (index === 2) {
+          // for report button
+          if (index === 2) {
+            return (
+              <TouchableOpacity
+                key={route.key}
+                style={styles.centerButton}
+                onPress={() => {
+                  navigation.navigate(route.name, {
+                    screen: "index",
+                  });
+                }}>
+                <Image
+                  source={require("@/assets/images/Button.png")}
+                  style={styles.centerButtonImage}
+                />
+              </TouchableOpacity>
+            );
+          }
+
+          // other tab buttons
           return (
             <TouchableOpacity
               key={route.key}
-              style={styles.centerButton}
-              onPress={() => {
-                navigation.navigate(route.name, {
-                  screen: "index",
-                });
-              }}>
-              <Image
-                source={require("@/assets/images/Button.png")}
-                style={styles.centerButtonImage}
-              />
+              onPress={() => navigation.navigate(route.name)}
+              style={styles.tabButton}>
+              <View
+                style={[
+                  styles.tabButtonContent,
+                  isFocused && styles.tabButtonFocused,
+                ]}>
+                {options.tabBarIcon &&
+                  options.tabBarIcon({
+                    color: "white",
+                    size: 24,
+                    focused: isFocused,
+                  })}
+                <Text style={styles.tabLabel}>{labelText}</Text>
+              </View>
             </TouchableOpacity>
           );
-        }
-
-        // other tab buttons
-        return (
-          <TouchableOpacity
-            key={route.key}
-            onPress={() => navigation.navigate(route.name)}
-            style={styles.tabButton}>
-            <View
-              style={[
-                styles.tabButtonContent,
-                isFocused && styles.tabButtonFocused,
-              ]}>
-              {options.tabBarIcon &&
-                options.tabBarIcon({
-                  color: "white",
-                  size: 24,
-                  focused: isFocused,
-                })}
-              <Text style={styles.tabLabel}>{labelText}</Text>
-            </View>
-          </TouchableOpacity>
-        );
-      })}
+        })}
     </View>
   );
 }
@@ -111,11 +112,11 @@ export default function MainLayout() {
         }}
       />
       <Tabs.Screen
-        name="profile"
+        name="messages"
         options={{
-          title: "Profile",
+          title: "Messages",
           tabBarIcon: ({color}) => (
-            <Ionicons name="person" size={24} color={color} />
+            <Ionicons name="mail" size={24} color={color} />
           ),
           headerShown: true,
           headerStyle: {
@@ -129,6 +130,7 @@ export default function MainLayout() {
           },
         }}
       />
+
       <Tabs.Screen name="(room)" options={{}} />
       <Tabs.Screen
         name="id"
@@ -143,9 +145,37 @@ export default function MainLayout() {
         name="settings"
         options={{
           title: "Settings",
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: "#1B4965",
+          },
+          headerTitle: "Settings",
+          headerTitleStyle: {
+            color: "white",
+            fontSize: 20,
+            fontWeight: "bold",
+            marginLeft: 10,
+          },
           tabBarIcon: ({color}) => (
             <Ionicons name="settings" size={24} color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          tabBarButton: () => null,
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: "#1B4965",
+          },
+          headerTitle: "Profile",
+          headerTitleStyle: {
+            color: "white",
+            fontSize: 20,
+            fontWeight: "bold",
+            marginLeft: 10,
+          },
         }}
       />
     </Tabs>
@@ -194,7 +224,7 @@ const styles = StyleSheet.create({
 
   tabButtonFocused: {
     backgroundColor: "rgba(255, 255, 255, 0.1)",
-    padding: 15,
+    padding: 6,
     borderRadius: 10,
   },
 });

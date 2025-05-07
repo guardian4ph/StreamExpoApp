@@ -1,5 +1,5 @@
+import {useAuthStore} from "@/context/useAuthStore";
 import {useState, useEffect} from "react";
-import {useAuth} from "@/context/AuthContext";
 
 interface UserInfo {
   _id: string;
@@ -11,17 +11,22 @@ interface UserInfo {
   address?: string;
   barangay?: string;
   city?: string;
+  rating?: number;
+  rank?: string;
+  gender: string;
+  followedLGUs: string[];
+  profilePicture?: string;
 }
 
 export const useGetUserInfo = () => {
-  const {authState} = useAuth();
+  const {user_id} = useAuthStore();
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserInfo = async () => {
-      if (!authState?.user_id) {
+      if (!user_id) {
         setLoading(false);
         setError("No user ID found");
         return;
@@ -29,7 +34,7 @@ export const useGetUserInfo = () => {
 
       try {
         const response = await fetch(
-          `${process.env.EXPO_PUBLIC_API_URL}/users/${authState.user_id}`
+          `${process.env.EXPO_PUBLIC_API_URL}/volunteers/${user_id}`
         );
 
         if (!response.ok) {
@@ -50,7 +55,7 @@ export const useGetUserInfo = () => {
     };
 
     fetchUserInfo();
-  }, [authState?.user_id]);
+  }, [user_id]);
 
   return {userInfo, loading, error};
 };

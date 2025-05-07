@@ -14,7 +14,6 @@ import {useRouter} from "expo-router";
 import GetIcon from "@/utils/GetIcon";
 import {Ionicons} from "@expo/vector-icons";
 import {StreamChat} from "stream-chat";
-import {useAuth} from "@/context/AuthContext";
 import InitialChatAlert from "@/components/InitialChatAlert";
 import {useCalls, StreamCall} from "@stream-io/video-react-native-sdk";
 import {useIncident} from "@/context/IncidentContext";
@@ -25,11 +24,12 @@ import formatResponderStatus from "@/utils/FormatResponderStatus";
 import {useSound} from "@/utils/PlaySound";
 import * as SecureStore from "expo-secure-store";
 import {getIncidentById} from "@/api/useFetchIncident";
+import {useAuthStore} from "@/context/useAuthStore";
 
 export default function IncidentRoomVerification() {
   const {incidentState, clearIncident, setCurrentIncident} = useIncident();
   const [showPopup, setShowPopup] = useState<boolean>(false);
-  const {authState} = useAuth();
+  const {user_id, token} = useAuthStore();
   const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isAmbulanceComing, setIsAmbulanceComing] = useState<boolean>(false);
@@ -249,10 +249,7 @@ export default function IncidentRoomVerification() {
         const chatClient = StreamChat.getInstance(
           process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY!
         );
-        await chatClient.connectUser(
-          {id: authState?.user_id!},
-          authState?.token!
-        );
+        await chatClient.connectUser({id: user_id!}, token);
         const channel = chatClient.channel("messaging", channelId);
         await channel.watch();
 
@@ -268,13 +265,13 @@ export default function IncidentRoomVerification() {
         console.error("Error listening for initial message:", error);
       }
     };
-  }, [incidentState?.incidentId, authState]);
+  }, [incidentState?.incidentId, user_id, token]);
 
   useEffect(() => {
-    if (incidentState?.channelId && authState?.user_id) {
+    if (incidentState?.channelId && user_id) {
       listenForInitialMessage();
     }
-  }, [incidentState?.channelId, authState?.user_id, listenForInitialMessage]);
+  }, [incidentState?.channelId, user_id, listenForInitialMessage]);
 
   const handleReply = () => {
     setShowPopup(false);
