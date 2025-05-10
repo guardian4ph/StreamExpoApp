@@ -1,5 +1,7 @@
 import * as SecureStore from "expo-secure-store";
-import {createContext, useContext, useEffect, useState} from "react";
+import {create} from "zustand";
+
+const INCIDENT_KEY = "current-incident";
 
 interface IncidentData {
   emergencyType: string;
@@ -21,7 +23,7 @@ interface IncidentData {
   };
 }
 
-interface IncidentContextProps {
+interface IncidentStore {
   incidentState: IncidentData | null;
   setCurrentIncident: (data: IncidentData) => Promise<void>;
   updateIncidentLocation: (locationData: {
@@ -32,46 +34,29 @@ interface IncidentContextProps {
   clearIncident: () => Promise<void>;
 }
 
-const INCIDENT_KEY = "current-incident";
-const IncidentContext = createContext<Partial<IncidentContextProps>>({});
+export const useIncidentStore = create<IncidentStore>((set) => ({
+  incidentState: null,
 
-// incident hook
-export const useIncident = () => {
-  return useContext(IncidentContext);
-};
-
-export const IncidentProvider = ({children}: any) => {
-  const [incidentState, setIncidentState] = useState<IncidentData | null>(null);
-
-  useEffect(() => {
-    const loadIncident = async () => {
-      const data = await SecureStore.getItemAsync(INCIDENT_KEY);
-      if (data) {
-        setIncidentState(JSON.parse(data));
-      }
-    };
-    loadIncident();
-  }, []);
-
-  const setCurrentIncident = async (data: IncidentData) => {
+  setCurrentIncident: async (data: IncidentData) => {
     try {
       await SecureStore.setItemAsync(INCIDENT_KEY, JSON.stringify(data));
-      setIncidentState(data);
+      set({incidentState: data});
     } catch (error) {
       console.error("Error saving incident:", error);
     }
-  };
+  },
 
-  const updateIncidentLocation = async (locationData: {
+  updateIncidentLocation: async (locationData: {
     latitude: number;
     longitude: number;
     address: string;
   }) => {
-    if (!incidentState) return;
-
     try {
+      const currentState = await SecureStore.getItemAsync(INCIDENT_KEY);
+      if (!currentState) return;
+
       const updatedIncident = {
-        ...incidentState,
+        ...JSON.parse(currentState),
         location: locationData,
       };
 
@@ -79,31 +64,31 @@ export const IncidentProvider = ({children}: any) => {
         INCIDENT_KEY,
         JSON.stringify(updatedIncident)
       );
-      setIncidentState(updatedIncident);
+      set({incidentState: updatedIncident});
     } catch (error) {
       console.error("Error updating incident location:", error);
     }
-  };
+  },
 
-  const clearIncident = async () => {
+  clearIncident: async () => {
     try {
       await SecureStore.deleteItemAsync(INCIDENT_KEY);
-      setIncidentState(null);
+      set({incidentState: null});
     } catch (error) {
       console.error("Error clearing incident:", error);
     }
-  };
+  },
+}));
 
-  const value = {
-    incidentState,
-    setCurrentIncident,
-    updateIncidentLocation,
-    clearIncident,
-  };
-
-  return (
-    <IncidentContext.Provider value={value}>
-      {children}
-    </IncidentContext.Provider>
-  );
+const initializeStore = async () => {
+  try {
+    const data = await SecureStore.getItemAsync(INCIDENT_KEY);
+    if (data) {
+      useIncidentStore.setState({incidentState: JSON.parse(data)});
+    }
+  } catch (error: any) {
+    console.error("Error intiazlizing incident state/store", error);
+  }
 };
+
+initializeStore();

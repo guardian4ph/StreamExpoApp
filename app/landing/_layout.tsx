@@ -3,10 +3,10 @@ import {Tabs} from "expo-router";
 import {Image, TouchableOpacity, View, StyleSheet, Text} from "react-native";
 import {Ionicons} from "@expo/vector-icons";
 import {BottomTabBarProps} from "@react-navigation/bottom-tabs";
-import {useIncident} from "@/context/IncidentContext";
+import {useIncidentStore} from "@/context/useIncidentStore";
 
 function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
-  const {incidentState} = useIncident();
+  const {incidentState} = useIncidentStore();
 
   const currentRoute = state.routes[state.index];
   const nestedState = currentRoute.state as {

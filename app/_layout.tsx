@@ -8,8 +8,8 @@ import {
   User,
 } from "@stream-io/video-react-native-sdk";
 import {OverlayProvider} from "stream-chat-expo";
-import {IncidentProvider, useIncident} from "@/context/IncidentContext";
 import {useAuthStore} from "@/context/useAuthStore";
+import {useIncidentStore} from "@/context/useIncidentStore";
 
 const STREAM_KEY = process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY;
 
@@ -19,7 +19,7 @@ const InitialLayout = () => {
   const segments = useSegments();
   const router = useRouter();
   const [client, setClient] = useState<StreamVideoClient | null>(null);
-  const {incidentState} = useIncident();
+  const {incidentState} = useIncidentStore();
 
   useEffect(() => {
     initialize();
@@ -95,11 +95,9 @@ const InitialLayout = () => {
 
 const RootLayout = () => {
   return (
-    <IncidentProvider>
-      <GestureHandlerRootView style={{flex: 1}}>
-        <InitialLayout />
-      </GestureHandlerRootView>
-    </IncidentProvider>
+    <GestureHandlerRootView style={{flex: 1}}>
+      <InitialLayout />
+    </GestureHandlerRootView>
   );
 };
 

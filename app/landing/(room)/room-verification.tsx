@@ -16,7 +16,7 @@ import {Ionicons} from "@expo/vector-icons";
 import {StreamChat} from "stream-chat";
 import InitialChatAlert from "@/components/InitialChatAlert";
 import {useCalls, StreamCall} from "@stream-io/video-react-native-sdk";
-import {useIncident} from "@/context/IncidentContext";
+import {useIncidentStore} from "@/context/useIncidentStore";
 import CallPanel from "@/components/calls/CallPanel";
 import CancelIncidentModal from "@/components/incidents/cancel-incident-modal";
 import {useDispatcherDetails} from "@/hooks/useDispatcherDetails";
@@ -27,7 +27,7 @@ import {getIncidentById} from "@/api/useFetchIncident";
 import {useAuthStore} from "@/context/useAuthStore";
 
 export default function IncidentRoomVerification() {
-  const {incidentState, clearIncident, setCurrentIncident} = useIncident();
+  const {incidentState, clearIncident, setCurrentIncident} = useIncidentStore();
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const {user_id, token} = useAuthStore();
   const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");

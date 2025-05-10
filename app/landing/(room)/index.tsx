@@ -10,7 +10,7 @@ import React, {useEffect, useState, useCallback} from "react";
 import {EmergencyContacts} from "@/assets/data/emergencyContacts";
 import {TouchableOpacity} from "react-native";
 import {useRouter} from "expo-router";
-import {useIncident} from "@/context/IncidentContext";
+import {useIncidentStore} from "@/context/useIncidentStore";
 import useLocation from "@/hooks/useLocation";
 import {useAuthStore} from "@/context/useAuthStore";
 
@@ -27,7 +27,7 @@ interface LocationData {
 
 export default function SelectEmergency() {
   const router = useRouter();
-  const {incidentState, setCurrentIncident} = useIncident();
+  const {incidentState, setCurrentIncident} = useIncidentStore();
   const {getUserLocation} = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [loadingEmergencyType, setLoadingEmergencyType] = useState<

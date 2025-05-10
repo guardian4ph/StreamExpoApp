@@ -468,6 +468,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginBottom: 5,
   },
+  starIcon: {
+    fontSize: 16,
+    marginHorizontal: 2,
+  },
   filledStar: {
     color: "gold",
   },

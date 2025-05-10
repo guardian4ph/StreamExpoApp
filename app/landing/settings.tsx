@@ -1,12 +1,12 @@
 import {View, Text, StyleSheet, ScrollView, Switch} from "react-native";
 import React, {useState} from "react";
 import {TouchableOpacity} from "react-native-gesture-handler";
-import {useIncident} from "@/context/IncidentContext";
+import {useIncidentStore} from "@/context/useIncidentStore";
 import {useAuthStore} from "@/context/useAuthStore";
 
 export default function Settings() {
   const {logout} = useAuthStore();
-  const {clearIncident} = useIncident();
+  const {clearIncident} = useIncidentStore();
 
   const [notifications, setNotifications] = useState({
     weather: true,
@@ -73,14 +73,15 @@ export default function Settings() {
   const renderNotificationItem = (label: any, type: any) => (
     <View style={styles.notificationItem}>
       <View style={styles.notificationLabel}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.checkboxContainer}
-          onPress={() => toggleNotification(type)}
-        >
-          <View style={[
-            styles.checkbox, 
-            notifications[type as keyof typeof notifications] && styles.checkboxChecked
-          ]}>
+          onPress={() => toggleNotification(type)}>
+          <View
+            style={[
+              styles.checkbox,
+              notifications[type as keyof typeof notifications] &&
+                styles.checkboxChecked,
+            ]}>
             {notifications[type as keyof typeof notifications] && (
               <Text style={styles.checkmark}>✓</Text>
             )}

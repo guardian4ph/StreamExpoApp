@@ -9,11 +9,11 @@ import {
 import React, {useState, useEffect} from "react";
 import {useRouter} from "expo-router";
 import GetIcon from "@/utils/GetIcon";
-import {useIncident} from "@/context/IncidentContext";
+import {useIncidentStore} from "@/context/useIncidentStore";
 import GetEmergencyIcon from "@/utils/GetEmergencyIcon";
 
 export default function ConnectingCallPage() {
-  const {incidentState, clearIncident} = useIncident();
+  const {incidentState, clearIncident} = useIncidentStore();
   const router = useRouter();
   const [isConnected, setIsConnected] = useState<boolean>(false);
 

@@ -1,13 +1,13 @@
 import {View, StyleSheet, Image, Text, TouchableOpacity} from "react-native";
 import React from "react";
-import {useIncident} from "@/context/IncidentContext";
+import {useIncidentStore} from "@/context/useIncidentStore";
 import {useAuthStore} from "@/context/useAuthStore";
 import {useGetUserInfo} from "@/hooks/useGetUserInfo";
 import {useRouter} from "expo-router";
 
 export default function ID() {
   const {user_id, token} = useAuthStore();
-  const {incidentState} = useIncident();
+  const {incidentState} = useIncidentStore();
   const {userInfo} = useGetUserInfo();
   const router = useRouter();
 
