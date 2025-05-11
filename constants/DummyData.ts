@@ -35,4 +35,31 @@ export const msgs = [
     description:
       "Help us serve you better! Please complete your volunteer information to improve coordination.",
   },
+  {
+    id: 5,
+    thumbnail: require("../assets/images/banner-icon.png"),
+    title: "Complete Your Volunteer Profile Information",
+    category: "Settings Reminder",
+    timestamp: "04-24-2025 : 16:00",
+    description:
+      "Help us serve you better! Please complete your volunteer information to improve coordination.",
+  },
+  {
+    id: 6,
+    thumbnail: require("../assets/images/banner-icon.png"),
+    title: "Complete Your Volunteer Profile Information",
+    category: "Settings Reminder",
+    timestamp: "04-24-2025 : 16:00",
+    description:
+      "Help us serve you better! Please complete your volunteer information to improve coordination.",
+  },
+  {
+    id: 7,
+    thumbnail: require("../assets/images/banner-icon.png"),
+    title: "Complete Your Volunteer Profile Information",
+    category: "Settings Reminder",
+    timestamp: "04-24-2025 : 16:00",
+    description:
+      "Help us serve you better! Please complete your volunteer information to improve coordination.",
+  },
 ];
