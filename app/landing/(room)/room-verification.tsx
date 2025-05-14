@@ -23,8 +23,8 @@ import {useDispatcherDetails} from "@/hooks/useDispatcherDetails";
 import formatResponderStatus from "@/utils/FormatResponderStatus";
 import {useSound} from "@/utils/PlaySound";
 import * as SecureStore from "expo-secure-store";
-import {getIncidentById} from "@/api/incidents/useFetchIncident";
 import {useAuthStore} from "@/context/useAuthStore";
+import {useFetchIncident} from "@/api/incidents/useFetchIncident";
 
 export default function IncidentRoomVerification() {
   const {incidentState, clearIncident, setCurrentIncident} = useIncidentStore();
@@ -67,9 +67,9 @@ export default function IncidentRoomVerification() {
       isFetching.current = true;
       lastFetchTime.current = now;
 
-      const incident = await getIncidentById(incidentState?.incidentId);
+      const {data: incident} = useFetchIncident(incidentState?.incidentId);
 
-      if (incident.isVerified) {
+      if (incident?.isVerified) {
         if (!isVerified) {
           const soundPlayedKey = `sound_played_${incidentState.incidentId.substring(
             5,
@@ -85,28 +85,28 @@ export default function IncidentRoomVerification() {
         setIsVerified(true);
       }
 
-      if (incident.isAcceptedResponder) {
+      if (incident?.isAcceptedResponder) {
         setIsAmbulanceComing(true);
       }
 
       if (
-        incident.dispatcher &&
+        incident?.dispatcher &&
         (!incidentState.dispatcher ||
-          incident.dispatcher !== incidentState.dispatcher)
+          incident?.dispatcher !== incidentState.dispatcher)
       ) {
-        console.log("Dispatcher assigned:", incident.dispatcher);
+        console.log("Dispatcher assigned:", incident?.dispatcher);
         const updatedIncident = {
           ...incidentState,
-          dispatcher: incident.dispatcher,
+          dispatcher: incident?.dispatcher,
         };
         await setCurrentIncident!(updatedIncident);
       }
 
-      if (incident.responderStatus) {
-        setResponderStatus(incident.responderStatus);
+      if (incident?.responderStatus) {
+        setResponderStatus(incident?.responderStatus);
       }
 
-      if (incident.isFinished) {
+      if (incident?.isFinished) {
         setIsLoading(true);
         try {
           const soundPlayedKey = `sound_played_${incidentState.incidentId.substring(
