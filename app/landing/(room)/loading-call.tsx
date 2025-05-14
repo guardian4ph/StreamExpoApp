@@ -40,7 +40,7 @@ export default function ConnectingCallPage() {
               router.push({
                 pathname: "/landing/(room)/room-verification",
                 params: {
-                  emergencyType: incidentState.emergencyType,
+                  emergencyType: incidentState.incidentType,
                   channelId: incidentState.channelId,
                   incidentId: incidentState.incidentId,
                 },
@@ -78,14 +78,14 @@ export default function ConnectingCallPage() {
     <View style={styles.container}>
       <View style={styles.contentContainer}>
         <Text style={styles.title}>
-          Reporting {incidentState?.emergencyType} Emergency
+          Reporting {incidentState?.incidentType} Emergency
         </Text>
         <Text style={styles.connecting}>
           {isConnected ? "Connected!" : "Connecting..."}
         </Text>
         <View style={styles.iconContainer}>
           <Image
-            source={GetEmergencyIcon(incidentState?.emergencyType as string)}
+            source={GetEmergencyIcon(incidentState?.incidentType as string)}
             resizeMode="contain"
             style={styles.emergencyIcon}
           />

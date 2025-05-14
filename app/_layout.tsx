@@ -10,8 +10,10 @@ import {
 import {OverlayProvider} from "stream-chat-expo";
 import {useAuthStore} from "@/context/useAuthStore";
 import {useIncidentStore} from "@/context/useIncidentStore";
+import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 
 const STREAM_KEY = process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY;
+const queryClient = new QueryClient();
 
 const InitialLayout = () => {
   const {authenticated, token, user_id, initialized, initialize} =
@@ -71,7 +73,7 @@ const InitialLayout = () => {
       router.replace({
         pathname: "/landing/(room)/room-verification",
         params: {
-          emergencyType: incidentState.emergencyType,
+          emergencyType: incidentState.incidentType,
           channelId: incidentState.channelId,
           incidentId: incidentState.incidentId,
         },
@@ -95,9 +97,11 @@ const InitialLayout = () => {
 
 const RootLayout = () => {
   return (
-    <GestureHandlerRootView style={{flex: 1}}>
-      <InitialLayout />
-    </GestureHandlerRootView>
+    <QueryClientProvider client={queryClient}>
+      <GestureHandlerRootView style={{flex: 1}}>
+        <InitialLayout />
+      </GestureHandlerRootView>
+    </QueryClientProvider>
   );
 };
 

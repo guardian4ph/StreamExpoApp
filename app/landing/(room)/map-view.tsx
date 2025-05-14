@@ -69,12 +69,12 @@ export default function MapViewScreen() {
   }, [incidentState?.location?.lat, incidentState?.location?.lon]);
 
   const emergencyIcon = useMemo(() => {
-    return GetEmergencyIcon(incidentState?.emergencyType || "");
-  }, [incidentState?.emergencyType]);
+    return GetEmergencyIcon(incidentState?.incidentType || "");
+  }, [incidentState?.incidentType]);
 
   const responderIcon = useMemo(() => {
-    return GetIcon(incidentState?.emergencyType || "");
-  }, [incidentState?.emergencyType]);
+    return GetIcon(incidentState?.incidentType || "");
+  }, [incidentState?.incidentType]);
 
   const formattedResponderStatus = useMemo(() => {
     return formatResponderStatus(responderStatus);

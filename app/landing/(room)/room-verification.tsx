@@ -23,7 +23,7 @@ import {useDispatcherDetails} from "@/hooks/useDispatcherDetails";
 import formatResponderStatus from "@/utils/FormatResponderStatus";
 import {useSound} from "@/utils/PlaySound";
 import * as SecureStore from "expo-secure-store";
-import {getIncidentById} from "@/api/useFetchIncident";
+import {getIncidentById} from "@/api/incidents/useFetchIncident";
 import {useAuthStore} from "@/context/useAuthStore";
 
 export default function IncidentRoomVerification() {
@@ -244,7 +244,7 @@ export default function IncidentRoomVerification() {
       if (popupShown) return;
 
       const hash = incidentState?.incidentId.substring(5, 9);
-      const channelId = `${incidentState?.emergencyType.toLowerCase()}-${hash}`;
+      const channelId = `${incidentState?.incidentType.toLowerCase()}-${hash}`;
       try {
         const chatClient = StreamChat.getInstance(
           process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY!
@@ -316,7 +316,7 @@ export default function IncidentRoomVerification() {
               <View style={styles.headerSection}>
                 <View style={styles.headerRow}>
                   <Image
-                    source={GetIcon(incidentState?.emergencyType as string)}
+                    source={GetIcon(incidentState?.incidentType as string)}
                     resizeMode="contain"
                     style={styles.medicalIcon}
                   />
@@ -328,7 +328,7 @@ export default function IncidentRoomVerification() {
                       </Text>
                     </View>
                     <Text style={styles.incidentType}>
-                      {incidentState?.emergencyType} Incident
+                      {incidentState?.incidentType} Incident
                     </Text>
                     <Text style={styles.address}>
                       {incidentState?.location?.address ||

@@ -84,7 +84,7 @@ export default function ID() {
           <Text style={styles.label}>
             Incident Type:
             <Text style={styles.value}>
-              {incidentState?.emergencyType || "N/A"}
+              {incidentState?.incidentType || "N/A"}
             </Text>
           </Text>
           <Text style={styles.label}>

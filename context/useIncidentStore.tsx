@@ -4,13 +4,13 @@ import {create} from "zustand";
 const INCIDENT_KEY = "current-incident";
 
 interface IncidentData {
-  emergencyType: string;
+  incidentType: string;
   channelId: string;
   incidentId: string;
-  isAccepted: boolean;
-  isFinished: boolean;
+  isAccepted?: boolean;
+  isFinished?: boolean;
   dispatcher?: string;
-  timestamp: number;
+  timestamp?: number;
   responderStatus?: "enroute" | "onscene" | "medicalFacility" | "rtb" | "close";
   location?: {
     lat?: number;

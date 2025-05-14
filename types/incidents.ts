@@ -23,3 +23,11 @@ export interface Incident {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface CreateIncidentProps {
+  incidentType: string;
+  userId: string;
+  incidentDetails: {
+    coordinates: Coordinates;
+  };
+}
