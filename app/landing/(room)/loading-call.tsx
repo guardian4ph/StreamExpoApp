@@ -9,11 +9,11 @@ import {
 import React, {useState, useEffect} from "react";
 import {useRouter} from "expo-router";
 import GetIcon from "@/utils/GetIcon";
-import {useIncident} from "@/context/IncidentContext";
+import {useIncidentStore} from "@/context/useIncidentStore";
 import GetEmergencyIcon from "@/utils/GetEmergencyIcon";
 
 export default function ConnectingCallPage() {
-  const {incidentState, clearIncident} = useIncident();
+  const {incidentState, clearIncident} = useIncidentStore();
   const router = useRouter();
   const [isConnected, setIsConnected] = useState<boolean>(false);
 
@@ -40,7 +40,7 @@ export default function ConnectingCallPage() {
               router.push({
                 pathname: "/landing/(room)/room-verification",
                 params: {
-                  emergencyType: incidentState.emergencyType,
+                  emergencyType: incidentState.incidentType,
                   channelId: incidentState.channelId,
                   incidentId: incidentState.incidentId,
                 },
@@ -78,14 +78,14 @@ export default function ConnectingCallPage() {
     <View style={styles.container}>
       <View style={styles.contentContainer}>
         <Text style={styles.title}>
-          Reporting {incidentState?.emergencyType} Emergency
+          Reporting {incidentState?.incidentType} Emergency
         </Text>
         <Text style={styles.connecting}>
           {isConnected ? "Connected!" : "Connecting..."}
         </Text>
         <View style={styles.iconContainer}>
           <Image
-            source={GetEmergencyIcon(incidentState?.emergencyType as string)}
+            source={GetEmergencyIcon(incidentState?.incidentType as string)}
             resizeMode="contain"
             style={styles.emergencyIcon}
           />

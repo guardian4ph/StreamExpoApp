@@ -11,7 +11,7 @@ import {
 import React, {useState, useEffect, useRef, useMemo, useCallback} from "react";
 import MapView, {Marker, PROVIDER_GOOGLE, Region} from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions";
-import {useIncident} from "@/context/IncidentContext";
+import {useIncidentStore} from "@/context/useIncidentStore";
 import {Ionicons} from "@expo/vector-icons";
 import {useRouter} from "expo-router";
 import formatResponderStatus from "@/utils/FormatResponderStatus";
@@ -25,7 +25,7 @@ const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 export default function MapViewScreen() {
-  const {incidentState} = useIncident();
+  const {incidentState} = useIncidentStore();
   const [responderStatus, setResponderStatus] = useState(
     incidentState?.responderStatus || "enroute"
   );
@@ -69,12 +69,12 @@ export default function MapViewScreen() {
   }, [incidentState?.location?.lat, incidentState?.location?.lon]);
 
   const emergencyIcon = useMemo(() => {
-    return GetEmergencyIcon(incidentState?.emergencyType || "");
-  }, [incidentState?.emergencyType]);
+    return GetEmergencyIcon(incidentState?.incidentType || "");
+  }, [incidentState?.incidentType]);
 
   const responderIcon = useMemo(() => {
-    return GetIcon(incidentState?.emergencyType || "");
-  }, [incidentState?.emergencyType]);
+    return GetIcon(incidentState?.incidentType || "");
+  }, [incidentState?.incidentType]);
 
   const formattedResponderStatus = useMemo(() => {
     return formatResponderStatus(responderStatus);

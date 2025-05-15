@@ -13,7 +13,7 @@ export default function Index() {
     return () => clearTimeout(timer);
   }, [router]);
 
-  // placeholder if slow laoding..
+  // loading spinner
   return (
     <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>
       <Text>Loading...</Text>

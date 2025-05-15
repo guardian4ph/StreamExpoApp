@@ -14,22 +14,22 @@ import {useRouter} from "expo-router";
 import GetIcon from "@/utils/GetIcon";
 import {Ionicons} from "@expo/vector-icons";
 import {StreamChat} from "stream-chat";
-import {useAuth} from "@/context/AuthContext";
 import InitialChatAlert from "@/components/InitialChatAlert";
 import {useCalls, StreamCall} from "@stream-io/video-react-native-sdk";
-import {useIncident} from "@/context/IncidentContext";
+import {useIncidentStore} from "@/context/useIncidentStore";
 import CallPanel from "@/components/calls/CallPanel";
 import CancelIncidentModal from "@/components/incidents/cancel-incident-modal";
 import {useDispatcherDetails} from "@/hooks/useDispatcherDetails";
 import formatResponderStatus from "@/utils/FormatResponderStatus";
 import {useSound} from "@/utils/PlaySound";
 import * as SecureStore from "expo-secure-store";
-import {getIncidentById} from "@/api/useFetchIncident";
+import {useAuthStore} from "@/context/useAuthStore";
+import {useFetchIncident} from "@/api/incidents/useFetchIncident";
 
 export default function IncidentRoomVerification() {
-  const {incidentState, clearIncident, setCurrentIncident} = useIncident();
+  const {incidentState, clearIncident, setCurrentIncident} = useIncidentStore();
   const [showPopup, setShowPopup] = useState<boolean>(false);
-  const {authState} = useAuth();
+  const {user_id, token} = useAuthStore();
   const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");
   const [isVerified, setIsVerified] = useState<boolean>(false);
   const [isAmbulanceComing, setIsAmbulanceComing] = useState<boolean>(false);
@@ -67,9 +67,9 @@ export default function IncidentRoomVerification() {
       isFetching.current = true;
       lastFetchTime.current = now;
 
-      const incident = await getIncidentById(incidentState?.incidentId);
+      const {data: incident} = useFetchIncident(incidentState?.incidentId);
 
-      if (incident.isVerified) {
+      if (incident?.isVerified) {
         if (!isVerified) {
           const soundPlayedKey = `sound_played_${incidentState.incidentId.substring(
             5,
@@ -85,28 +85,28 @@ export default function IncidentRoomVerification() {
         setIsVerified(true);
       }
 
-      if (incident.isAcceptedResponder) {
+      if (incident?.isAcceptedResponder) {
         setIsAmbulanceComing(true);
       }
 
       if (
-        incident.dispatcher &&
+        incident?.dispatcher &&
         (!incidentState.dispatcher ||
-          incident.dispatcher !== incidentState.dispatcher)
+          incident?.dispatcher !== incidentState.dispatcher)
       ) {
-        console.log("Dispatcher assigned:", incident.dispatcher);
+        console.log("Dispatcher assigned:", incident?.dispatcher);
         const updatedIncident = {
           ...incidentState,
-          dispatcher: incident.dispatcher,
+          dispatcher: incident?.dispatcher,
         };
         await setCurrentIncident!(updatedIncident);
       }
 
-      if (incident.responderStatus) {
-        setResponderStatus(incident.responderStatus);
+      if (incident?.responderStatus) {
+        setResponderStatus(incident?.responderStatus);
       }
 
-      if (incident.isFinished) {
+      if (incident?.isFinished) {
         setIsLoading(true);
         try {
           const soundPlayedKey = `sound_played_${incidentState.incidentId.substring(
@@ -244,15 +244,12 @@ export default function IncidentRoomVerification() {
       if (popupShown) return;
 
       const hash = incidentState?.incidentId.substring(5, 9);
-      const channelId = `${incidentState?.emergencyType.toLowerCase()}-${hash}`;
+      const channelId = `${incidentState?.incidentType.toLowerCase()}-${hash}`;
       try {
         const chatClient = StreamChat.getInstance(
           process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY!
         );
-        await chatClient.connectUser(
-          {id: authState?.user_id!},
-          authState?.token!
-        );
+        await chatClient.connectUser({id: user_id!}, token);
         const channel = chatClient.channel("messaging", channelId);
         await channel.watch();
 
@@ -268,13 +265,13 @@ export default function IncidentRoomVerification() {
         console.error("Error listening for initial message:", error);
       }
     };
-  }, [incidentState?.incidentId, authState]);
+  }, [incidentState?.incidentId, user_id, token]);
 
   useEffect(() => {
-    if (incidentState?.channelId && authState?.user_id) {
+    if (incidentState?.channelId && user_id) {
       listenForInitialMessage();
     }
-  }, [incidentState?.channelId, authState?.user_id, listenForInitialMessage]);
+  }, [incidentState?.channelId, user_id, listenForInitialMessage]);
 
   const handleReply = () => {
     setShowPopup(false);
@@ -319,7 +316,7 @@ export default function IncidentRoomVerification() {
               <View style={styles.headerSection}>
                 <View style={styles.headerRow}>
                   <Image
-                    source={GetIcon(incidentState?.emergencyType as string)}
+                    source={GetIcon(incidentState?.incidentType as string)}
                     resizeMode="contain"
                     style={styles.medicalIcon}
                   />
@@ -331,7 +328,7 @@ export default function IncidentRoomVerification() {
                       </Text>
                     </View>
                     <Text style={styles.incidentType}>
-                      {incidentState?.emergencyType} Incident
+                      {incidentState?.incidentType} Incident
                     </Text>
                     <Text style={styles.address}>
                       {incidentState?.location?.address ||

@@ -1,9 +1,10 @@
 import {Incident} from "@/types/incidents";
+import {useQuery} from "@tanstack/react-query";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 // GET SPECIFIC INCIENDT
-export async function getIncidentById(incidentId: string): Promise<Incident> {
+async function getIncidentById(incidentId: string): Promise<Incident> {
   try {
     const response = await fetch(`${API_URL}/incidents/${incidentId}`);
     if (!response.ok) {
@@ -15,3 +16,10 @@ export async function getIncidentById(incidentId: string): Promise<Incident> {
     throw new Error("Failed to fetch incident");
   }
 }
+
+export const useFetchIncident = (incidentId: string) => {
+  return useQuery({
+    queryKey: ["incident", incidentId],
+    queryFn: () => getIncidentById(incidentId),
+  });
+};

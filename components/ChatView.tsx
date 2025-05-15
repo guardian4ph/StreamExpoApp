@@ -1,7 +1,6 @@
 import {View, Text} from "react-native";
 import React, {useEffect, useState} from "react";
 import {StreamChat} from "stream-chat";
-import {useAuth} from "../context/AuthContext";
 import {
   Channel,
   Chat,
@@ -10,6 +9,7 @@ import {
   MessageList,
 } from "stream-chat-expo";
 import {Channel as ChannelType} from "stream-chat";
+import {useAuthStore} from "@/context/useAuthStore";
 
 const STREAM_KEY = process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY;
 
@@ -21,7 +21,7 @@ const ChatView = ({channelId}: Props) => {
   console.log("🚀 ~ ChatView ~ channelId :", channelId);
 
   const chatClient = StreamChat.getInstance(STREAM_KEY!);
-  const {authState} = useAuth();
+  const {user_id, token} = useAuthStore();
   const [channel, setChannel] = useState<
     ChannelType<DefaultStreamChatGenerics> | undefined
   >(undefined);
@@ -29,11 +29,11 @@ const ChatView = ({channelId}: Props) => {
   useEffect(() => {
     const connectToChannel = async () => {
       const user = {
-        id: authState?.user_id!,
+        id: user_id!,
         image: require("@/assets/images/userAvatar.png"),
       };
 
-      await chatClient.connectUser(user, authState?.token!);
+      await chatClient.connectUser(user, token);
       const channel = chatClient.channel("messaging", channelId);
 
       setChannel(channel);

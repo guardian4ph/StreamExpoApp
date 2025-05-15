@@ -10,9 +10,10 @@ import React, {useEffect, useState, useCallback} from "react";
 import {EmergencyContacts} from "@/assets/data/emergencyContacts";
 import {TouchableOpacity} from "react-native";
 import {useRouter} from "expo-router";
-import {useAuth} from "@/context/AuthContext";
-import {useIncident} from "@/context/IncidentContext";
+import {useIncidentStore} from "@/context/useIncidentStore";
 import useLocation from "@/hooks/useLocation";
+import {useAuthStore} from "@/context/useAuthStore";
+import {useCreateIncident} from "@/api/incidents/useCreateIncident";
 
 interface LocationData {
   latitude: number;
@@ -27,8 +28,7 @@ interface LocationData {
 
 export default function SelectEmergency() {
   const router = useRouter();
-  const {authState} = useAuth();
-  const {incidentState, setCurrentIncident} = useIncident();
+  const {setCurrentIncident, incidentState} = useIncidentStore();
   const {getUserLocation} = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [loadingEmergencyType, setLoadingEmergencyType] = useState<
@@ -36,6 +36,8 @@ export default function SelectEmergency() {
   >(null);
   const [locationData, setLocationData] = useState<LocationData | null>(null);
   const [locationFetched, setLocationFetched] = useState(false);
+  const {user_id} = useAuthStore();
+  const {mutateAsync: createIncident, isPending} = useCreateIncident();
 
   // should fetch location when user lands on dius page
   useEffect(() => {
@@ -51,24 +53,57 @@ export default function SelectEmergency() {
       }
     };
 
-    prefetchLocation();
-  }, []);
-
-  useEffect(() => {
     const checkExistingIncident = async () => {
       if (incidentState) {
         router.replace({
           pathname: "/landing/(room)/room-verification",
-          params: {
-            emergencyType: incidentState.emergencyType,
-            channelId: incidentState.channelId,
-            incidentId: incidentState.incidentId,
-          },
         });
       }
     };
     checkExistingIncident();
+    prefetchLocation();
   }, []);
+
+  const handleCreateIncident = async (contact: {name: string}) => {
+    try {
+      setIsLoading(true);
+      setLoadingEmergencyType(contact.name);
+
+      const locData = locationFetched ? locationData : await getUserLocation();
+      const formattedAddress = formatAddress(locData);
+
+      // query payload
+      const data = await createIncident({
+        incidentType: contact.name,
+        userId: user_id!,
+        incidentDetails: {
+          coordinates: {
+            lat: locData?.latitude || null,
+            lon: locData?.longitude || null,
+          },
+        },
+      });
+
+      // context store
+      await setCurrentIncident({
+        incidentType: contact.name,
+        channelId: "fad-call",
+        incidentId: data._id,
+        location: {
+          lat: locData?.latitude,
+          lon: locData?.longitude,
+          address: formattedAddress,
+        },
+      });
+
+      router.push("/landing/(room)/loading-call");
+    } catch (error) {
+      console.error("Error handling emergency:", error);
+    } finally {
+      setIsLoading(false);
+      setLoadingEmergencyType(null);
+    }
+  };
 
   const formatAddress = useCallback((locData: any) => {
     let formattedAddress = "Unknown location";
@@ -81,72 +116,6 @@ export default function SelectEmergency() {
     return formattedAddress;
   }, []);
 
-  const createIncident = useCallback(
-    async (contactName: any, locData: any) => {
-      try {
-        const response = await fetch(
-          `${process.env.EXPO_PUBLIC_API_URL}/incidents`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              incidentType: contactName,
-              userId: authState?.user_id,
-              incidentDetails: {
-                coordinates: {
-                  lat: locData?.latitude || null,
-                  lon: locData?.longitude || null,
-                },
-              },
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error(`Server responded with ${response.status}`);
-        }
-
-        return await response.json();
-      } catch (error) {
-        console.error("Error creating incident:", error);
-        throw error;
-      }
-    },
-    [authState?.user_id]
-  );
-
-  const handleClickEmergency = async (contact: {name: string}) => {
-    try {
-      setIsLoading(true);
-      setLoadingEmergencyType(contact.name);
-      const locData = locationFetched ? locationData : await getUserLocation();
-      const formattedAddress = formatAddress(locData);
-      const data = await createIncident(contact.name, locData);
-
-      await setCurrentIncident!({
-        emergencyType: contact.name,
-        channelId: "fad-call",
-        incidentId: data._id,
-        isAccepted: data.isAccepted,
-        isFinished: data.isFinished,
-        timestamp: Date.now(),
-        location: {
-          lat: locData?.latitude,
-          lon: locData?.longitude,
-          address: formattedAddress,
-        },
-      });
-
-      router.push("/landing/(room)/loading-call");
-    } catch (error) {
-      console.error("Error handling emergency:", error);
-      setIsLoading(false);
-      setLoadingEmergencyType(null);
-    }
-  };
-
   const renderEmergencyButton = useCallback(
     (contact: any) => {
       const isContactLoading =
@@ -156,7 +125,7 @@ export default function SelectEmergency() {
         <TouchableOpacity
           key={contact.id}
           style={[styles.gridItem, isContactLoading && styles.loadingGridItem]}
-          onPress={() => handleClickEmergency(contact)}
+          onPress={() => handleCreateIncident(contact)}
           disabled={isLoading}>
           {isContactLoading ? (
             <View style={styles.loadingContainer}>
@@ -176,7 +145,7 @@ export default function SelectEmergency() {
         </TouchableOpacity>
       );
     },
-    [isLoading, loadingEmergencyType, handleClickEmergency]
+    [isLoading, loadingEmergencyType, handleCreateIncident]
   );
 
   return (

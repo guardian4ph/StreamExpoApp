@@ -10,12 +10,13 @@ import {
   StatusBar,
   TouchableWithoutFeedback,
   Alert,
+  Modal,
 } from "react-native";
 import React, {useState} from "react";
 import Spinner from "react-native-loading-spinner-overlay";
-import {useAuth} from "@/context/AuthContext";
-import {Href, useRouter} from "expo-router";
+import {useRouter} from "expo-router";
 import {ScrollView} from "react-native-gesture-handler";
+import {useAuthStore} from "@/context/useAuthStore";
 
 const WIDTH = Dimensions.get("window").width;
 const HEIGHT = Dimensions.get("window").height;
@@ -31,11 +32,15 @@ const Register = () => {
     address: "",
     barangay: "",
     city: "",
+    gender: "male",
   });
   const [loading, setLoading] = useState(false);
   const [isAgree, setIsAgree] = useState(false);
-  const {onRegister} = useAuth();
+  const [showGenderModal, setShowGenderModal] = useState(false);
+  const {register} = useAuthStore();
   const router = useRouter();
+
+  const genderOptions = ["male", "female"];
 
   const handleRegister = async () => {
     if (!isAgree) {
@@ -55,7 +60,7 @@ const Register = () => {
 
     try {
       setLoading(true);
-      const result = await onRegister?.(
+      const result = await register(
         formData.firstName,
         formData.lastName,
         formData.email,
@@ -63,7 +68,8 @@ const Register = () => {
         formData.password,
         formData.address,
         formData.barangay,
-        formData.city
+        formData.city,
+        formData.gender
       );
 
       if (result?.error) {
@@ -133,6 +139,55 @@ const Register = () => {
           autoCapitalize="none"
           keyboardType="email-address"
         />
+
+        <TouchableOpacity
+          style={styles.textField}
+          onPress={() => setShowGenderModal(true)}>
+          <Text
+            style={
+              formData.gender ? styles.selectText : styles.placeholderText
+            }>
+            {formData.gender || "Gender"}
+          </Text>
+        </TouchableOpacity>
+
+        <Modal
+          visible={showGenderModal}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowGenderModal(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Select Gender</Text>
+              {genderOptions.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={[
+                    styles.optionItem,
+                    formData.gender === option && styles.selectedOption,
+                  ]}
+                  onPress={() => {
+                    handleChange("gender", option);
+                    setShowGenderModal(false);
+                  }}>
+                  <Text
+                    style={
+                      formData.gender === option
+                        ? styles.selectedOptionText
+                        : styles.optionText
+                    }>
+                    {option.charAt(0).toUpperCase() + option.slice(1)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity
+                style={styles.closeButton}
+                onPress={() => setShowGenderModal(false)}>
+                <Text style={styles.closeButtonText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
 
         <TextInput
           placeholder="Mobile Number"
@@ -217,7 +272,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
   },
   scrollContainer: {
-    paddingTop: 80,
+    paddingTop: 50,
     paddingHorizontal: 30,
     paddingBottom: 20,
   },
@@ -287,6 +342,60 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontSize: 14,
+    fontWeight: "500",
+  },
+  placeholderText: {
+    color: "gray",
+  },
+  selectText: {
+    color: "#000",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+  },
+  modalContent: {
+    width: "80%",
+    backgroundColor: "white",
+    borderRadius: 10,
+    padding: 20,
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 15,
+    color: "#1B4965",
+  },
+  optionItem: {
+    width: "100%",
+    padding: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
+  selectedOption: {
+    backgroundColor: "#e6f2f8",
+  },
+  optionText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  selectedOptionText: {
+    fontSize: 16,
+    color: "#1B4965",
+    fontWeight: "500",
+  },
+  closeButton: {
+    marginTop: 15,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    backgroundColor: "#1B4965",
+    borderRadius: 5,
+  },
+  closeButtonText: {
+    color: "white",
     fontWeight: "500",
   },
 });
