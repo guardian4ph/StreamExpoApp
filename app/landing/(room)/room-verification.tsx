@@ -45,6 +45,7 @@ export default function IncidentRoomVerification() {
   const appState = useRef(AppState.currentState);
   const lastFetchTime = useRef<number>(0);
   const isFetching = useRef<boolean>(false);
+  const {data: incident} = useFetchIncident(incidentState?.incidentId || "");
 
   useEffect(() => {
     if (!incidentState || incidentState.channelId === "index") {
@@ -66,8 +67,6 @@ export default function IncidentRoomVerification() {
     try {
       isFetching.current = true;
       lastFetchTime.current = now;
-
-      const {data: incident} = useFetchIncident(incidentState?.incidentId);
 
       if (incident?.isVerified) {
         if (!isVerified) {
@@ -138,6 +137,7 @@ export default function IncidentRoomVerification() {
     }
     return false;
   }, [
+    incident,
     incidentState?.incidentId,
     isVerified,
     pollingInterval,
