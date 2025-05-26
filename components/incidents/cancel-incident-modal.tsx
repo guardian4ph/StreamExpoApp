@@ -22,10 +22,10 @@ export default function CancelIncidentModal({
   onSubmit,
 }: CancelIncidentModalProps) {
   const [reason, setReason] = useState("");
-  const {clearIncident} = useIncidentStore();
+  const {clearActiveIncident} = useIncidentStore();
 
   const handleSubmit = () => {
-    clearIncident!();
+    clearActiveIncident!();
   };
 
   return (

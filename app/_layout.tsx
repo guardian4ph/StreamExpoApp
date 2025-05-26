@@ -21,7 +21,8 @@ const InitialLayout = () => {
   const segments = useSegments();
   const router = useRouter();
   const [client, setClient] = useState<StreamVideoClient | null>(null);
-  const {incidentState} = useIncidentStore();
+  const {incidentState, loadUserIncident, clearActiveIncident} =
+    useIncidentStore();
 
   useEffect(() => {
     initialize();
@@ -48,8 +49,7 @@ const InitialLayout = () => {
   }, [authenticated, token, initialized, segments, router, client]);
 
   useEffect(() => {
-    if (authenticated && token && user_id) {
-      console.log("Authenticated: Setting up Stream client");
+    if (authenticated && token && user_id && STREAM_KEY) {
       const user: User = {id: user_id};
       try {
         const streamClient = StreamVideoClient.getOrCreateInstance({
@@ -62,24 +62,25 @@ const InitialLayout = () => {
         console.log("Error creating Stream client: ", e);
       }
     } else if (!authenticated && client) {
-      console.log("Not authenticated: Disconnecting Stream client");
-      client.disconnectUser();
+      client
+        .disconnectUser()
+        .catch((e) => console.error("Error disconnecting stream user", e));
       setClient(null);
     }
-  }, [authenticated, token, user_id]);
+  }, [authenticated, token, user_id, client]);
 
-  useEffect(() => {
-    if (incidentState) {
-      router.replace({
-        pathname: "/landing/(room)/room-verification",
-        params: {
-          emergencyType: incidentState.incidentType,
-          channelId: incidentState.channelId,
-          incidentId: incidentState.incidentId,
-        },
-      });
-    }
-  }, [incidentState, router]);
+  // useEffect(() => {
+  //   if (incidentState && incidentState.userId == user_id) {
+  //     router.replace({
+  //       pathname: "/landing/(room)/room-verification",
+  //       params: {
+  //         emergencyType: incidentState.incidentType,
+  //         channelId: incidentState.channelId,
+  //         incidentId: incidentState.incidentId,
+  //       },
+  //     });
+  //   }
+  // }, [incidentState, router, user_id]);
 
   return (
     <>

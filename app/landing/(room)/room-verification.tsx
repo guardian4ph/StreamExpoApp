@@ -27,7 +27,8 @@ import {useAuthStore} from "@/context/useAuthStore";
 import {useFetchIncident} from "@/api/incidents/useFetchIncident";
 
 export default function IncidentRoomVerification() {
-  const {incidentState, clearIncident, setCurrentIncident} = useIncidentStore();
+  const {incidentState, clearActiveIncident, setCurrentIncident} =
+    useIncidentStore();
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const {user_id, token} = useAuthStore();
   const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");
@@ -120,7 +121,7 @@ export default function IncidentRoomVerification() {
             SecureStore.deleteItemAsync(soundPlayedKey),
             SecureStore.deleteItemAsync(popupShownKey),
           ]);
-          await clearIncident!();
+          await clearActiveIncident!();
           setTimeout(() => {
             router.replace("/landing/(room)");
           }, 200);
@@ -143,7 +144,7 @@ export default function IncidentRoomVerification() {
     pollingInterval,
     incidentState?.dispatcher,
     playSound,
-    clearIncident,
+    clearActiveIncident,
     router,
     setCurrentIncident,
     incidentState,

@@ -6,7 +6,7 @@ import {useAuthStore} from "@/context/useAuthStore";
 
 export default function Settings() {
   const {logout} = useAuthStore();
-  const {clearIncident} = useIncidentStore();
+  const {clearActiveIncident} = useIncidentStore();
 
   const [notifications, setNotifications] = useState({
     weather: true,
@@ -39,7 +39,7 @@ export default function Settings() {
   });
 
   const handleClear = () => {
-    clearIncident!();
+    clearActiveIncident!();
   };
 
   const toggleNotification = (type: any) => {
