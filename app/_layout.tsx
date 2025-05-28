@@ -9,11 +9,22 @@ import {
 } from "@stream-io/video-react-native-sdk";
 import {OverlayProvider} from "stream-chat-expo";
 import {useAuthStore} from "@/context/useAuthStore";
-import {useIncidentStore} from "@/context/useIncidentStore";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
+import * as Notifications from "expo-notifications";
+
+import messaging from "@react-native-firebase/messaging";
 
 const STREAM_KEY = process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY;
 const queryClient = new QueryClient();
+
+// Set up notification handler
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 
 const InitialLayout = () => {
   const {authenticated, token, user_id, initialized, initialize} =
@@ -21,8 +32,59 @@ const InitialLayout = () => {
   const segments = useSegments();
   const router = useRouter();
   const [client, setClient] = useState<StreamVideoClient | null>(null);
-  const {incidentState, loadUserIncident, clearActiveIncident} =
-    useIncidentStore();
+
+  const requestUserPermission = async () => {
+    const authStatus = await messaging().requestPermission();
+    const enabled =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+    if (enabled) {
+      console.log("Auth status: ", authStatus);
+      getFcmToken();
+    }
+  };
+
+  const getFcmToken = async () => {
+    const token = await messaging().getToken();
+    console.log("FCM token: ", token);
+  };
+
+  useEffect(() => {
+    requestUserPermission();
+
+    const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+      console.log("Notification received in foreground", remoteMessage);
+
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: remoteMessage.notification?.title || "",
+          body: remoteMessage.notification?.body || "",
+          sound: true,
+          vibrate: [0, 250, 250, 250],
+        },
+        trigger: null,
+      });
+    });
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+      console.log("Notification received in background", remoteMessage);
+
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: remoteMessage.notification?.title || "",
+          body: remoteMessage.notification?.body || "",
+          sound: true,
+          vibrate: [0, 250, 250, 250],
+        },
+        trigger: null, // null means show immediately
+      });
+    });
+  }, []);
 
   useEffect(() => {
     initialize();

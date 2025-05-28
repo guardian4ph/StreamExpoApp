@@ -38,8 +38,12 @@
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.ACCESS_BACKGROUND_LOCATION",
-        "android.permission.FOREGROUND_SERVICE_LOCATION"
-      ]
+        "android.permission.FOREGROUND_SERVICE_LOCATION",
+        "android.permission.POST_NOTIFICATIONS"
+      ],
+      "package": "com.guardianph.v3videocall",
+      "googleServicesFile": "./google-services.json",
+      "enableJetifier": true
     },
     "web": {
       "bundler": "metro",
@@ -47,6 +51,8 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging",
       "expo-router",
       "expo-secure-store",
       "@stream-io/video-react-native-sdk",
@@ -74,7 +80,8 @@
             "extraMavenRepos": [
               "../../node_modules/@notifee/react-native/android/libs"
             ],
-            "minSdkVersion": 24
+            "minSdkVersion": 24,
+            "androidX": true
           }
         }
       ]
@@ -87,7 +94,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "2003987f-12b0-4ab4-855a-144e8ba4cfb5"
+        "projectId": "728aec36-65b8-4928-901c-8c528e21d3a1"
       }
     }
   }

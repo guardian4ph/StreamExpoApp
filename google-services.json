@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "876706028082",
+    "firebase_url": "https://guardian-bdd0b-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "guardian-bdd0b",
+    "storage_bucket": "guardian-bdd0b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:876706028082:android:2d600c337eb30f5a3b7a2b",
+        "android_client_info": {
+          "package_name": "com.guardianph.v3videocall"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQPvGpgL5zVOpu5HBpAb5HwImegVyBWY0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
