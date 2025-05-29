@@ -126,7 +126,6 @@ export const useNotifications = () => {
         "Notification opened app from background state:",
         remoteMessage
       );
-      // Handle notification open here
     });
 
     messaging()
@@ -134,7 +133,6 @@ export const useNotifications = () => {
       .then((remoteMessage) => {
         if (remoteMessage) {
           console.log("App opened from quit state:", remoteMessage);
-          // Handle notification open here
         }
       });
 

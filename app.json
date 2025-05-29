@@ -42,8 +42,7 @@
         "android.permission.POST_NOTIFICATIONS"
       ],
       "package": "com.guardianph.v3videocall",
-      "googleServicesFile": "./google-services.json",
-      "enableJetifier": true
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -52,7 +51,14 @@
     },
     "plugins": [
       "@react-native-firebase/app",
-      "@react-native-firebase/messaging",
+      [
+        "@react-native-firebase/messaging",
+        {
+          "defaultNotificationChannelId": "default",
+          "defaultNotificationColor": "#ffffff",
+          "defaultNotificationIcon": "./assets/images/banner-icon.png"
+        }
+      ],
       "expo-router",
       "expo-secure-store",
       "@stream-io/video-react-native-sdk",
@@ -73,6 +79,7 @@
           "isAndroidForegroundServiceEnabled": true
         }
       ],
+
       [
         "expo-build-properties",
         {
@@ -80,8 +87,7 @@
             "extraMavenRepos": [
               "../../node_modules/@notifee/react-native/android/libs"
             ],
-            "minSdkVersion": 24,
-            "androidX": true
+            "minSdkVersion": 24
           }
         }
       ]
