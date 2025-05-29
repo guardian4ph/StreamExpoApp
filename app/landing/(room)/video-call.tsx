@@ -12,7 +12,6 @@ import {
 import Spinner from "react-native-loading-spinner-overlay";
 import {Ionicons} from "@expo/vector-icons";
 import Toast from "react-native-toast-message";
-import CustomCallControls from "@/components/CustomCallControls";
 
 const VideoCall = () => {
   const {id} = useLocalSearchParams<{id: string}>();
