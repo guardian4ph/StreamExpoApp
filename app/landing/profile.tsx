@@ -6,12 +6,15 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
+  Alert,
 } from "react-native";
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import {Ionicons} from "@expo/vector-icons";
 import ProfileCollapsable from "@/components/landing-components/ProfileSections";
 import {useFetchUserData} from "@/api/user/useFetchUserData";
 import {useAuthStore} from "@/context/useAuthStore";
+import {useUpdateUserData} from "@/api/user/useUpdateUserData";
+import {useQueryClient} from "@tanstack/react-query";
 
 const Profile = () => {
   const [email, setEmail] = useState("");
@@ -37,6 +40,120 @@ const Profile = () => {
   const {user_id} = useAuthStore();
   const {data: userInfo} = useFetchUserData(user_id || "");
   const rating = userInfo?.rating || 0;
+
+  const queryClient = useQueryClient();
+  const {mutate: updateUserData, isPending} = useUpdateUserData();
+
+  useEffect(() => {
+    if (userInfo) {
+      // Basic info
+      setEmail(userInfo.email || "");
+      setMobileNumber(userInfo.phone || "");
+
+      // Profile info
+      setBloodType(userInfo.profile?.bloodType || "");
+      setEmergencyContact(userInfo.profile?.emergencyContactPerson || "");
+      setRelation(userInfo.profile?.emergencyContactRelationship || "");
+      setContactNumber(userInfo.profile?.emergencyContactNumber || "");
+      setSkills(userInfo.profile?.skillsAndCertifications || "");
+      setPreferredRole(userInfo.profile?.preferredRole || "");
+      setAffiliation(userInfo.profile?.affiliations || "");
+
+      // Medical info
+      setHasMedicalConditions(
+        userInfo.profile?.isMedicalConditionsExists || false
+      );
+      setMedicalConditions(userInfo.profile?.medicalConditions || "");
+      setTakingMedications(userInfo.profile?.isMedicationExists || false);
+      setMedications(userInfo.profile?.medications || "");
+      setHasAllergies(userInfo.profile?.isAllergiesExists || false);
+      setAllergies(userInfo.profile?.allergies || "");
+      setHasLimitations(!!userInfo.profile?.physicalLimitations);
+      setLimitations(userInfo.profile?.physicalLimitations || "");
+    }
+  }, [userInfo]);
+
+  const handleSave = () => {
+    const hasChanged = (newValue: any, originalValue: any) => {
+      return newValue !== originalValue;
+    };
+
+    const updatedData = {
+      ...(hasChanged(email, userInfo?.email) && {email}),
+      ...(hasChanged(mobileNumber, userInfo?.phone) && {phone: mobileNumber}),
+      profile: {
+        ...(hasChanged(bloodType, userInfo?.profile?.bloodType) && {bloodType}),
+        ...(hasChanged(
+          emergencyContact,
+          userInfo?.profile?.emergencyContactPerson
+        ) && {emergencyContactPerson: emergencyContact}),
+        ...(hasChanged(
+          relation,
+          userInfo?.profile?.emergencyContactRelationship
+        ) && {emergencyContactRelationship: relation}),
+        ...(hasChanged(
+          contactNumber,
+          userInfo?.profile?.emergencyContactNumber
+        ) && {emergencyContactNumber: contactNumber}),
+        ...(hasChanged(skills, userInfo?.profile?.skillsAndCertifications) && {
+          skillsAndCertifications: skills,
+        }),
+        ...(hasChanged(preferredRole, userInfo?.profile?.preferredRole) && {
+          preferredRole,
+        }),
+        ...(hasChanged(affiliation, userInfo?.profile?.affiliations) && {
+          affiliations: affiliation,
+        }),
+        ...(hasChanged(
+          hasMedicalConditions,
+          userInfo?.profile?.isMedicalConditionsExists
+        ) && {isMedicalConditionsExists: hasMedicalConditions}),
+        ...(hasMedicalConditions &&
+          hasChanged(
+            medicalConditions,
+            userInfo?.profile?.medicalConditions
+          ) && {medicalConditions}),
+        ...(hasChanged(
+          takingMedications,
+          userInfo?.profile?.isMedicationExists
+        ) && {isMedicationExists: takingMedications}),
+        ...(takingMedications &&
+          hasChanged(medications, userInfo?.profile?.medications) && {
+            medications,
+          }),
+        ...(hasChanged(hasAllergies, userInfo?.profile?.isAllergiesExists) && {
+          isAllergiesExists: hasAllergies,
+        }),
+        ...(hasAllergies &&
+          hasChanged(allergies, userInfo?.profile?.allergies) && {allergies}),
+        ...(hasChanged(
+          hasLimitations,
+          !!userInfo?.profile?.physicalLimitations
+        ) && {physicalLimitations: hasLimitations ? limitations : undefined}),
+      },
+    };
+
+    if (Object.keys(updatedData || {}).length === 0) {
+      Alert.alert("Info", "No changes to save");
+      return;
+    }
+
+    updateUserData(
+      {
+        userId: user_id || "",
+        data: updatedData,
+      },
+      {
+        onSuccess: (data) => {
+          queryClient.invalidateQueries({queryKey: ["user", user_id]});
+          Alert.alert("Success", "Profile updated successfully!");
+        },
+        onError: (error) => {
+          Alert.alert("Error", error.message || "Failed to update profile");
+        },
+      }
+    );
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -400,8 +517,13 @@ const Profile = () => {
           </Text>
         </View>
 
-        <TouchableOpacity style={styles.saveButton}>
-          <Text style={styles.saveButtonText}>Agree and Save</Text>
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={handleSave}
+          disabled={isPending}>
+          <Text style={styles.saveButtonText}>
+            {isPending ? "Saving..." : "Agree and Save"}
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

@@ -271,6 +271,7 @@ const Register = () => {
           onChangeText={(value) => handleChange("barangay", value)}
           style={styles.textField}
           placeholderTextColor="gray"
+          autoCapitalize="words"
         />
 
         <TextInput
