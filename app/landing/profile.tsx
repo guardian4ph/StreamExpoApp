@@ -46,11 +46,11 @@ const Profile = () => {
 
   useEffect(() => {
     if (userInfo) {
-      // Basic info
+      // basic info
       setEmail(userInfo.email || "");
       setMobileNumber(userInfo.phone || "");
 
-      // Profile info
+      // profile info
       setBloodType(userInfo.profile?.bloodType || "");
       setEmergencyContact(userInfo.profile?.emergencyContactPerson || "");
       setRelation(userInfo.profile?.emergencyContactRelationship || "");
@@ -59,7 +59,7 @@ const Profile = () => {
       setPreferredRole(userInfo.profile?.preferredRole || "");
       setAffiliation(userInfo.profile?.affiliations || "");
 
-      // Medical info
+      // medical info
       setHasMedicalConditions(
         userInfo.profile?.isMedicalConditionsExists || false
       );
