@@ -2,15 +2,14 @@ import {View, StyleSheet, Image, Text, TouchableOpacity} from "react-native";
 import React from "react";
 import {useIncidentStore} from "@/context/useIncidentStore";
 import {useAuthStore} from "@/context/useAuthStore";
-import {useGetUserInfo} from "@/hooks/useGetUserInfo";
 import {useRouter} from "expo-router";
+import {useFetchUserData} from "@/api/user/useFetchUserData";
 
 export default function ID() {
   const {user_id, token} = useAuthStore();
   const {incidentState} = useIncidentStore();
-  const {userInfo} = useGetUserInfo();
   const router = useRouter();
-
+  const {data: userInfo} = useFetchUserData(user_id || "");
   const rating = userInfo?.rating || 0;
 
   return (

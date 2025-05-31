@@ -10,7 +10,8 @@ import {
 import React, {useState} from "react";
 import {Ionicons} from "@expo/vector-icons";
 import ProfileCollapsable from "@/components/landing-components/ProfileSections";
-import {useGetUserInfo} from "@/hooks/useGetUserInfo";
+import {useFetchUserData} from "@/api/user/useFetchUserData";
+import {useAuthStore} from "@/context/useAuthStore";
 
 const Profile = () => {
   const [email, setEmail] = useState("");
@@ -33,7 +34,8 @@ const Profile = () => {
   const [hasLimitations, setHasLimitations] = useState(false);
   const [limitations, setLimitations] = useState("");
 
-  const {userInfo} = useGetUserInfo();
+  const {user_id} = useAuthStore();
+  const {data: userInfo} = useFetchUserData(user_id || "");
   const rating = userInfo?.rating || 0;
 
   return (

@@ -12,6 +12,7 @@ import {
   Alert,
   Modal,
 } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
 import React, {useState} from "react";
 import Spinner from "react-native-loading-spinner-overlay";
 import {useRouter} from "expo-router";
@@ -33,12 +34,22 @@ const Register = () => {
     barangay: "",
     city: "",
     gender: "male",
+    dateOfBirth: "",
   });
   const [loading, setLoading] = useState(false);
   const [isAgree, setIsAgree] = useState(false);
   const [showGenderModal, setShowGenderModal] = useState(false);
   const {register} = useAuthStore();
   const router = useRouter();
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
+  const handleDateChange = (event: any, selectedDate?: Date) => {
+    setShowDatePicker(false);
+    if (selectedDate) {
+      const formattedDate = selectedDate.toISOString().split("T")[0];
+      handleChange("dateOfBirth", formattedDate);
+    }
+  };
 
   const genderOptions = ["male", "female"];
 
@@ -69,7 +80,8 @@ const Register = () => {
         formData.address,
         formData.barangay,
         formData.city,
-        formData.gender
+        formData.gender,
+        formData.dateOfBirth
       );
 
       if (result?.error) {
@@ -150,6 +162,29 @@ const Register = () => {
             {formData.gender || "Gender"}
           </Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.textField}
+          onPress={() => setShowDatePicker(true)}>
+          <Text
+            style={
+              formData.dateOfBirth ? styles.selectText : styles.placeholderText
+            }>
+            {formData.dateOfBirth || "Date of Birth"}
+          </Text>
+        </TouchableOpacity>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={
+              formData.dateOfBirth ? new Date(formData.dateOfBirth) : new Date()
+            }
+            mode="date"
+            display={Platform.OS === "ios" ? "spinner" : "default"}
+            onChange={handleDateChange}
+            maximumDate={new Date()}
+          />
+        )}
 
         <Modal
           visible={showGenderModal}
