@@ -4,6 +4,7 @@ import {useIncidentStore} from "@/context/useIncidentStore";
 import {useAuthStore} from "@/context/useAuthStore";
 import {useRouter} from "expo-router";
 import {useFetchUserData} from "@/api/user/useFetchUserData";
+import QRCode from "react-native-qrcode-svg";
 
 export default function ID() {
   const {user_id, token} = useAuthStore();
@@ -16,10 +17,7 @@ export default function ID() {
     <View style={styles.wrapper}>
       <View style={styles.idCard}>
         <View style={styles.qrContainer}>
-          {/* <Image
-            source={require("@/assets/images/sampleQR.png")}
-            style={styles.qrCode}
-          /> */}
+          <QRCode value={user_id || ""} size={200} />
         </View>
 
         {/* rank and rating */}
