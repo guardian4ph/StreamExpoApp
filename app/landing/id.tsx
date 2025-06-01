@@ -16,10 +16,10 @@ export default function ID() {
     <View style={styles.wrapper}>
       <View style={styles.idCard}>
         <View style={styles.qrContainer}>
-          <Image
+          {/* <Image
             source={require("@/assets/images/sampleQR.png")}
             style={styles.qrCode}
-          />
+          /> */}
         </View>
 
         {/* rank and rating */}
