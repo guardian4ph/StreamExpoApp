@@ -66,8 +66,8 @@ const styles = StyleSheet.create({
   modalContainer: {
     width: "90%",
     backgroundColor: "white",
-    borderRadius: 10,
-    padding: 20,
+    borderRadius: 5,
+    padding: 10,
   },
   modalContent: {
     alignItems: "center",
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   title: {
-    fontSize: 20,
+    fontSize: 16,
     fontWeight: "bold",
     color: "#1B4965",
   },
@@ -99,13 +99,13 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     backgroundColor: "#1B4965",
-    paddingVertical: 12,
-    paddingHorizontal: 30,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
     borderRadius: 8,
   },
   closeButtonText: {
     color: "white",
-    fontSize: 16,
+    fontSize: 12,
     fontWeight: "bold",
   },
 });

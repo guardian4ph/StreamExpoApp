@@ -1,4 +1,3 @@
-import {useAuthStore} from "@/context/useAuthStore";
 import {User} from "@/types/User";
 import {useQuery} from "@tanstack/react-query";
 

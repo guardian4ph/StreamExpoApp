@@ -7,6 +7,7 @@ import {
   ScrollView,
   TextInput,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import React, {useState, useEffect} from "react";
 import {Ionicons} from "@expo/vector-icons";
@@ -15,6 +16,8 @@ import {useFetchUserData} from "@/api/user/useFetchUserData";
 import {useAuthStore} from "@/context/useAuthStore";
 import {useUpdateUserData} from "@/api/user/useUpdateUserData";
 import {useQueryClient} from "@tanstack/react-query";
+import * as ImagePicker from "expo-image-picker";
+import {useUploadAvatar} from "@/api/user/useUploadAvatar";
 
 const Profile = () => {
   const [email, setEmail] = useState("");
@@ -43,6 +46,7 @@ const Profile = () => {
 
   const queryClient = useQueryClient();
   const {mutate: updateUserData, isPending} = useUpdateUserData();
+  const {mutate: uploadAvatar, isPending: isUploading} = useUploadAvatar();
 
   useEffect(() => {
     if (userInfo) {
@@ -155,15 +159,68 @@ const Profile = () => {
     );
   };
 
+  // upload img
+  const handlePickImage = async () => {
+    const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission denied",
+        "We need camera roll permissions to upload an image."
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const asset = result.assets[0];
+      const file = {
+        uri: asset.uri,
+        name: asset.fileName || "avatar.jpg",
+        type: asset.mimeType || "image/jpeg",
+      };
+
+      uploadAvatar(
+        {userId: user_id || "", file},
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ["user", user_id]});
+            Alert.alert("Success", "Profile image uploaded!");
+          },
+          onError: (error: any) => {
+            Alert.alert("Upload failed", error.message || "Unknown error");
+          },
+        }
+      );
+    }
+  };
+
+  if (isUploading) {
+    return (
+      <ActivityIndicator size="large" color="#1B4965" style={{marginTop: 10}} />
+    );
+  }
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.profileHeader}>
         <View style={styles.avatarContainer}>
           <Image
-            source={require("@/assets/images/userAvatar.png")}
+            source={
+              userInfo?.profileImage
+                ? {uri: userInfo.profileImage}
+                : require("@/assets/images/userAvatar.png")
+            }
             style={styles.avatar}
           />
-          <TouchableOpacity style={styles.editIconContainer}>
+          <TouchableOpacity
+            style={styles.editIconContainer}
+            onPress={handlePickImage}
+            disabled={isUploading}>
             <Ionicons name="camera" size={20} color="#fff" />
           </TouchableOpacity>
         </View>

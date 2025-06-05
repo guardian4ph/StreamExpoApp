@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "GuardianPH Volunteer",
-    "slug": "client",
+    "slug": "guardianph-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/banner-icon.png",
@@ -79,7 +79,6 @@
           "isAndroidForegroundServiceEnabled": true
         }
       ],
-
       [
         "expo-build-properties",
         {
@@ -100,7 +99,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "728aec36-65b8-4928-901c-8c528e21d3a1"
+        "projectId": "fd2b528d-340d-4c53-a1b8-28cdc763ac63"
       }
     }
   }

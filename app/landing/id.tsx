@@ -17,7 +17,7 @@ export default function ID() {
     <View style={styles.wrapper}>
       <View style={styles.idCard}>
         <View style={styles.qrContainer}>
-          <QRCode value={user_id || ""} size={200} />
+          {user_id && <QRCode value={user_id || ""} size={200} />}
         </View>
 
         {/* rank and rating */}
@@ -50,8 +50,8 @@ export default function ID() {
           <View style={styles.avatarContainer}>
             <Image
               source={
-                userInfo?.profilePicture
-                  ? {uri: userInfo.profilePicture}
+                userInfo?.profileImage
+                  ? {uri: userInfo.profileImage}
                   : require("@/assets/images/avatar.png")
               }
               style={styles.avatar}

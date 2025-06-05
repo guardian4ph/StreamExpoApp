@@ -48,7 +48,14 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     utilities: true,
     overseasNews: true,
   },
-  setEnableAlerts: (value) => set({enableAlerts: value}),
+  setEnableAlerts: (value) =>
+    set((state) => ({
+      enableAlerts: value,
+      notifications: Object.keys(state.notifications).reduce(
+        (acc, key) => ({...acc, [key]: value}),
+        {} as typeof state.notifications
+      ),
+    })),
   setEnableAnnouncements: (value) => set({enableAnnouncements: value}),
   setNotificationTone: (value) => set({notificationTone: value}),
   setDoNotDisturb: (value) => set({doNotDisturb: value}),

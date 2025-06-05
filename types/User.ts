@@ -16,6 +16,11 @@ export interface ProfileInfo {
   physicalLimitations?: string;
 }
 
+export interface Coordinates {
+  lat: number | null;
+  lon: number | null;
+}
+
 export interface Settings {
   isEnabled: boolean;
   isNotificationsEnabled: boolean;
@@ -30,6 +35,8 @@ export interface User {
   email: string;
   phone: string;
   address?: string;
+  coordinates?: Coordinates;
+  profileImage?: string;
   barangay?: string;
   city?: string;
   rating?: number;
@@ -37,7 +44,6 @@ export interface User {
   gender: "male" | "female";
   dateOfBirth: Date;
   followedLGUs: string[];
-  profilePicture?: string;
   profile: ProfileInfo;
   settings: Settings;
 }
