@@ -6,6 +6,7 @@ import {getApp} from "@react-native-firebase/app";
 import {useEffect} from "react";
 import {useAuthStore} from "@/context/useAuthStore";
 import {Platform} from "react-native";
+import {useQueryClient} from "@tanstack/react-query";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -17,6 +18,7 @@ Notifications.setNotificationHandler({
 
 export const useNotifications = () => {
   const {user_id, authenticated} = useAuthStore();
+  const queryClient = useQueryClient();
 
   const requestUserPermission = async () => {
     const authStatus = await messaging().requestPermission();
@@ -94,6 +96,9 @@ export const useNotifications = () => {
       },
       trigger: null,
     });
+    if (user_id) {
+      queryClient.invalidateQueries({queryKey: ["notifications", user_id]});
+    }
   };
 
   useEffect(() => {
