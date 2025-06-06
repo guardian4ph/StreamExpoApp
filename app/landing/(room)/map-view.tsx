@@ -165,14 +165,14 @@ export default function MapViewScreen() {
         setResponderStatus(incident.responderStatus);
       }
 
-      if (incident.selectedHospital) {
+      if (incident.selectedFacility) {
         if (
-          incident.selectedHospital &&
-          incident.selectedHospital.coordinates
+          incident.selectedFacility &&
+          incident.selectedFacility.location.coordinates
         ) {
           const hospitalLocation = {
-            latitude: incident.selectedHospital.coordinates.lat,
-            longitude: incident.selectedHospital.coordinates.lng,
+            latitude: incident.selectedFacility.location.coordinates.lat,
+            longitude: incident.selectedFacility.location.coordinates.lng,
           };
 
           setHospitalCoords(hospitalLocation);
@@ -180,14 +180,14 @@ export default function MapViewScreen() {
         } else {
           try {
             const hospitalResponse = await fetch(
-              `${process.env.EXPO_PUBLIC_API_URL}/hospitals/${incident.selectedHospital}`
+              `${process.env.EXPO_PUBLIC_API_URL}/facilities/${incident.selectedFacility}`
             );
             const hospitalData = await hospitalResponse.json();
 
-            if (hospitalData.coordinates) {
+            if (hospitalData.location.coordinates) {
               const hospitalLocation = {
-                latitude: hospitalData.coordinates.lat,
-                longitude: hospitalData.coordinates.lng,
+                latitude: hospitalData.location.coordinates.lat,
+                longitude: hospitalData.location.coordinates.lng,
               };
 
               setHospitalCoords(hospitalLocation);
