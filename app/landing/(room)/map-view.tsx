@@ -36,7 +36,7 @@ export default function MapViewScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const mapRef = useRef<MapView>(null);
   const router = useRouter();
-  const incidentIdRef = useRef(incidentState?.incidentId);
+  const incidentIdRef = useRef(incidentState?._id);
   const fetchIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isMountedRef = useRef(true);
   const [hospitalCoords, setHospitalCoords] = useState<{
@@ -146,11 +146,11 @@ export default function MapViewScreen() {
 
   // to check 4 status changes (enroute, onscene, etfc)..
   const checkIncidentStatus = useCallback(async () => {
-    if (!incidentState?.incidentId || !isMountedRef.current) return;
+    if (!incidentState?._id || !isMountedRef.current) return;
 
     try {
       const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/incidents/${incidentState.incidentId}`
+        `${process.env.EXPO_PUBLIC_API_URL}/incidents/${incidentState._id}`
       );
       const incident = await response.json();
 
@@ -250,7 +250,7 @@ export default function MapViewScreen() {
       console.error("Error checking incident status:", error);
     }
   }, [
-    incidentState?.incidentId,
+    incidentState?._id,
     responderStatus,
     mapRegion,
     incidentCoords,
@@ -293,11 +293,11 @@ export default function MapViewScreen() {
   useEffect(() => {
     isMountedRef.current = true;
 
-    if (incidentIdRef.current !== incidentState?.incidentId) {
+    if (incidentIdRef.current !== incidentState?._id) {
       if (fetchIntervalRef.current) {
         clearInterval(fetchIntervalRef.current);
       }
-      incidentIdRef.current = incidentState?.incidentId;
+      incidentIdRef.current = incidentState?._id;
     }
 
     checkIncidentStatus();
@@ -311,7 +311,7 @@ export default function MapViewScreen() {
         fetchIntervalRef.current = null;
       }
     };
-  }, [incidentState?.incidentId, checkIncidentStatus]);
+  }, [incidentState?._id, checkIncidentStatus]);
 
   const handleBackPress = useCallback(() => {
     router.back();

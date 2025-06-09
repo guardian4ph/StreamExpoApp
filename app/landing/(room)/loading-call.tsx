@@ -17,7 +17,7 @@ export default function ConnectingCallPage() {
   const {incidentState, clearActiveIncident} = useIncidentStore();
   const router = useRouter();
   const [isConnected, setIsConnected] = useState<boolean>(false);
-  const {data: incident} = useFetchIncident(incidentState?.incidentId || "");
+  const {data: incident} = useFetchIncident(incidentState?._id || "");
 
   const handleAcceptedIncident = useCallback(() => {
     if (incident?.isAccepted && incidentState) {
@@ -28,7 +28,7 @@ export default function ConnectingCallPage() {
           params: {
             emergencyType: incidentState.incidentType,
             channelId: incidentState.channelId,
-            incidentId: incidentState.incidentId,
+            incidentId: incidentState._id,
           },
         });
       }, 1000);
@@ -65,7 +65,7 @@ export default function ConnectingCallPage() {
           />
         </View>
         <Text style={styles.address}>
-          {incidentState?.location?.address || "Location unavailable"}
+          {incidentState?.incidentDetails?.location || "Location unavailable"}
         </Text>
       </View>
 

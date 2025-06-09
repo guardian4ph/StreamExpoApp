@@ -19,7 +19,6 @@ import {useCalls, StreamCall} from "@stream-io/video-react-native-sdk";
 import {useIncidentStore} from "@/context/useIncidentStore";
 import CallPanel from "@/components/calls/CallPanel";
 import CancelIncidentModal from "@/components/incidents/cancel-incident-modal";
-import {useDispatcherDetails} from "@/hooks/useDispatcherDetails";
 import formatResponderStatus from "@/utils/FormatResponderStatus";
 import {useSound} from "@/utils/PlaySound";
 import * as SecureStore from "expo-secure-store";
@@ -37,7 +36,6 @@ export default function IncidentRoomVerification() {
   const [initialMsg, setInitialMsg] = useState<string>("");
   const [showCancelModal, setShowCancelModal] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const dispatcher = useDispatcherDetails(incidentState?.dispatcher || null);
   const [responderStatus, setResponderStatus] = useState<string>("enroute");
   const router = useRouter();
   const calls = useCalls();
@@ -46,7 +44,7 @@ export default function IncidentRoomVerification() {
   const appState = useRef(AppState.currentState);
   const lastFetchTime = useRef<number>(0);
   const isFetching = useRef<boolean>(false);
-  const {data: incident} = useFetchIncident(incidentState?.incidentId || "");
+  const {data: incident} = useFetchIncident(incidentState?._id || "");
 
   useEffect(() => {
     if (!incidentState || incidentState.channelId === "index") {
@@ -55,15 +53,16 @@ export default function IncidentRoomVerification() {
     }
   }, [incidentState]);
 
+  // console.log(incidentState);
+
   // realtym updates for incident status..
   const checkIsIncidentResolved = useCallback(async () => {
     if (isFetching.current) return;
 
-    // request throtleing
     const now = Date.now();
     if (now - lastFetchTime.current < pollingInterval * 0.8) return;
 
-    if (!incidentState?.incidentId) return;
+    if (!incidentState?._id) return;
 
     try {
       isFetching.current = true;
@@ -71,7 +70,7 @@ export default function IncidentRoomVerification() {
 
       if (incident?.isVerified) {
         if (!isVerified) {
-          const soundPlayedKey = `sound_played_${incidentState.incidentId.substring(
+          const soundPlayedKey = `sound_played_${incidentState._id.substring(
             5,
             9
           )}`;
@@ -109,11 +108,11 @@ export default function IncidentRoomVerification() {
       if (incident?.isFinished) {
         setIsLoading(true);
         try {
-          const soundPlayedKey = `sound_played_${incidentState.incidentId.substring(
+          const soundPlayedKey = `sound_played_${incidentState._id.substring(
             5,
             9
           )}`;
-          const popupShownKey = `popup_shown_${incidentState.incidentId.substring(
+          const popupShownKey = `popup_shown_${incidentState._id.substring(
             5,
             9
           )}`;
@@ -139,7 +138,7 @@ export default function IncidentRoomVerification() {
     return false;
   }, [
     incident,
-    incidentState?.incidentId,
+    incidentState?._id,
     isVerified,
     pollingInterval,
     incidentState?.dispatcher,
@@ -234,17 +233,14 @@ export default function IncidentRoomVerification() {
 
   const listenForInitialMessage = useMemo(() => {
     return async () => {
-      if (!incidentState?.incidentId) return;
+      if (!incidentState?._id) return;
 
-      const popupShownKey = `popup_shown_${incidentState.incidentId.substring(
-        5,
-        9
-      )}`;
+      const popupShownKey = `popup_shown_${incidentState._id.substring(5, 9)}`;
       const popupShown = await SecureStore.getItemAsync(popupShownKey);
       // if popup has been shown and naa sa secureStore, do not show anymore.
       if (popupShown) return;
 
-      const hash = incidentState?.incidentId.substring(5, 9);
+      const hash = incidentState?._id.substring(5, 9);
       const channelId = `${incidentState?.incidentType.toLowerCase()}-${hash}`;
       try {
         const chatClient = StreamChat.getInstance(
@@ -266,7 +262,7 @@ export default function IncidentRoomVerification() {
         console.error("Error listening for initial message:", error);
       }
     };
-  }, [incidentState?.incidentId, user_id, token]);
+  }, [incidentState?._id, user_id, token]);
 
   useEffect(() => {
     if (incidentState?.channelId && user_id) {
@@ -325,14 +321,14 @@ export default function IncidentRoomVerification() {
                     <View style={styles.idSection}>
                       <Text style={styles.idLabel}>ID:</Text>
                       <Text style={styles.idNumber}>
-                        {incidentState?.incidentId.substring(0, 18)}
+                        {incidentState?._id.substring(0, 18)}
                       </Text>
                     </View>
                     <Text style={styles.incidentType}>
                       {incidentState?.incidentType} Incident
                     </Text>
                     <Text style={styles.address}>
-                      {incidentState?.location?.address ||
+                      {incidentState?.incidentDetails?.location ||
                         "Location unavailable"}
                     </Text>
                   </View>
@@ -392,7 +388,7 @@ export default function IncidentRoomVerification() {
                               fontWeight: "bold",
                               fontSize: 18,
                             }}>
-                            {dispatcher?.firstName}
+                            {/* {incidentState?.dispatcher?.firstName} */}
                           </Text>
                           <Text>Dispatch Operator</Text>
                         </View>

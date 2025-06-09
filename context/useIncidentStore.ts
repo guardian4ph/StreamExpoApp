@@ -1,72 +1,55 @@
 import * as SecureStore from "expo-secure-store";
 import {create} from "zustand";
 import {useAuthStore} from "@/context/useAuthStore";
+import {Incident} from "@/types/incidents";
 
-const INCIDENT_KEY = "incidents";
-
-interface IncidentData {
-  incidentType: string;
-  channelId: string;
-  incidentId: string;
-  userId: string;
-  isAccepted?: boolean;
-  isFinished?: boolean;
-  dispatcher?: string;
-  timestamp?: number;
-  responderStatus?: "enroute" | "onscene" | "medicalFacility" | "rtb" | "close";
-  location?: {
-    lat?: number;
-    lon?: number;
-    address?: string;
-  };
-  responderCoordinates?: {
-    lat?: number;
-    lon?: number;
-  };
-}
+const INCIDENT_KEY = "current-incident";
 
 interface IncidentStore {
-  incidentState: IncidentData | null;
-  setCurrentIncident: (data: IncidentData) => Promise<void>;
+  incidentState: Incident | null;
+  setCurrentIncident: (data: Incident) => Promise<void>;
   updateIncidentLocation: (locationData: {
     latitude: number;
     longitude: number;
     address: string;
   }) => Promise<void>;
   clearActiveIncident: () => Promise<void>;
-  loadUserIncident: () => Promise<void>;
+  loadIncident: () => Promise<void>;
 }
 
 export const useIncidentStore = create<IncidentStore>((set, get) => ({
   incidentState: null,
 
-  setCurrentIncident: async (data: IncidentData) => {
+  loadIncident: async () => {
+    try {
+      const {user_id} = useAuthStore.getState();
+      if (!user_id) {
+        set({incidentState: null});
+        return;
+      }
+
+      const data = await SecureStore.getItemAsync(`${INCIDENT_KEY}-${user_id}`);
+      if (data) {
+        const parsedData = JSON.parse(data);
+        set({incidentState: parsedData});
+      }
+    } catch (error) {
+      console.error("Error loading incident:", error);
+    }
+  },
+
+  setCurrentIncident: async (data: Incident) => {
     try {
       const {user_id} = useAuthStore.getState();
       if (!user_id) {
         throw new Error("No user ID found, cannot set current incident.");
       }
 
-      const incidentWithUser = {
-        ...data,
-        userId: user_id,
-      };
-
-      const existingIncidentsStr = await SecureStore.getItemAsync(INCIDENT_KEY);
-      const existingIncidents = existingIncidentsStr
-        ? JSON.parse(existingIncidentsStr)
-        : {};
-
-      const updatedIncidents = {
-        ...existingIncidents,
-        [user_id]: incidentWithUser,
-      };
-
       await SecureStore.setItemAsync(
-        INCIDENT_KEY,
-        JSON.stringify(updatedIncidents)
+        `${INCIDENT_KEY}-${user_id}`,
+        JSON.stringify(data)
       );
-      set({incidentState: incidentWithUser});
+      set({incidentState: data});
     } catch (error) {
       console.error("Error setting current incident:", error);
     }
@@ -85,38 +68,26 @@ export const useIncidentStore = create<IncidentStore>((set, get) => ({
       }
 
       const currentIncident = get().incidentState;
-      if (!currentIncident || currentIncident.userId !== user_id) {
-        console.warn(
-          "Mismatch between current incident user and authenticated user, or no current incident. Aborting update."
-        );
+      if (!currentIncident) {
+        console.warn("No current incident to update.");
         return;
       }
 
-      const existingIncidentsStr = await SecureStore.getItemAsync(INCIDENT_KEY);
-      if (!existingIncidentsStr) return;
-
-      const existingIncidents = JSON.parse(existingIncidentsStr);
-      const userIncident = existingIncidents[user_id];
-
-      if (!userIncident) return;
-
       const updatedIncident = {
-        ...userIncident,
-        location: {
-          lat: locationData.latitude,
-          lon: locationData.longitude,
-          address: locationData.address,
+        ...currentIncident,
+        incidentDetails: {
+          ...currentIncident.incidentDetails,
+          coordinates: {
+            lat: locationData.latitude,
+            lon: locationData.longitude,
+          },
+          location: locationData.address,
         },
       };
 
-      const updatedIncidents = {
-        ...existingIncidents,
-        [user_id]: updatedIncident,
-      };
-
       await SecureStore.setItemAsync(
-        INCIDENT_KEY,
-        JSON.stringify(updatedIncidents)
+        `${INCIDENT_KEY}-${user_id}`,
+        JSON.stringify(updatedIncident)
       );
       set({incidentState: updatedIncident});
     } catch (error) {
@@ -125,60 +96,14 @@ export const useIncidentStore = create<IncidentStore>((set, get) => ({
   },
 
   clearActiveIncident: async () => {
-    const incidentInMemory = get().incidentState;
-    const userIdFromMemory = incidentInMemory?.userId;
-
-    set({incidentState: null});
-
-    if (userIdFromMemory) {
-      try {
-        const existingIncidentsStr = await SecureStore.getItemAsync(
-          INCIDENT_KEY
-        );
-        if (existingIncidentsStr) {
-          const existingIncidents = JSON.parse(existingIncidentsStr);
-          if (existingIncidents.hasOwnProperty(userIdFromMemory)) {
-            const {[userIdFromMemory]: _removed, ...remainingIncidents} =
-              existingIncidents;
-            await SecureStore.setItemAsync(
-              INCIDENT_KEY,
-              JSON.stringify(remainingIncidents)
-            );
-          }
-        }
-      } catch (error) {
-        console.error(
-          `Error clearing incident from SecureStore for user ${userIdFromMemory}:`,
-          error
-        );
-      }
-    }
-  },
-
-  loadUserIncident: async () => {
     try {
       const {user_id} = useAuthStore.getState();
-      if (!user_id) {
-        set({incidentState: null});
-        return;
+      if (user_id) {
+        await SecureStore.deleteItemAsync(`${INCIDENT_KEY}-${user_id}`);
       }
-
-      const incidentsStr = await SecureStore.getItemAsync(INCIDENT_KEY);
-      if (incidentsStr) {
-        const incidents = JSON.parse(incidentsStr);
-        const userIncident = incidents[user_id];
-
-        if (userIncident) {
-          set({incidentState: userIncident});
-        } else {
-          set({incidentState: null});
-        }
-      } else {
-        set({incidentState: null});
-      }
-    } catch (error: any) {
-      console.error("Error loading user incident from SecureStore:", error);
       set({incidentState: null});
+    } catch (error) {
+      console.error("Error clearing incident:", error);
     }
   },
 }));

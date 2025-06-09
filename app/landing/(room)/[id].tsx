@@ -11,7 +11,7 @@ import {useLocalSearchParams} from "expo-router";
 const ChatPage = () => {
   const {incidentState} = useIncidentStore();
 
-  const hash = incidentState?.incidentId.substring(5, 9);
+  const hash = incidentState?._id.substring(5, 9);
   const id = `${incidentState?.incidentType.toLowerCase()}-${hash}`;
 
   return (

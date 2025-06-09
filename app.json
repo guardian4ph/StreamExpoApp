@@ -19,6 +19,17 @@
       "bitcode": false
     },
     "android": {
+      "navigationBarBackgroundColor": "#1B4965",
+      "navigationBarStyle": "light-content",
+      "navigationBar": {
+        "backgroundColor": "#1B4965",
+        "barStyle": "light-content"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "process.env.GOOGLE_MAPS_API_KEY"
+        }
+      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/banner-icon.png",
         "backgroundColor": "#ffffff"

@@ -87,8 +87,8 @@ export default function ID() {
           <Text style={styles.label}>
             Incident ID:
             <Text style={styles.value} numberOfLines={1} ellipsizeMode="tail">
-              {incidentState?.incidentId
-                ? `${incidentState.incidentId.substring(0, 15)}...`
+              {incidentState?._id
+                ? `${incidentState._id.substring(0, 15)}...`
                 : "N/A"}
             </Text>
           </Text>

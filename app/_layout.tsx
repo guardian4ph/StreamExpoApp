@@ -13,6 +13,7 @@ import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import {useNotifications} from "@/hooks/useNotifications";
 import {useGetAnnouncement} from "@/api/announcements/useGetAnnouncement";
 import AnnouncementModal from "@/components/landing-components/announcement-modal";
+import {useIncidentStore} from "@/context/useIncidentStore";
 
 const STREAM_KEY = process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY;
 const queryClient = new QueryClient();
@@ -25,6 +26,7 @@ const InitialLayout = () => {
   const [client, setClient] = useState<StreamVideoClient | null>(null);
   const [showAnnouncement, setShowAnnouncement] = useState<boolean>(false);
   const {data: announcement} = useGetAnnouncement(user_id || "");
+  const {loadIncident, incidentState} = useIncidentStore();
 
   useNotifications();
 
@@ -33,14 +35,41 @@ const InitialLayout = () => {
   }, [initialize]);
 
   useEffect(() => {
+    if (authenticated && user_id) {
+      loadIncident();
+    }
+  }, [authenticated, user_id, loadIncident]);
+
+  useEffect(() => {
     if (!initialized) return;
     const currentSegment = segments[0];
+
     if (authenticated && token) {
-      if (currentSegment !== "landing") {
-        console.log("Already authenticated. Routing to /landing");
-        router.replace("/landing");
-        if (announcement) {
-          setShowAnnouncement(true);
+      if (
+        incidentState &&
+        incidentState.isAccepted &&
+        !incidentState.isResolved &&
+        incidentState.user._id === user_id
+      ) {
+        if (
+          currentSegment !== "landing" ||
+          segments[1] !== "(room)" ||
+          segments[2] !== "room-verification"
+        ) {
+          console.log(
+            "Active incident found for current user. Routing to room verification"
+          );
+          router.replace("/landing/(room)/room-verification");
+        }
+      } else {
+        if (currentSegment !== "landing") {
+          console.log(
+            "No active incident for current user. Routing to /landing"
+          );
+          router.replace("/landing");
+          if (announcement) {
+            setShowAnnouncement(true);
+          }
         }
       }
     } else {
@@ -61,6 +90,8 @@ const InitialLayout = () => {
     router,
     client,
     announcement,
+    incidentState,
+    user_id,
   ]);
 
   useEffect(() => {
@@ -82,7 +113,7 @@ const InitialLayout = () => {
         .catch((e) => console.error("Error disconnecting stream user", e));
       setClient(null);
     }
-  }, [authenticated, token, user_id, client]);
+  }, [authenticated, token, user_id]);
 
   return (
     <>
