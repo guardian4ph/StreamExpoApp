@@ -7,32 +7,37 @@ import {
   SafeAreaView,
 } from "react-native";
 import React from "react";
-import {msgs} from "@/constants/DummyData";
-import Message from "@/types/Messages";
+import {useGetMessages} from "@/api/messages/useFetchMessages";
+import {useAuthStore} from "@/context/useAuthStore";
+import {Message} from "@/types/Message";
+import formatDate from "@/utils/FormatDate";
 
 const Messages = () => {
+  const {user_id} = useAuthStore();
+  const {data: messages, isLoading, error} = useGetMessages(user_id || "");
+
   const renderItem = ({item: item}: {item: Message}) => (
     <View style={styles.messageContainer}>
       <View style={styles.messageHeader}>
-        <Image source={item.thumbnail} style={styles.thumbnail} />
+        <Image source={{uri: item.image}} style={styles.thumbnail} />
         <View style={styles.headerTextContainer}>
           <Text style={styles.title}>{item.title}</Text>
           <View style={styles.categoryContainer}>
             <Text
               style={[
                 styles.category,
-                item.category === "Warning / Critical Notification" &&
+                item.type === "Warning / Critical Notification" &&
                   styles.warning,
               ]}>
-              {item.category}
+              {item.type}
             </Text>
-            <Text style={styles.timestamp}>{item.timestamp}</Text>
+            <Text style={styles.timestamp}>{formatDate(item.createdAt)}</Text>
           </View>
           <Text
             numberOfLines={2}
             ellipsizeMode="tail"
             style={styles.description}>
-            {item.description}
+            {item.message}
           </Text>
         </View>
       </View>
@@ -42,9 +47,9 @@ const Messages = () => {
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
-        data={msgs}
+        data={messages}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item._id}
         showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
