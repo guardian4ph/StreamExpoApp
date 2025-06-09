@@ -23,5 +23,7 @@ export const useFetchIncident = (incidentId: string) => {
     queryFn: () => getIncidentById(incidentId),
     refetchInterval: 3000,
     enabled: !!incidentId,
+    refetchOnWindowFocus: false,
+    staleTime: 2000,
   });
 };

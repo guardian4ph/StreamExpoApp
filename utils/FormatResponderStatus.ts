@@ -8,8 +8,6 @@ const formatResponderStatus = (status: string): string => {
       return "ARRIVED";
     case "rtb":
       return "RETURN TO BASE";
-    case "close":
-      return "RESOLVED";
     default:
       return status.toUpperCase();
   }

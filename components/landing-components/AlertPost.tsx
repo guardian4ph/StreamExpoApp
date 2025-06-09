@@ -34,7 +34,7 @@ export default function AlertPost() {
               <Image
                 source={{uri: image}}
                 style={styles.alertImg}
-                defaultSource={require("@/assets/images/alertImg.jpg")}
+                defaultSource={require("@/assets/images/userAvatar.png")}
                 resizeMode="cover"
               />
             </View>

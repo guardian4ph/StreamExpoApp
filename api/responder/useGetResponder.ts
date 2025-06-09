@@ -22,5 +22,6 @@ export const useGetResponder = (responderId: string) => {
     queryKey: ["responder", responderId],
     queryFn: () => getResponderInfo(responderId),
     enabled: !!responderId,
+    retry: false,
   });
 };

@@ -1,7 +1,4 @@
-import {Dispatcher} from "@/types/Dispatcher";
-import {Responder} from "@/types/Responder";
 import {User} from "@/types/User";
-import {OpCen} from "@/types/opCen";
 
 export interface Coordinates {
   lat: number | null;
@@ -25,10 +22,10 @@ export interface Incident {
   isFinished: boolean;
   acceptedAt: Date;
   user: User;
-  dispatcher?: Dispatcher;
-  opCen?: OpCen;
+  dispatcher?: string;
+  opCen?: string;
   opCenStatus: "idle" | "connecting" | "connected";
-  responder?: Responder;
+  responder?: string;
   isAcceptedResponder: boolean;
   responderStatus?: "enroute" | "onscene" | "facility" | "rtb";
   responderCoordinates?: Coordinates;

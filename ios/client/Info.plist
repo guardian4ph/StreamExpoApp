@@ -34,7 +34,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>exp+client</string>
+          <string>exp+guardianph-app</string>
         </array>
       </dict>
     </array>
