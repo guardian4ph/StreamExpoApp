@@ -9,8 +9,11 @@ import {
 } from "@stream-io/video-react-native-sdk";
 import {OverlayProvider} from "stream-chat-expo";
 import {useAuthStore} from "@/context/useAuthStore";
-import {useIncidentStore} from "@/context/useIncidentStore";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
+import {useNotifications} from "@/hooks/useNotifications";
+import {useGetAnnouncement} from "@/api/announcements/useGetAnnouncement";
+import AnnouncementModal from "@/components/landing-components/announcement-modal";
+import {useIncidentStore} from "@/context/useIncidentStore";
 
 const STREAM_KEY = process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY;
 const queryClient = new QueryClient();
@@ -21,19 +24,53 @@ const InitialLayout = () => {
   const segments = useSegments();
   const router = useRouter();
   const [client, setClient] = useState<StreamVideoClient | null>(null);
-  const {incidentState} = useIncidentStore();
+  const [showAnnouncement, setShowAnnouncement] = useState<boolean>(false);
+  const {data: announcement} = useGetAnnouncement(user_id || "");
+  const {loadIncident, incidentState} = useIncidentStore();
+
+  useNotifications();
 
   useEffect(() => {
     initialize();
   }, [initialize]);
 
   useEffect(() => {
+    if (authenticated && user_id) {
+      loadIncident();
+    }
+  }, [authenticated, user_id, loadIncident]);
+
+  useEffect(() => {
     if (!initialized) return;
     const currentSegment = segments[0];
+
     if (authenticated && token) {
-      if (currentSegment !== "landing") {
-        console.log("Already authenticated. Routing to /landing");
-        router.replace("/landing");
+      if (
+        incidentState &&
+        incidentState.isAccepted &&
+        !incidentState.isResolved &&
+        incidentState.user._id === user_id
+      ) {
+        if (
+          currentSegment !== "landing" ||
+          segments[1] !== "(room)" ||
+          segments[2] !== "room-verification"
+        ) {
+          console.log(
+            "Active incident found for current user. Routing to room verification"
+          );
+          router.replace("/landing/(room)/room-verification");
+        }
+      } else {
+        if (currentSegment !== "landing") {
+          console.log(
+            "No active incident for current user. Routing to /landing"
+          );
+          router.replace("/landing");
+          if (announcement) {
+            setShowAnnouncement(true);
+          }
+        }
       }
     } else {
       if (currentSegment !== "(auth)") {
@@ -45,11 +82,20 @@ const InitialLayout = () => {
         router.replace("/(auth)");
       }
     }
-  }, [authenticated, token, initialized, segments, router, client]);
+  }, [
+    authenticated,
+    token,
+    initialized,
+    segments,
+    router,
+    client,
+    announcement,
+    incidentState,
+    user_id,
+  ]);
 
   useEffect(() => {
-    if (authenticated && token && user_id) {
-      console.log("Authenticated: Setting up Stream client");
+    if (authenticated && token && user_id && STREAM_KEY) {
       const user: User = {id: user_id};
       try {
         const streamClient = StreamVideoClient.getOrCreateInstance({
@@ -62,24 +108,12 @@ const InitialLayout = () => {
         console.log("Error creating Stream client: ", e);
       }
     } else if (!authenticated && client) {
-      console.log("Not authenticated: Disconnecting Stream client");
-      client.disconnectUser();
+      client
+        .disconnectUser()
+        .catch((e) => console.error("Error disconnecting stream user", e));
       setClient(null);
     }
   }, [authenticated, token, user_id]);
-
-  useEffect(() => {
-    if (incidentState) {
-      router.replace({
-        pathname: "/landing/(room)/room-verification",
-        params: {
-          emergencyType: incidentState.incidentType,
-          channelId: incidentState.channelId,
-          incidentId: incidentState.incidentId,
-        },
-      });
-    }
-  }, [incidentState, router]);
 
   return (
     <>
@@ -91,6 +125,11 @@ const InitialLayout = () => {
           </OverlayProvider>
         </StreamVideo>
       )}
+      <AnnouncementModal
+        visible={showAnnouncement}
+        onClose={() => setShowAnnouncement(false)}
+        announcement={announcement || null}
+      />
     </>
   );
 };

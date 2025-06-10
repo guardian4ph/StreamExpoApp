@@ -21,5 +21,9 @@ export const useFetchIncident = (incidentId: string) => {
   return useQuery({
     queryKey: ["incident", incidentId],
     queryFn: () => getIncidentById(incidentId),
+    refetchInterval: 3000,
+    enabled: !!incidentId,
+    refetchOnWindowFocus: false,
+    staleTime: 2000,
   });
 };

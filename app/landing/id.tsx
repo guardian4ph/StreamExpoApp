@@ -2,25 +2,22 @@ import {View, StyleSheet, Image, Text, TouchableOpacity} from "react-native";
 import React from "react";
 import {useIncidentStore} from "@/context/useIncidentStore";
 import {useAuthStore} from "@/context/useAuthStore";
-import {useGetUserInfo} from "@/hooks/useGetUserInfo";
 import {useRouter} from "expo-router";
+import {useFetchUserData} from "@/api/user/useFetchUserData";
+import QRCode from "react-native-qrcode-svg";
 
 export default function ID() {
   const {user_id, token} = useAuthStore();
   const {incidentState} = useIncidentStore();
-  const {userInfo} = useGetUserInfo();
   const router = useRouter();
-
+  const {data: userInfo} = useFetchUserData(user_id || "");
   const rating = userInfo?.rating || 0;
 
   return (
     <View style={styles.wrapper}>
       <View style={styles.idCard}>
         <View style={styles.qrContainer}>
-          <Image
-            source={require("@/assets/images/sampleQR.png")}
-            style={styles.qrCode}
-          />
+          {user_id && <QRCode value={user_id || ""} size={200} />}
         </View>
 
         {/* rank and rating */}
@@ -53,8 +50,8 @@ export default function ID() {
           <View style={styles.avatarContainer}>
             <Image
               source={
-                userInfo?.profilePicture
-                  ? {uri: userInfo.profilePicture}
+                userInfo?.profileImage
+                  ? {uri: userInfo.profileImage}
                   : require("@/assets/images/avatar.png")
               }
               style={styles.avatar}
@@ -90,8 +87,8 @@ export default function ID() {
           <Text style={styles.label}>
             Incident ID:
             <Text style={styles.value} numberOfLines={1} ellipsizeMode="tail">
-              {incidentState?.incidentId
-                ? `${incidentState.incidentId.substring(0, 15)}...`
+              {incidentState?._id
+                ? `${incidentState._id.substring(0, 15)}...`
                 : "N/A"}
             </Text>
           </Text>

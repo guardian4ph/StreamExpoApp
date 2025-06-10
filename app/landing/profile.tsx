@@ -6,11 +6,18 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import {Ionicons} from "@expo/vector-icons";
 import ProfileCollapsable from "@/components/landing-components/ProfileSections";
-import {useGetUserInfo} from "@/hooks/useGetUserInfo";
+import {useFetchUserData} from "@/api/user/useFetchUserData";
+import {useAuthStore} from "@/context/useAuthStore";
+import {useUpdateUserData} from "@/api/user/useUpdateUserData";
+import {useQueryClient} from "@tanstack/react-query";
+import * as ImagePicker from "expo-image-picker";
+import {useUploadAvatar} from "@/api/user/useUploadAvatar";
 
 const Profile = () => {
   const [email, setEmail] = useState("");
@@ -33,18 +40,187 @@ const Profile = () => {
   const [hasLimitations, setHasLimitations] = useState(false);
   const [limitations, setLimitations] = useState("");
 
-  const {userInfo} = useGetUserInfo();
+  const {user_id} = useAuthStore();
+  const {data: userInfo} = useFetchUserData(user_id || "");
   const rating = userInfo?.rating || 0;
+
+  const queryClient = useQueryClient();
+  const {mutate: updateUserData, isPending} = useUpdateUserData();
+  const {mutate: uploadAvatar, isPending: isUploading} = useUploadAvatar();
+
+  useEffect(() => {
+    if (userInfo) {
+      // basic info
+      setEmail(userInfo.email || "");
+      setMobileNumber(userInfo.phone || "");
+
+      // profile info
+      setBloodType(userInfo.profile?.bloodType || "");
+      setEmergencyContact(userInfo.profile?.emergencyContactPerson || "");
+      setRelation(userInfo.profile?.emergencyContactRelationship || "");
+      setContactNumber(userInfo.profile?.emergencyContactNumber || "");
+      setSkills(userInfo.profile?.skillsAndCertifications || "");
+      setPreferredRole(userInfo.profile?.preferredRole || "");
+      setAffiliation(userInfo.profile?.affiliations || "");
+
+      // medical info
+      setHasMedicalConditions(
+        userInfo.profile?.isMedicalConditionsExists || false
+      );
+      setMedicalConditions(userInfo.profile?.medicalConditions || "");
+      setTakingMedications(userInfo.profile?.isMedicationExists || false);
+      setMedications(userInfo.profile?.medications || "");
+      setHasAllergies(userInfo.profile?.isAllergiesExists || false);
+      setAllergies(userInfo.profile?.allergies || "");
+      setHasLimitations(!!userInfo.profile?.physicalLimitations);
+      setLimitations(userInfo.profile?.physicalLimitations || "");
+    }
+  }, [userInfo]);
+
+  const handleSave = () => {
+    const hasChanged = (newValue: any, originalValue: any) => {
+      return newValue !== originalValue;
+    };
+
+    const updatedData = {
+      ...(hasChanged(email, userInfo?.email) && {email}),
+      ...(hasChanged(mobileNumber, userInfo?.phone) && {phone: mobileNumber}),
+      profile: {
+        ...(hasChanged(bloodType, userInfo?.profile?.bloodType) && {bloodType}),
+        ...(hasChanged(
+          emergencyContact,
+          userInfo?.profile?.emergencyContactPerson
+        ) && {emergencyContactPerson: emergencyContact}),
+        ...(hasChanged(
+          relation,
+          userInfo?.profile?.emergencyContactRelationship
+        ) && {emergencyContactRelationship: relation}),
+        ...(hasChanged(
+          contactNumber,
+          userInfo?.profile?.emergencyContactNumber
+        ) && {emergencyContactNumber: contactNumber}),
+        ...(hasChanged(skills, userInfo?.profile?.skillsAndCertifications) && {
+          skillsAndCertifications: skills,
+        }),
+        ...(hasChanged(preferredRole, userInfo?.profile?.preferredRole) && {
+          preferredRole,
+        }),
+        ...(hasChanged(affiliation, userInfo?.profile?.affiliations) && {
+          affiliations: affiliation,
+        }),
+        ...(hasChanged(
+          hasMedicalConditions,
+          userInfo?.profile?.isMedicalConditionsExists
+        ) && {isMedicalConditionsExists: hasMedicalConditions}),
+        ...(hasMedicalConditions &&
+          hasChanged(
+            medicalConditions,
+            userInfo?.profile?.medicalConditions
+          ) && {medicalConditions}),
+        ...(hasChanged(
+          takingMedications,
+          userInfo?.profile?.isMedicationExists
+        ) && {isMedicationExists: takingMedications}),
+        ...(takingMedications &&
+          hasChanged(medications, userInfo?.profile?.medications) && {
+            medications,
+          }),
+        ...(hasChanged(hasAllergies, userInfo?.profile?.isAllergiesExists) && {
+          isAllergiesExists: hasAllergies,
+        }),
+        ...(hasAllergies &&
+          hasChanged(allergies, userInfo?.profile?.allergies) && {allergies}),
+        ...(hasChanged(
+          hasLimitations,
+          !!userInfo?.profile?.physicalLimitations
+        ) && {physicalLimitations: hasLimitations ? limitations : undefined}),
+      },
+    };
+
+    if (Object.keys(updatedData || {}).length === 0) {
+      Alert.alert("Info", "No changes to save");
+      return;
+    }
+
+    updateUserData(
+      {
+        userId: user_id || "",
+        data: updatedData,
+      },
+      {
+        onSuccess: (data) => {
+          queryClient.invalidateQueries({queryKey: ["user", user_id]});
+          Alert.alert("Success", "Profile updated successfully!");
+        },
+        onError: (error) => {
+          Alert.alert("Error", error.message || "Failed to update profile");
+        },
+      }
+    );
+  };
+
+  // upload img
+  const handlePickImage = async () => {
+    const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission denied",
+        "We need camera roll permissions to upload an image."
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsEditing: true,
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const asset = result.assets[0];
+      const file = {
+        uri: asset.uri,
+        name: asset.fileName || "avatar.jpg",
+        type: asset.mimeType || "image/jpeg",
+      };
+
+      uploadAvatar(
+        {userId: user_id || "", file},
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({queryKey: ["user", user_id]});
+            Alert.alert("Success", "Profile image uploaded!");
+          },
+          onError: (error: any) => {
+            Alert.alert("Upload failed", error.message || "Unknown error");
+          },
+        }
+      );
+    }
+  };
+
+  if (isUploading) {
+    return (
+      <ActivityIndicator size="large" color="#1B4965" style={{marginTop: 10}} />
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
       <View style={styles.profileHeader}>
         <View style={styles.avatarContainer}>
           <Image
-            source={require("@/assets/images/userAvatar.png")}
+            source={
+              userInfo?.profileImage
+                ? {uri: userInfo.profileImage}
+                : require("@/assets/images/userAvatar.png")
+            }
             style={styles.avatar}
           />
-          <TouchableOpacity style={styles.editIconContainer}>
+          <TouchableOpacity
+            style={styles.editIconContainer}
+            onPress={handlePickImage}
+            disabled={isUploading}>
             <Ionicons name="camera" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
@@ -398,8 +574,13 @@ const Profile = () => {
           </Text>
         </View>
 
-        <TouchableOpacity style={styles.saveButton}>
-          <Text style={styles.saveButtonText}>Agree and Save</Text>
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={handleSave}
+          disabled={isPending}>
+          <Text style={styles.saveButtonText}>
+            {isPending ? "Saving..." : "Agree and Save"}
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

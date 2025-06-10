@@ -54,7 +54,7 @@ export default function SelectEmergency() {
     };
 
     const checkExistingIncident = async () => {
-      if (incidentState) {
+      if (incidentState && incidentState.user._id == user_id) {
         router.replace({
           pathname: "/landing/(room)/room-verification",
         });
@@ -86,13 +86,14 @@ export default function SelectEmergency() {
 
       // context store
       await setCurrentIncident({
-        incidentType: contact.name,
+        ...data,
         channelId: "fad-call",
-        incidentId: data._id,
-        location: {
-          lat: locData?.latitude,
-          lon: locData?.longitude,
-          address: formattedAddress,
+        incidentDetails: {
+          coordinates: {
+            lat: locData?.latitude || null,
+            lon: locData?.longitude || null,
+          },
+          location: formattedAddress,
         },
       });
 

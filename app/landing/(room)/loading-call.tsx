@@ -6,71 +6,45 @@ import {
   Image,
   Alert,
 } from "react-native";
-import React, {useState, useEffect} from "react";
+import React, {useState, useEffect, useCallback} from "react";
 import {useRouter} from "expo-router";
 import GetIcon from "@/utils/GetIcon";
 import {useIncidentStore} from "@/context/useIncidentStore";
 import GetEmergencyIcon from "@/utils/GetEmergencyIcon";
+import {useFetchIncident} from "@/api/incidents/useFetchIncident";
 
 export default function ConnectingCallPage() {
-  const {incidentState, clearIncident} = useIncidentStore();
+  const {incidentState, clearActiveIncident} = useIncidentStore();
   const router = useRouter();
   const [isConnected, setIsConnected] = useState<boolean>(false);
+  const {data: incident} = useFetchIncident(incidentState?._id || "");
+
+  const handleAcceptedIncident = useCallback(() => {
+    if (incident?.isAccepted && incidentState) {
+      setIsConnected(true);
+      setTimeout(() => {
+        router.push({
+          pathname: "/landing/(room)/room-verification",
+          params: {
+            emergencyType: incidentState.incidentType,
+            channelId: incidentState.channelId,
+            incidentId: incidentState._id,
+          },
+        });
+      }, 1000);
+    }
+  }, [incident?.isAccepted, incidentState, router]);
 
   useEffect(() => {
-    let mounted = true;
-    const abortController = new AbortController();
-
-    const checkIncidentStatus = async () => {
-      if (!incidentState?.incidentId) return;
-
-      try {
-        const response = await fetch(
-          `${process.env.EXPO_PUBLIC_API_URL}/incidents/${incidentState.incidentId}`,
-          {signal: abortController.signal}
-        );
-        const incident = await response.json();
-        // console.log(incident);
-
-        if (incident.isAccepted && mounted) {
-          setIsConnected(true);
-          clearInterval(interval);
-          setTimeout(() => {
-            if (mounted) {
-              router.push({
-                pathname: "/landing/(room)/room-verification",
-                params: {
-                  emergencyType: incidentState.incidentType,
-                  channelId: incidentState.channelId,
-                  incidentId: incidentState.incidentId,
-                },
-              });
-            }
-          }, 2000);
-        }
-      } catch (error) {
-        if (error !== "AbortError") {
-          console.error("Error checking incident status:", error);
-        }
-      }
-    };
-
-    const interval = setInterval(checkIncidentStatus, 4000);
-    checkIncidentStatus();
-
-    return () => {
-      mounted = false;
-      clearInterval(interval);
-      abortController.abort();
-    };
-  }, [incidentState, router]);
+    handleAcceptedIncident();
+  }, [handleAcceptedIncident]);
 
   const handleCancel = () => {
     Alert.alert(
       "Cancel Incident",
       "Are you sure you want to cancel the incident?"
     );
-    clearIncident!();
+    clearActiveIncident!();
     router.replace("/landing/(room)");
   };
 
@@ -91,7 +65,7 @@ export default function ConnectingCallPage() {
           />
         </View>
         <Text style={styles.address}>
-          {incidentState?.location?.address || "Location unavailable"}
+          {incidentState?.incidentDetails?.location || "Location unavailable"}
         </Text>
       </View>
 

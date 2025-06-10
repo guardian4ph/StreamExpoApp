@@ -24,7 +24,8 @@ interface AuthStore extends AuthState {
     address: string,
     barangay: string,
     city: string,
-    gender: string
+    gender: string,
+    dateOfBirth: string
   ) => Promise<any>;
 }
 
@@ -106,7 +107,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     address: string,
     barangay: string,
     city: string,
-    gender: string
+    gender: string,
+    dateOfBirth: string
   ) => {
     try {
       const result = await fetch(`${API_URL}/volunteers/`, {
@@ -124,6 +126,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
           barangay,
           city,
           gender,
+          dateOfBirth,
         }),
       });
 

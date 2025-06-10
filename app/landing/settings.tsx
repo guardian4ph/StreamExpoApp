@@ -1,34 +1,40 @@
 import {View, Text, StyleSheet, ScrollView, Switch} from "react-native";
-import React, {useState} from "react";
+import React from "react";
 import {TouchableOpacity} from "react-native-gesture-handler";
 import {useIncidentStore} from "@/context/useIncidentStore";
 import {useAuthStore} from "@/context/useAuthStore";
+import {useUpdateUserData} from "@/api/user/useUpdateUserData";
+import {useQueryClient} from "@tanstack/react-query";
+import {useSettingsStore} from "@/context/useSettingsStore";
+import {useRouter} from "expo-router";
 
 export default function Settings() {
-  const {logout} = useAuthStore();
-  const {clearIncident} = useIncidentStore();
+  const {user_id, logout} = useAuthStore();
+  const {clearActiveIncident} = useIncidentStore();
+  const queryClient = useQueryClient();
+  const updateUserData = useUpdateUserData();
+  const router = useRouter();
 
-  const [notifications, setNotifications] = useState({
-    weather: true,
-    earthquake: true,
-    flood: true,
-    fire: true,
-    crime: true,
-    traffic: true,
-    accidents: true,
-    government: true,
-    utilities: true,
-    overseasNews: true,
-  });
+  const {
+    enableAlerts,
+    enableAnnouncements,
+    notificationTone,
+    doNotDisturb,
+    criticalAlerts,
+    shareLocation,
+    autoUpdateLocation,
+    notifications,
+    setEnableAlerts,
+    setEnableAnnouncements,
+    setNotificationTone,
+    setDoNotDisturb,
+    setCriticalAlerts,
+    setShareLocation,
+    setAutoUpdateLocation,
+    setNotification,
+  } = useSettingsStore();
 
-  const [enableAnnouncements, setEnableAnnouncements] = useState(true);
-  const [notificationTone, setNotificationTone] = useState(true);
-  const [doNotDisturb, setDoNotDisturb] = useState(true);
-  const [criticalAlerts, setCriticalAlerts] = useState(true);
-  const [shareLocation, setShareLocation] = useState(true);
-  const [autoUpdateLocation, setAutoUpdateLocation] = useState(true);
-
-  const [expandedSections, setExpandedSections] = useState({
+  const [expandedSections, setExpandedSections] = React.useState({
     account: false,
     notification: false,
     location: false,
@@ -39,14 +45,71 @@ export default function Settings() {
   });
 
   const handleClear = () => {
-    clearIncident!();
+    clearActiveIncident!();
   };
 
-  const toggleNotification = (type: any) => {
-    setNotifications((prev) => ({
-      ...prev,
-      [type as keyof typeof prev]: !prev[type as keyof typeof prev],
-    }));
+  const handleEnableAlertsChange = async (value: boolean) => {
+    setEnableAlerts(value);
+    try {
+      await updateUserData.mutateAsync({
+        userId: user_id!,
+        data: {
+          settings: {
+            isEnabled: true,
+            isNotificationsEnabled: value,
+            isAnnouncementEnabled: enableAnnouncements,
+            isLocationSharingEnabled: shareLocation,
+          },
+        },
+      });
+      queryClient.invalidateQueries({queryKey: ["user", user_id]});
+    } catch (error) {
+      console.error("Failed to update notifications setting:", error);
+    }
+  };
+
+  const handleEnableAnnouncementsChange = async (value: boolean) => {
+    setEnableAnnouncements(value);
+    try {
+      await updateUserData.mutateAsync({
+        userId: user_id!,
+        data: {
+          settings: {
+            isEnabled: true,
+            isNotificationsEnabled: enableAlerts,
+            isAnnouncementEnabled: value,
+            isLocationSharingEnabled: shareLocation,
+          },
+        },
+      });
+      queryClient.invalidateQueries({queryKey: ["user", user_id]});
+    } catch (error) {
+      console.error("Failed to update announcements setting:", error);
+    }
+  };
+
+  const handleShareLocationChange = async (value: boolean) => {
+    setShareLocation(value);
+    try {
+      await updateUserData.mutateAsync({
+        userId: user_id!,
+        data: {
+          settings: {
+            isEnabled: true,
+            isNotificationsEnabled: enableAlerts,
+            isAnnouncementEnabled: enableAnnouncements,
+            isLocationSharingEnabled: value,
+          },
+        },
+      });
+      queryClient.invalidateQueries({queryKey: ["user", user_id]});
+    } catch (error) {
+      console.error("Failed to update location sharing setting:", error);
+    }
+  };
+
+  const toggleNotification = (type: string) => {
+    setNotification(type, !notifications[type as keyof typeof notifications]);
   };
 
   const toggleSection = (section: keyof typeof expandedSections) => {
@@ -95,28 +158,40 @@ export default function Settings() {
   return (
     <ScrollView style={styles.scrollContainer}>
       <View style={styles.container}>
-        {/* Account Section */}
+        {/* acc section */}
         {renderSectionHeader("Account", "account")}
         {expandedSections.account && (
           <View style={styles.section}>
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push("/landing/change-password")}>
               <Text style={styles.menuItemText}>Change Password</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push("/landing/profile")}>
               <Text style={styles.menuItemText}>Profile Image</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push("/landing/profile")}>
               <Text style={styles.menuItemText}>Personal Info</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push("/landing/profile")}>
               <Text style={styles.menuItemText}>
                 Volunteer-Specific Information
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push("/landing/profile")}>
               <Text style={styles.menuItemText}>Upload Valid ID's</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.menuItem}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => router.push("/landing/profile")}>
               <Text style={styles.menuItemText}>Medical Concerns</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.menuItem}>
@@ -125,12 +200,18 @@ export default function Settings() {
           </View>
         )}
 
-        {/* Notification Section */}
+        {/* notifs sections */}
         {renderSectionHeader("Notification", "notification")}
         {expandedSections.notification && (
           <View style={styles.section}>
             <View style={styles.toggleSection}>
               <Text style={styles.toggleTitle}>Enable Alerts</Text>
+              <Switch
+                value={enableAlerts}
+                onValueChange={handleEnableAlertsChange}
+                trackColor={{false: "#d1d1d1", true: "#81b0ff"}}
+                thumbColor={enableAlerts ? "#2c5282" : "#f4f3f4"}
+              />
             </View>
 
             <View style={styles.notificationGrid}>
@@ -143,7 +224,6 @@ export default function Settings() {
                 {renderNotificationItem("Traffic", "traffic")}
               </View>
               <View style={styles.notificationColumn}>
-                {renderNotificationItem("Accidents", "accidents")}
                 {renderNotificationItem("Government", "government")}
                 {renderNotificationItem("Utilities", "utilities")}
                 {renderNotificationItem("Overseas News", "overseasNews")}
@@ -154,7 +234,7 @@ export default function Settings() {
               <Text style={styles.itemText}>Enable Announcements</Text>
               <Switch
                 value={enableAnnouncements}
-                onValueChange={setEnableAnnouncements}
+                onValueChange={handleEnableAnnouncementsChange}
                 trackColor={{false: "#d1d1d1", true: "#81b0ff"}}
                 thumbColor={enableAnnouncements ? "#2c5282" : "#f4f3f4"}
               />
@@ -194,7 +274,7 @@ export default function Settings() {
           </View>
         )}
 
-        {/* Location Section */}
+        {/* loc section */}
         {renderSectionHeader("Location", "location")}
         {expandedSections.location && (
           <View style={styles.section}>
@@ -202,7 +282,7 @@ export default function Settings() {
               <Text style={styles.itemText}>Share live location</Text>
               <Switch
                 value={shareLocation}
-                onValueChange={setShareLocation}
+                onValueChange={handleShareLocationChange}
                 trackColor={{false: "#d1d1d1", true: "#81b0ff"}}
                 thumbColor={shareLocation ? "#2c5282" : "#f4f3f4"}
               />
@@ -226,7 +306,7 @@ export default function Settings() {
           </View>
         )}
 
-        {/* Privacy and Security Section */}
+        {/* priv and secu section */}
         {renderSectionHeader("Privacy and Security", "privacy")}
         {expandedSections.privacy && (
           <TouchableOpacity style={styles.menuItem}>
@@ -236,7 +316,7 @@ export default function Settings() {
           </TouchableOpacity>
         )}
 
-        {/* Language and Region Section */}
+        {/* lang and reg section */}
         {renderSectionHeader("Language and Region", "language")}
         {expandedSections.language && (
           <TouchableOpacity style={styles.menuItem}>
@@ -246,7 +326,7 @@ export default function Settings() {
           </TouchableOpacity>
         )}
 
-        {/* Help and Support Section */}
+        {/* help and supp section */}
         {renderSectionHeader("Help and Support", "help")}
         {expandedSections.help && (
           <TouchableOpacity style={styles.menuItem}>
@@ -254,7 +334,7 @@ export default function Settings() {
           </TouchableOpacity>
         )}
 
-        {/* App Information Section */}
+        {/* app info section */}
         {renderSectionHeader("App Information", "appInfo")}
         {expandedSections.appInfo && (
           <TouchableOpacity style={styles.menuItem}>
@@ -262,7 +342,6 @@ export default function Settings() {
           </TouchableOpacity>
         )}
 
-        {/* Testing Controls - Hidden in production */}
         <View style={styles.devSection}>
           <TouchableOpacity style={styles.clearButton} onPress={handleClear}>
             <Text style={styles.clearButtonTextSmall}>
@@ -272,7 +351,7 @@ export default function Settings() {
           </TouchableOpacity>
         </View>
 
-        {/* Logout Button */}
+        {/* logout button */}
         <TouchableOpacity style={styles.logoutButton} onPress={logout}>
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
@@ -324,6 +403,9 @@ const styles = StyleSheet.create({
   toggleSection: {
     paddingHorizontal: 15,
     paddingVertical: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
   },
   toggleTitle: {
     fontSize: 14,

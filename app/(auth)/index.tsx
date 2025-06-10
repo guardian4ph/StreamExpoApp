@@ -2,11 +2,8 @@ import {
   View,
   Text,
   StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
   TextInput,
   TouchableOpacity,
-  Dimensions,
   StatusBar,
   Alert,
   Image,
@@ -17,6 +14,8 @@ import React, {useState} from "react";
 import Spinner from "react-native-loading-spinner-overlay";
 import {useRouter} from "expo-router";
 import {useAuthStore} from "@/context/useAuthStore";
+import useLocation from "@/hooks/useLocation";
+import {useUpdateUserData} from "@/api/user/useUpdateUserData";
 
 export default function LogIn() {
   const [email, setEmail] = useState("");
@@ -24,6 +23,8 @@ export default function LogIn() {
   const [loading, setLoading] = useState(false);
   const {login} = useAuthStore();
   const router = useRouter();
+  const {getUserLocation} = useLocation();
+  const {mutate: updateUserData} = useUpdateUserData();
 
   const logIn = async () => {
     Keyboard.dismiss();
@@ -33,15 +34,35 @@ export default function LogIn() {
     }
     setLoading(true);
     try {
-      console.log(
-        "Attempting login with URL:",
-        process.env.EXPO_PUBLIC_API_URL
-      );
       const result = await login(email, password);
 
       if (result?.error) {
         Alert.alert("Error", result.msg);
         return;
+      }
+
+      const location = await getUserLocation();
+      if (location && result?._id) {
+        const coordinates = {
+          latitude: location.latitude,
+          longitude: location.longitude,
+        };
+        updateUserData(
+          {
+            userId: result._id,
+            data: {
+              coordinates: {lat: location.latitude, lon: location.longitude},
+            },
+          },
+          {
+            onSuccess: () => {
+              console.log("User coordinates updated!");
+            },
+            onError: (error: any) => {
+              console.error("Failed to update user coordinates:", error);
+            },
+          }
+        );
       }
 
       console.log("Login successful:", result);

@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "GuardianPH Volunteer",
-    "slug": "client",
+    "slug": "guardianph-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/banner-icon.png",
@@ -19,8 +19,19 @@
       "bitcode": false
     },
     "android": {
+      "navigationBarBackgroundColor": "#1B4965",
+      "navigationBarStyle": "light-content",
+      "navigationBar": {
+        "backgroundColor": "#1B4965",
+        "barStyle": "light-content"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "process.env.GOOGLE_MAPS_API_KEY"
+        }
+      },
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/banner-icon.png",
         "backgroundColor": "#ffffff"
       },
       "permissions": [
@@ -38,8 +49,11 @@
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.FOREGROUND_SERVICE",
         "android.permission.ACCESS_BACKGROUND_LOCATION",
-        "android.permission.FOREGROUND_SERVICE_LOCATION"
-      ]
+        "android.permission.FOREGROUND_SERVICE_LOCATION",
+        "android.permission.POST_NOTIFICATIONS"
+      ],
+      "package": "com.guardianph.v3videocall",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -47,6 +61,15 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "@react-native-firebase/app",
+      [
+        "@react-native-firebase/messaging",
+        {
+          "defaultNotificationChannelId": "default",
+          "defaultNotificationColor": "#ffffff",
+          "defaultNotificationIcon": "./assets/images/banner-icon.png"
+        }
+      ],
       "expo-router",
       "expo-secure-store",
       "@stream-io/video-react-native-sdk",
@@ -87,7 +110,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "2003987f-12b0-4ab4-855a-144e8ba4cfb5"
+        "projectId": "23eeae56-82d3-43fc-bde3-c4c1e29f94b9"
       }
     }
   }

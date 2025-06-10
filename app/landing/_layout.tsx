@@ -3,11 +3,8 @@ import {Tabs} from "expo-router";
 import {Image, TouchableOpacity, View, StyleSheet, Text} from "react-native";
 import {Ionicons} from "@expo/vector-icons";
 import {BottomTabBarProps} from "@react-navigation/bottom-tabs";
-import {useIncidentStore} from "@/context/useIncidentStore";
 
 function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
-  const {incidentState} = useIncidentStore();
-
   const currentRoute = state.routes[state.index];
   const nestedState = currentRoute.state as {
     index: number;
@@ -24,7 +21,10 @@ function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
   return (
     <View style={styles.tabBarContainer}>
       {state.routes
-        .filter((route) => route.name !== "profile")
+        .filter(
+          (route) =>
+            route.name !== "profile" && route.name !== "change-password"
+        )
         .map((route, index) => {
           const {options} = descriptors[route.key];
           const isFocused = state.index === index;
@@ -170,6 +170,24 @@ export default function MainLayout() {
             backgroundColor: "#1B4965",
           },
           headerTitle: "Profile",
+          headerTitleStyle: {
+            color: "white",
+            fontSize: 20,
+            fontWeight: "bold",
+            marginLeft: 10,
+          },
+        }}
+      />
+      <Tabs.Screen
+        name="change-password"
+        options={{
+          tabBarButton: () => null,
+          headerShown: true,
+          headerStyle: {
+            backgroundColor: "#1B4965",
+          },
+          headerTitle: "Change Password",
+          headerBackButtonDisplayMode: "generic",
           headerTitleStyle: {
             color: "white",
             fontSize: 20,

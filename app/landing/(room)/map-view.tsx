@@ -11,12 +11,12 @@ import {
 import React, {useState, useEffect, useRef, useMemo, useCallback} from "react";
 import MapView, {Marker, PROVIDER_GOOGLE, Region} from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions";
+import GetEmergencyIcon from "@/utils/GetEmergencyIcon";
+import GetIcon from "@/utils/GetIcon";
 import {useIncidentStore} from "@/context/useIncidentStore";
 import {Ionicons} from "@expo/vector-icons";
 import {useRouter} from "expo-router";
-import formatResponderStatus from "@/utils/FormatResponderStatus";
-import GetEmergencyIcon from "@/utils/GetEmergencyIcon";
-import GetIcon from "@/utils/GetIcon";
+import IncidentResponderSection from "@/components/incidents/incident-responder-section";
 
 const {width, height} = Dimensions.get("window");
 const ASPECT_RATIO = width / height;
@@ -26,27 +26,21 @@ const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 export default function MapViewScreen() {
   const {incidentState} = useIncidentStore();
-  const [responderStatus, setResponderStatus] = useState(
-    incidentState?.responderStatus || "enroute"
-  );
   const [distance, setDistance] = useState<string>("--");
   const [duration, setDuration] = useState<string>("--");
   const [mapRegion, setMapRegion] = useState<Region | null>(null);
   const [directionsError, setDirectionsError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const mapRef = useRef<MapView>(null);
   const router = useRouter();
-  const incidentIdRef = useRef(incidentState?.incidentId);
-  const fetchIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const isMountedRef = useRef(true);
-  const [hospitalCoords, setHospitalCoords] = useState<{
+  const [isLoading, setIsLoading] = useState(true);
+  const [facilityCoords, setFacilityCoords] = useState<{
     latitude: number;
     longitude: number;
   } | null>(null);
-  const [isRoutingToHospital, setIsRoutingToHospital] =
+  const [isRoutingToFacility, setisRoutingToFacility] =
     useState<boolean>(false);
 
-  const hospitalIcon = useMemo(() => {
+  const facilityIcon = useMemo(() => {
     return require("@/assets/images/hospital.png");
   }, []);
 
@@ -59,14 +53,20 @@ export default function MapViewScreen() {
   );
 
   const incidentCoords = useMemo(() => {
-    if (!incidentState?.location?.lat || !incidentState?.location?.lon) {
+    if (
+      !incidentState?.incidentDetails?.coordinates?.lat ||
+      !incidentState?.incidentDetails?.coordinates?.lon
+    ) {
       return null;
     }
     return {
-      latitude: incidentState.location.lat,
-      longitude: incidentState.location.lon,
+      latitude: incidentState.incidentDetails.coordinates.lat,
+      longitude: incidentState.incidentDetails.coordinates.lon,
     };
-  }, [incidentState?.location?.lat, incidentState?.location?.lon]);
+  }, [
+    incidentState?.incidentDetails?.coordinates?.lat,
+    incidentState?.incidentDetails?.coordinates?.lon,
+  ]);
 
   const emergencyIcon = useMemo(() => {
     return GetEmergencyIcon(incidentState?.incidentType || "");
@@ -76,14 +76,8 @@ export default function MapViewScreen() {
     return GetIcon(incidentState?.incidentType || "");
   }, [incidentState?.incidentType]);
 
-  const formattedResponderStatus = useMemo(() => {
-    return formatResponderStatus(responderStatus);
-  }, [responderStatus]);
-
   // initialize map func
   const initializeMap = useCallback(async () => {
-    if (!isMountedRef.current) return;
-
     try {
       setIsLoading(true);
 
@@ -113,10 +107,6 @@ export default function MapViewScreen() {
       });
     } catch (error) {
       console.error("Error initializing map:", error);
-    } finally {
-      if (isMountedRef.current) {
-        setIsLoading(false);
-      }
     }
   }, [incidentCoords, responderCoords]);
 
@@ -129,7 +119,7 @@ export default function MapViewScreen() {
       const timer = setTimeout(() => {
         if (mapRef.current && incidentCoords) {
           const markers =
-            isRoutingToHospital && hospitalCoords
+            isRoutingToFacility && facilityCoords
               ? ["incident", "responder", "hospital"]
               : ["incident", "responder"];
 
@@ -142,56 +132,47 @@ export default function MapViewScreen() {
 
       return () => clearTimeout(timer);
     }
-  }, [incidentCoords, isLoading, isRoutingToHospital, hospitalCoords]);
+  }, [incidentCoords, isLoading, isRoutingToFacility, facilityCoords]);
 
   // to check 4 status changes (enroute, onscene, etfc)..
   const checkIncidentStatus = useCallback(async () => {
-    if (!incidentState?.incidentId || !isMountedRef.current) return;
+    if (!incidentState?._id) return;
 
     try {
       const response = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/incidents/${incidentState.incidentId}`
+        `${process.env.EXPO_PUBLIC_API_URL}/incidents/${incidentState._id}`
       );
       const incident = await response.json();
 
       if (!incident || !incident.responderStatus) return;
 
-      if (!isMountedRef.current) return;
-
-      if (
-        incident.responderStatus &&
-        incident.responderStatus !== responderStatus
-      ) {
-        setResponderStatus(incident.responderStatus);
-      }
-
-      if (incident.selectedHospital) {
+      if (incident.selectedFacility) {
         if (
-          incident.selectedHospital &&
-          incident.selectedHospital.coordinates
+          incident.selectedFacility &&
+          incident.selectedFacility.location.coordinates
         ) {
           const hospitalLocation = {
-            latitude: incident.selectedHospital.coordinates.lat,
-            longitude: incident.selectedHospital.coordinates.lng,
+            latitude: incident.selectedFacility.location.coordinates.lat,
+            longitude: incident.selectedFacility.location.coordinates.lng,
           };
 
-          setHospitalCoords(hospitalLocation);
-          setIsRoutingToHospital(true);
+          setFacilityCoords(hospitalLocation);
+          setisRoutingToFacility(true);
         } else {
           try {
             const hospitalResponse = await fetch(
-              `${process.env.EXPO_PUBLIC_API_URL}/hospitals/${incident.selectedHospital}`
+              `${process.env.EXPO_PUBLIC_API_URL}/facilities/${incident.selectedFacility}`
             );
             const hospitalData = await hospitalResponse.json();
 
-            if (hospitalData.coordinates) {
+            if (hospitalData.location.coordinates) {
               const hospitalLocation = {
-                latitude: hospitalData.coordinates.lat,
-                longitude: hospitalData.coordinates.lng,
+                latitude: hospitalData.location.coordinates.lat,
+                longitude: hospitalData.location.coordinates.lng,
               };
 
-              setHospitalCoords(hospitalLocation);
-              setIsRoutingToHospital(true);
+              setFacilityCoords(hospitalLocation);
+              setisRoutingToFacility(true);
             }
           } catch (hospitalError) {
             console.error("Error fetching hospital data:", hospitalError);
@@ -210,16 +191,16 @@ export default function MapViewScreen() {
           Math.abs(newCoords.longitude - responderCoords.longitude) > 0.0001;
 
         if (coordsChanged) {
-          if (isRoutingToHospital && hospitalCoords && incidentCoords) {
+          if (isRoutingToFacility && facilityCoords && incidentCoords) {
             const midLat =
-              (hospitalCoords.latitude + incidentCoords.latitude) / 2;
+              (facilityCoords.latitude + incidentCoords.latitude) / 2;
             const midLon =
-              (hospitalCoords.longitude + incidentCoords.longitude) / 2;
+              (facilityCoords.longitude + incidentCoords.longitude) / 2;
 
             const latDelta =
-              Math.abs(hospitalCoords.latitude - incidentCoords.latitude) * 1.5;
+              Math.abs(facilityCoords.latitude - incidentCoords.latitude) * 1.5;
             const lonDelta =
-              Math.abs(hospitalCoords.longitude - incidentCoords.longitude) *
+              Math.abs(facilityCoords.longitude - incidentCoords.longitude) *
               1.5;
 
             setMapRegion({
@@ -250,19 +231,16 @@ export default function MapViewScreen() {
       console.error("Error checking incident status:", error);
     }
   }, [
-    incidentState?.incidentId,
-    responderStatus,
+    incidentState?._id,
     mapRegion,
     incidentCoords,
     responderCoords,
-    hospitalCoords,
-    isRoutingToHospital,
+    facilityCoords,
+    isRoutingToFacility,
   ]);
 
   const handleDirectionsReady = useCallback(
     (result: any) => {
-      if (!isMountedRef.current) return;
-
       const newDistance = `${result.distance.toFixed(2)} km`;
       const newDuration = `${Math.ceil(result.duration)} min`;
 
@@ -279,45 +257,11 @@ export default function MapViewScreen() {
     [distance, duration]
   );
 
-  const handleDirectionsError = useCallback((errorMessage: any) => {
-    console.error("Directions API error:", errorMessage);
-    if (isMountedRef.current) {
-      setDirectionsError(errorMessage);
-    }
-  }, []);
-
   useEffect(() => {
     initializeMap();
   }, [initializeMap]);
 
-  useEffect(() => {
-    isMountedRef.current = true;
-
-    if (incidentIdRef.current !== incidentState?.incidentId) {
-      if (fetchIntervalRef.current) {
-        clearInterval(fetchIntervalRef.current);
-      }
-      incidentIdRef.current = incidentState?.incidentId;
-    }
-
-    checkIncidentStatus();
-
-    fetchIntervalRef.current = setInterval(checkIncidentStatus, 3000);
-
-    return () => {
-      isMountedRef.current = false;
-      if (fetchIntervalRef.current) {
-        clearInterval(fetchIntervalRef.current);
-        fetchIntervalRef.current = null;
-      }
-    };
-  }, [incidentState?.incidentId, checkIncidentStatus]);
-
-  const handleBackPress = useCallback(() => {
-    router.back();
-  }, [router]);
-
-  if (isLoading) {
+  if (!isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#3498db" />
@@ -325,6 +269,10 @@ export default function MapViewScreen() {
       </View>
     );
   }
+
+  const handleBackPress = useCallback(() => {
+    router.back();
+  }, [router]);
 
   // #actual MAP UI VIEW
   return (
@@ -344,7 +292,7 @@ export default function MapViewScreen() {
         loadingIndicatorColor="#3498db"
         loadingBackgroundColor="#f9f9f9">
         {/* incident Marker (VOLUNTEER USER) */}
-        {incidentCoords && !isRoutingToHospital && (
+        {incidentCoords && !isRoutingToFacility && (
           <Marker
             identifier="incident"
             coordinate={incidentCoords}
@@ -369,16 +317,16 @@ export default function MapViewScreen() {
           </View>
         </Marker>
 
-        {/* Hospital markre */}
-        {hospitalCoords && (
+        {/* FAacility markre */}
+        {facilityCoords && (
           <Marker
             identifier="hospital"
-            coordinate={hospitalCoords}
+            coordinate={facilityCoords}
             title="Hospital"
             description="Destination Hospital"
             anchor={{x: 0.5, y: 0.5}}>
             <View style={styles.markerWrapper}>
-              <Image source={hospitalIcon} style={styles.markerIcon} />
+              <Image source={facilityIcon} style={styles.markerIcon} />
             </View>
           </Marker>
         )}
@@ -387,14 +335,13 @@ export default function MapViewScreen() {
         {incidentCoords && (
           <MapViewDirections
             origin={responderCoords}
-            destination={isRoutingToHospital ? hospitalCoords! : incidentCoords}
+            destination={isRoutingToFacility ? facilityCoords! : incidentCoords}
             apikey={GOOGLE_MAPS_API_KEY!}
             strokeWidth={4}
-            strokeColor={isRoutingToHospital ? "#ff6b6b" : "#1B4965"}
+            strokeColor={isRoutingToFacility ? "#ff6b6b" : "#1B4965"}
             mode="DRIVING"
             optimizeWaypoints={true}
             onReady={handleDirectionsReady}
-            onError={handleDirectionsError}
           />
         )}
 
@@ -407,43 +354,7 @@ export default function MapViewScreen() {
       </MapView>
 
       <View style={styles.bottomSheet}>
-        <View style={styles.incidentCard}>
-          <View style={styles.headerSection}>
-            <View style={styles.headerRow}>
-              <Image
-                source={require("@/assets/images/AMBU.png")}
-                resizeMode="contain"
-                style={styles.logoImage}
-              />
-              <View style={styles.headerText}>
-                <Text style={styles.ambulanceId}>AMBU 123</Text>
-                <Text style={styles.address}>
-                  {isRoutingToHospital
-                    ? "En Route to Hospital"
-                    : "Bantay Mandaue Command Center"}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.etaContainer}>
-            <View style={styles.etaStatus}>
-              <Text style={styles.etaStatusText}>
-                {isRoutingToHospital ? "TO HOSPITAL" : formattedResponderStatus}
-              </Text>
-            </View>
-            <View style={styles.etaDetails}>
-              <View style={styles.etaItem}>
-                <Text style={styles.etaLabel}>ETA</Text>
-                <Text style={styles.etaValue}>{duration}</Text>
-              </View>
-              <View style={styles.etaItem}>
-                <Text style={styles.etaLabel}>DIS</Text>
-                <Text style={styles.etaValue}>{distance}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
+        <IncidentResponderSection incidentState={incidentState} />
       </View>
     </View>
   );
@@ -497,90 +408,6 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-  bottomSheet: {
-    position: "absolute",
-    bottom: 0,
-    width: "100%",
-    padding: 20,
-    paddingBottom: Platform.OS === "ios" ? 40 : 20,
-  },
-  incidentCard: {
-    backgroundColor: "white",
-    borderRadius: 10,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  headerSection: {
-    padding: 15,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 15,
-  },
-  ambulanceId: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#ff6b6b",
-  },
-  address: {
-    fontSize: 14,
-    color: "#666",
-  },
-  etaContainer: {
-    flexDirection: "row",
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-  },
-  etaStatus: {
-    flex: 1,
-    backgroundColor: "#1B4965",
-    padding: 15,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  etaStatusText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 18,
-  },
-  etaDetails: {
-    flex: 1,
-    backgroundColor: "#1B4965",
-    padding: 15,
-    borderLeftWidth: 1,
-    borderLeftColor: "white",
-  },
-  etaItem: {
-    marginBottom: 5,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-around",
-  },
-  etaLabel: {
-    color: "white",
-    fontSize: 14,
-    fontWeight: "bold",
-  },
-  etaValue: {
-    color: "#ff6b6b",
-    fontWeight: "bold",
-    fontSize: 14,
-  },
-  headerText: {
-    flex: 1,
-  },
-  logoImage: {
-    width: 50,
-    height: 50,
-  },
   errorContainer: {
     position: "absolute",
     top: 80,
@@ -594,5 +421,14 @@ const styles = StyleSheet.create({
   errorText: {
     color: "white",
     fontWeight: "bold",
+  },
+  bottomSheet: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "transparent",
+    paddingHorizontal: 15,
+    paddingBottom: 15,
   },
 });
