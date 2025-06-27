@@ -11,8 +11,6 @@ import {OverlayProvider} from "stream-chat-expo";
 import {useAuthStore} from "@/context/useAuthStore";
 import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 import {useNotifications} from "@/hooks/useNotifications";
-import {useGetAnnouncement} from "@/api/announcements/useGetAnnouncement";
-import AnnouncementModal from "@/components/landing-components/announcement-modal";
 import {useIncidentStore} from "@/context/useIncidentStore";
 
 const STREAM_KEY = process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY;
@@ -24,8 +22,6 @@ const InitialLayout = () => {
   const segments = useSegments();
   const router = useRouter();
   const [client, setClient] = useState<StreamVideoClient | null>(null);
-  const [showAnnouncement, setShowAnnouncement] = useState<boolean>(false);
-  const {data: announcement} = useGetAnnouncement(user_id || "");
   const {loadIncident, incidentState} = useIncidentStore();
 
   useNotifications();
@@ -67,9 +63,6 @@ const InitialLayout = () => {
             "No active incident for current user. Routing to /landing"
           );
           router.replace("/landing");
-          if (announcement) {
-            setShowAnnouncement(true);
-          }
         }
       }
     } else {
@@ -89,7 +82,6 @@ const InitialLayout = () => {
     segments,
     router,
     client,
-    announcement,
     incidentState,
     user_id,
   ]);
@@ -125,11 +117,6 @@ const InitialLayout = () => {
           </OverlayProvider>
         </StreamVideo>
       )}
-      <AnnouncementModal
-        visible={showAnnouncement}
-        onClose={() => setShowAnnouncement(false)}
-        announcement={announcement || null}
-      />
     </>
   );
 };

@@ -22,8 +22,8 @@ export const useGetAnnouncement = (userId: string) => {
     queryKey: ["announcement", userId],
     queryFn: () => getAnnouncement(userId),
     enabled: !!userId,
-    // will use socket io  for this later on to signal the refetch..
-    refetchInterval: 30000,
-    refetchIntervalInBackground: true,
+    // will use socket io for this later on to signal the refetch..
+    // refetchInterval: 30000,
+    // refetchIntervalInBackground: true,
   });
 };
