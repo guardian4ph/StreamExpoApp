@@ -35,6 +35,7 @@ export default function IncidentRoomVerification() {
   const [initialMsg, setInitialMsg] = useState<string>("");
   const [showCancelModal, setShowCancelModal] = useState<boolean>(false);
   const [responderStatus, setResponderStatus] = useState<string>("enroute");
+  const {user_id, token} = useAuthStore();
   const router = useRouter();
   const calls = useCalls();
   const {playSound} = useSound(require("@/assets/sounds/sound_notif.mp3"));
@@ -63,12 +64,10 @@ export default function IncidentRoomVerification() {
       setIsVerified(true);
     }
 
-    // Handle ambulance status
     if (incident.isAcceptedResponder && !isAmbulanceComing) {
       setIsAmbulanceComing(true);
     }
 
-    // Only update incident state if there are actual changes
     const hasChanges =
       (incident.dispatcher &&
         incident.dispatcher !== incidentState.dispatcher) ||
@@ -120,7 +119,7 @@ export default function IncidentRoomVerification() {
     setCurrentIncident,
   ]);
 
-  // running time function
+  // running time func
   useEffect(() => {
     const initialTime = Date.now();
     let mounted = true;
@@ -147,44 +146,44 @@ export default function IncidentRoomVerification() {
     };
   }, []);
 
-  // const listenForInitialMessage = useMemo(() => {
-  //   return async () => {
-  //     if (!incidentState?._id) return;
+  const listenForInitialMessage = useMemo(() => {
+    return async () => {
+      if (!incidentState?._id) return;
 
-  //     const popupShownKey = `popup_shown_${incidentState._id.substring(5, 9)}`;
-  //     const popupShown = await SecureStore.getItemAsync(popupShownKey);
-  //     // if popup has been shown and naa sa secureStore, do not show anymore.
-  //     if (popupShown) return;
+      const popupShownKey = `popup_shown_${incidentState._id.substring(5, 9)}`;
+      const popupShown = await SecureStore.getItemAsync(popupShownKey);
+      // if popup has been shown and naa sa secureStore, do not show anymore.
+      if (popupShown) return;
 
-  //     const hash = incidentState?._id.substring(5, 9);
-  //     const channelId = `${incidentState?.incidentType.toLowerCase()}-${hash}`;
-  //     try {
-  //       const chatClient = StreamChat.getInstance(
-  //         process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY!
-  //       );
-  //       await chatClient.connectUser({id: user_id!}, token);
-  //       const channel = chatClient.channel("messaging", channelId);
-  //       await channel.watch();
+      const hash = incidentState?._id.substring(5, 9);
+      const channelId = `${incidentState?.incidentType.toLowerCase()}-${hash}`;
+      try {
+        const chatClient = StreamChat.getInstance(
+          process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY!
+        );
+        await chatClient.connectUser({id: user_id!}, token);
+        const channel = chatClient.channel("messaging", channelId);
+        await channel.watch();
 
-  //       const response = await channel.query({messages: {limit: 10}});
-  //       const messages = response.messages || [];
-  //       if (messages.length > 0) {
-  //         const firstMessage = messages[0].text || "New message received";
-  //         setInitialMsg(firstMessage);
-  //         setShowPopup(true);
-  //         await SecureStore.setItemAsync(popupShownKey, "true");
-  //       }
-  //     } catch (error) {
-  //       console.error("Error listening for initial message:", error);
-  //     }
-  //   };
-  // }, [incidentState?._id, user_id, token]);
+        const response = await channel.query({messages: {limit: 10}});
+        const messages = response.messages || [];
+        if (messages.length > 0) {
+          const firstMessage = messages[0].text || "New message received";
+          setInitialMsg(firstMessage);
+          setShowPopup(true);
+          await SecureStore.setItemAsync(popupShownKey, "true");
+        }
+      } catch (error) {
+        console.error("Error listening for initial message:", error);
+      }
+    };
+  }, [incidentState?._id, user_id, token]);
 
-  // useEffect(() => {
-  //   if (incidentState?.channelId && user_id) {
-  //     listenForInitialMessage();
-  //   }
-  // }, [incidentState?.channelId, user_id, listenForInitialMessage]);
+  useEffect(() => {
+    if (incidentState?.channelId && user_id) {
+      listenForInitialMessage();
+    }
+  }, [incidentState?.channelId, user_id, listenForInitialMessage]);
 
   const handleReply = () => {
     setShowPopup(false);
@@ -202,6 +201,8 @@ export default function IncidentRoomVerification() {
         <View style={styles.callContainer}>
           <StreamCall call={calls[0]}>
             {/* <RingingSound /> */}
+
+            {/* ////// todo later: adjust padding around the call panel to fill the screen ////*/}
             <CallPanel />
           </StreamCall>
         </View>
