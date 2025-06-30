@@ -7,13 +7,25 @@ const API_URL = process.env.EXPO_PUBLIC_API_URL;
 async function getResponderInfo(responderId: string): Promise<Responder> {
   try {
     const response = await fetch(`${API_URL}/responders/${responderId}`);
+
     if (!response.ok) {
-      throw new Error(`Failed to fetch responder info with id ${responderId}`);
+      let errorMessage = `Failed to fetch responder info with id ${responderId}`;
+      try {
+        const errorData = await response.text();
+        if (errorData) {
+          errorMessage = errorData;
+        }
+      } catch (readError) {
+        console.warn("Could not read error response body:", readError);
+      }
+
+      throw new Error(errorMessage);
     }
+
     return await response.json();
   } catch (error: any) {
-    console.error("Error fetching respnder info:", error.message);
-    throw new Error("Failed to fetch respnder info");
+    console.error("Error fetching responder info:", error.message);
+    throw new Error("Failed to fetch responder info");
   }
 }
 

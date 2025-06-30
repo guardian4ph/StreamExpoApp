@@ -1,3 +1,5 @@
+import {OpCen} from "./opCen";
+
 export type Assignment = "ambulance" | "firetruck" | "police";
 export type Status = "active" | "inactive";
 
@@ -12,4 +14,5 @@ export interface Responder {
   city?: string;
   assignment: Assignment;
   status: Status;
+  operationCenter: string;
 }
