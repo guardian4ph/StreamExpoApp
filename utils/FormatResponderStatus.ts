@@ -1,5 +1,9 @@
-const formatResponderStatus = (status: string): string => {
-  switch (status) {
+const formatResponderStatus = (status: string | null | undefined): string => {
+  if (!status) {
+    return "UNKNOWN";
+  }
+
+  switch (status.toLowerCase()) {
     case "enroute":
       return "ENROUTE";
     case "facility":

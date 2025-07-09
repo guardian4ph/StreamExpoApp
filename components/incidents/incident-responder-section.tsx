@@ -22,7 +22,7 @@ const IncidentResponderSection: React.FC<IncidentResponderSectionProps> = ({
     incidentState?.responder as string
   );
   const {data: opCen, isLoading: isOpCenLoading} = useGetOpcen(
-    incidentState?.opCen as string
+    responder?.operationCenter as string
   );
 
   // console.log(incidentState);
