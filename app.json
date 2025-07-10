@@ -16,7 +16,8 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.guardianph.v3videocall",
-      "bitcode": false
+      "bitcode": false,
+      "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
       "navigationBarBackgroundColor": "#1B4965",
@@ -110,7 +111,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "23eeae56-82d3-43fc-bde3-c4c1e29f94b9"
+        "projectId": "a22235c5-739e-4025-a6c4-57aab7bb362e"
       }
     }
   }
