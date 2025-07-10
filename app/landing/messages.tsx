@@ -5,8 +5,10 @@ import {
   Image,
   StyleSheet,
   SafeAreaView,
+  RefreshControl,
 } from "react-native";
-import React from "react";
+import React, {useCallback} from "react";
+import {useFocusEffect} from "@react-navigation/native";
 import {useGetMessages} from "@/api/messages/useFetchMessages";
 import {useAuthStore} from "@/context/useAuthStore";
 import {Message} from "@/types/Message";
@@ -14,7 +16,19 @@ import formatDate from "@/utils/FormatDate";
 
 const Messages = () => {
   const {user_id} = useAuthStore();
-  const {data: messages, isLoading, error} = useGetMessages(user_id || "");
+  const {
+    data: messages,
+    // isLoading,
+    // error,
+    refetch,
+    isRefetching,
+  } = useGetMessages(user_id || "");
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   const renderItem = ({item: item}: {item: Message}) => (
     <View style={styles.messageContainer}>
@@ -51,6 +65,14 @@ const Messages = () => {
         renderItem={renderItem}
         keyExtractor={(item) => item._id}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            colors={["#1B4965"]}
+            tintColor="#1B4965"
+          />
+        }
       />
     </SafeAreaView>
   );

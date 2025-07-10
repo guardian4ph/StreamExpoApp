@@ -7,8 +7,10 @@ import {
   FlatList,
   ActivityIndicator,
   Dimensions,
+  RefreshControl,
 } from "react-native";
-import React from "react";
+import React, {useCallback} from "react";
+import {useFocusEffect} from "@react-navigation/native";
 import {NotificationAlerts} from "@/types/Notifications";
 import {useGetNotifications} from "@/api/notifications/useGetNotifications";
 import {useAuthStore} from "@/context/useAuthStore";
@@ -18,7 +20,19 @@ const {width} = Dimensions.get("window");
 
 export default function AlertPost() {
   const {user_id} = useAuthStore();
-  const {data: notifications, isLoading, error} = useGetNotifications(user_id!);
+  const {
+    data: notifications,
+    isLoading,
+    error,
+    refetch,
+    isRefetching,
+  } = useGetNotifications(user_id!);
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
 
   const renderImages = (images: string[]) => {
     if (!images || images.length === 0) return null;
@@ -116,6 +130,14 @@ export default function AlertPost() {
         windowSize={3}
         scrollEnabled={true}
         nestedScrollEnabled={true}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefetching}
+            onRefresh={refetch}
+            colors={["#1B4965"]}
+            tintColor="#1B4965"
+          />
+        }
       />
     </View>
   );
