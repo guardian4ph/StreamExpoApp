@@ -28,3 +28,17 @@ FOLDERS:
     
     /utils
         -> utility functions like formatting dates, play sounds, etc.
+
+
+EXPO EAS BUILDS
+    development build 
+        -> eas build --profile development --platform ios/android
+        -> will react to changes in the code editor
+        -> hot reload
+    
+    preview build
+        -> eas build --profile preview --platform ios/android
+        -> similar to testflight. Like a test prudction app that won't react to your code changes.
+    
+    production build
+        -> alam mo na.
