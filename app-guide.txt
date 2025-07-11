@@ -42,3 +42,6 @@ EXPO EAS BUILDS
     
     production build
         -> alam mo na.
+
+
+** Firebase Config is registered in Firebase Console of jtangpuz@guardian.ph
