@@ -9,30 +9,30 @@ import {
   Dimensions,
   RefreshControl,
 } from "react-native";
-import React, {useCallback} from "react";
-import {useFocusEffect} from "@react-navigation/native";
-import {NotificationAlerts} from "@/types/Notifications";
-import {useGetNotifications} from "@/api/notifications/useGetNotifications";
-import {useAuthStore} from "@/context/useAuthStore";
+import React, { useCallback } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import { NotificationAlerts } from "@/types/Notifications";
+import { useGetNotifications } from "@/api/notifications/useGetNotifications";
+import { useAuthStore } from "@/context/useAuthStore";
 import PagerView from "react-native-pager-view";
 
-const {width} = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
 export default function AlertPost() {
-  const {user_id} = useAuthStore();
+  const { user_id } = useAuthStore();
   const {
     data: notifications,
     isLoading,
     error,
-    refetch,
-    isRefetching,
+    // refetch,
+    // isRefetching,
   } = useGetNotifications(user_id!);
 
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-    }, [refetch])
-  );
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     refetch();
+  //   }, [refetch])
+  // );
 
   const renderImages = (images: string[]) => {
     if (!images || images.length === 0) return null;
@@ -42,11 +42,12 @@ export default function AlertPost() {
         <PagerView
           style={styles.pagerView}
           initialPage={0}
-          orientation="horizontal">
+          orientation="horizontal"
+        >
           {images.map((image, index) => (
             <View key={index} style={styles.page}>
               <Image
-                source={{uri: image}}
+                source={{ uri: image }}
                 style={styles.alertImg}
                 defaultSource={require("@/assets/images/userAvatar.png")}
                 resizeMode="cover"
@@ -71,12 +72,12 @@ export default function AlertPost() {
     );
   };
 
-  const renderItem = ({item}: {item: NotificationAlerts}) => (
+  const renderItem = ({ item }: { item: NotificationAlerts }) => (
     <View style={styles.alertContainer}>
       <View style={styles.alertHeader}>
         <Image
           source={require("@/assets/images/emergencyMedical.png")}
-          style={{width: 45, height: 45}}
+          style={{ width: 45, height: 45 }}
           defaultSource={require("@/assets/images/emergencyMedical.png")}
         />
         <View>
@@ -84,19 +85,19 @@ export default function AlertPost() {
           <Text>{new Date(item.createdAt).toLocaleString()}</Text>
         </View>
       </View>
-      <View style={{marginTop: 10}}>
+      <View style={{ marginTop: 10 }}>
         <Text style={styles.alertTitle}>{item.title}</Text>
-        <Text style={{marginTop: 10}}>{item.message}</Text>
+        <Text style={{ marginTop: 10 }}>{item.message}</Text>
         {renderImages(item.images)}
       </View>
       <View style={styles.alertReact}>
-        <TouchableOpacity style={{padding: 10}}>
+        <TouchableOpacity style={{ padding: 10 }}>
           <Text>Like</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={{padding: 10}}>
+        <TouchableOpacity style={{ padding: 10 }}>
           <Text>Comment</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={{padding: 10}}>
+        <TouchableOpacity style={{ padding: 10 }}>
           <Text>Share</Text>
         </TouchableOpacity>
       </View>
@@ -120,7 +121,7 @@ export default function AlertPost() {
   }
 
   return (
-    <View style={{flex: 1}}>
+    <View style={{ flex: 1 }}>
       <FlatList
         data={notifications}
         renderItem={renderItem}
@@ -130,14 +131,14 @@ export default function AlertPost() {
         windowSize={3}
         scrollEnabled={true}
         nestedScrollEnabled={true}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={refetch}
-            colors={["#1B4965"]}
-            tintColor="#1B4965"
-          />
-        }
+        // refreshControl={
+        //   <RefreshControl
+        //     refreshing={isRefetching}
+        //     onRefresh={refetch}
+        //     colors={["#1B4965"]}
+        //     tintColor="#1B4965"
+        //   />
+        // }
       />
     </View>
   );

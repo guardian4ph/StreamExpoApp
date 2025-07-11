@@ -1,0 +1,30 @@
+FOLDERS:
+    /api
+        -> tanstack query hooks (API calls to server in order to fetch, create, update, and delete resources)
+    
+    /app
+        -> application screens which are separated via auth screens and actual application screens
+            -> (auth) folder contains the auth pages such as login and register
+            -> /landing folder contains all screens from the homepage
+                -> /landing/(room) folder contains all screens when USER IS REPORTING AN INCIDENT
+    
+    /assets
+        -> contains sounds, images, and fonts
+    
+    /components
+        -> individual components exported to the screens
+            -> /components/incidents folder are components used for screens in /landing/(room)
+            -> /components/landing-components are components used for screens in /landing homepages
+    
+    /context
+        -> global state management files for incidents, auth, settings, and sockets. 
+        -> uses zustand package
+    
+    /hooks
+        -> hooks to fetch further information in /landing/(room) folder (getLocation, expo notifications, firebase notifs, etc.)
+    
+    /types
+        -> typeScript types used all over the app for each entity (dispatcher, volunteer, incidents,notifications, etc)
+    
+    /utils
+        -> utility functions like formatting dates, play sounds, etc.
