@@ -7,8 +7,8 @@ import {
   Image,
 } from "react-native";
 import React from "react";
-import {Ionicons} from "@expo/vector-icons";
-import {Announcement} from "@/types/Announcement";
+import { Ionicons } from "@expo/vector-icons";
+import { Announcement } from "@/types/Announcement";
 
 interface AnnouncementModalProps {
   visible: boolean;
@@ -30,28 +30,26 @@ export default function AnnouncementModal({
 
   return (
     <Modal transparent visible={visible} animationType="fade">
-      <View style={styles.overlay}>
+      <TouchableOpacity style={styles.overlay} onPress={onClose}>
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <View style={styles.header}>
-              <Text style={styles.title}>{announcement.title}</Text>
-              <TouchableOpacity onPress={onClose}>
-                <Ionicons name="close" size={24} color="#1B4965" />
-              </TouchableOpacity>
-            </View>
+            {/* <Text style={styles.title}>{announcement.title}</Text>
+            <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+              <Ionicons name="close" size={24} color="#fff" />
+            </TouchableOpacity> */}
 
             {announcement.image && (
               <Image
-                source={{uri: imageUrl}}
+                source={{ uri: imageUrl }}
                 style={styles.image}
-                resizeMode="cover"
+                resizeMode="contain"
               />
             )}
 
-            <Text style={styles.message}>{announcement.message}</Text>
+            {/* <Text style={styles.message}>{announcement.message}</Text> */}
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     </Modal>
   );
 }
@@ -65,28 +63,27 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     width: "90%",
-    backgroundColor: "white",
+    height: "70%",
+    // backgroundColor: "rgba(33, 90, 117, 0.7)",
     borderRadius: 5,
-    padding: 10,
+    // padding: 10,
+    overflow: "hidden",
   },
   modalContent: {
+    flex: 1,
     alignItems: "center",
+    justifyContent: "center",
+    position: "relative", // important for absolute child
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
-    marginBottom: 15,
-  },
+
   title: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#1B4965",
+    color: "#215a75",
   },
   image: {
     width: "100%",
-    height: 200,
+    height: "100%",
     borderRadius: 8,
     marginBottom: 15,
   },
@@ -97,15 +94,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
   },
+
   closeButton: {
-    backgroundColor: "#1B4965",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
+    position: "absolute",
+    top: 10,
+    right: 10,
+    backgroundColor: "rgba(236, 241, 244, 0.5)",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
     borderRadius: 8,
-  },
-  closeButtonText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "bold",
+    zIndex: 999,
   },
 });

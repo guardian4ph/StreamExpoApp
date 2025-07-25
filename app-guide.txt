@@ -35,6 +35,7 @@ EXPO EAS BUILDS
         -> eas build --profile development --platform ios/android
         -> will react to changes in the code editor
         -> hot reload
+        -> `npx expo start` to start app
     
     preview build
         -> eas build --profile preview --platform ios/android

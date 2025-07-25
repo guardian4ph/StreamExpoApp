@@ -9,24 +9,24 @@ import {
   ScrollView,
   AppState,
 } from "react-native";
-import React, {useEffect, useState, useRef, useMemo} from "react";
-import {useRouter} from "expo-router";
+import React, { useEffect, useState, useRef, useMemo } from "react";
+import { useRouter } from "expo-router";
 import GetIcon from "@/utils/GetIcon";
-import {StreamChat} from "stream-chat";
+import { StreamChat } from "stream-chat";
 import InitialChatAlert from "@/components/InitialChatAlert";
-import {useCalls, StreamCall} from "@stream-io/video-react-native-sdk";
-import {useIncidentStore} from "@/context/useIncidentStore";
+import { useCalls, StreamCall } from "@stream-io/video-react-native-sdk";
+import { useIncidentStore } from "@/context/useIncidentStore";
 import CallPanel from "@/components/calls/CallPanel";
 import CancelIncidentModal from "@/components/incidents/cancel-incident-modal";
-import {useSound} from "@/utils/PlaySound";
+import { useSound } from "@/utils/PlaySound";
 import * as SecureStore from "expo-secure-store";
-import {useAuthStore} from "@/context/useAuthStore";
-import {useFetchIncident} from "@/api/incidents/useFetchIncident";
+import { useAuthStore } from "@/context/useAuthStore";
+import { useFetchIncident } from "@/api/incidents/useFetchIncident";
 import IncidentDispatcherSection from "@/components/incidents/incident-dispatcher-section";
 import IncidentResponderSection from "@/components/incidents/incident-responder-section";
 
 export default function IncidentRoomVerification() {
-  const {incidentState, clearActiveIncident, setCurrentIncident} =
+  const { incidentState, clearActiveIncident, setCurrentIncident } =
     useIncidentStore();
   const [showPopup, setShowPopup] = useState<boolean>(false);
   const [elapsedTime, setElapsedTime] = useState<string>("00:00:00");
@@ -35,11 +35,11 @@ export default function IncidentRoomVerification() {
   const [initialMsg, setInitialMsg] = useState<string>("");
   const [showCancelModal, setShowCancelModal] = useState<boolean>(false);
   const [responderStatus, setResponderStatus] = useState<string>("enroute");
-  const {user_id, token} = useAuthStore();
+  const { user_id, token } = useAuthStore();
   const router = useRouter();
   const calls = useCalls();
-  const {playSound} = useSound(require("@/assets/sounds/sound_notif.mp3"));
-  const {data: incident} = useFetchIncident(incidentState?._id || "");
+  const { playSound } = useSound(require("@/assets/sounds/sound_notif.mp3"));
+  const { data: incident } = useFetchIncident(incidentState?._id || "");
 
   useEffect(() => {
     if (!incidentState || incidentState.channelId === "index") {
@@ -78,12 +78,12 @@ export default function IncidentRoomVerification() {
     if (hasChanges) {
       const updatedIncident = {
         ...incidentState,
-        ...(incident.dispatcher && {dispatcher: incident.dispatcher}),
+        ...(incident.dispatcher && { dispatcher: incident.dispatcher }),
         ...(incident.responderStatus && {
           responderStatus: incident.responderStatus,
           responder: incident.responder,
         }),
-        ...(incident.opCen && {opCen: incident.opCen}),
+        ...(incident.opCen && { opCen: incident.opCen }),
       };
       setCurrentIncident(updatedIncident);
     }
@@ -161,11 +161,11 @@ export default function IncidentRoomVerification() {
         const chatClient = StreamChat.getInstance(
           process.env.EXPO_PUBLIC_STREAM_ACCESS_KEY!
         );
-        await chatClient.connectUser({id: user_id!}, token);
+        await chatClient.connectUser({ id: user_id! }, token);
         const channel = chatClient.channel("messaging", channelId);
         await channel.watch();
 
-        const response = await channel.query({messages: {limit: 10}});
+        const response = await channel.query({ messages: { limit: 10 } });
         const messages = response.messages || [];
         if (messages.length > 0) {
           const firstMessage = messages[0].text || "New message received";
@@ -223,7 +223,8 @@ export default function IncidentRoomVerification() {
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollViewContent}
-          showsVerticalScrollIndicator={false}>
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.innerContainer}>
             {/* Emergency Type Section with Timer */}
             <View style={styles.incidentCard}>
@@ -273,7 +274,8 @@ export default function IncidentRoomVerification() {
                             isVerified
                               ? styles.verifiedText
                               : styles.unverifiedText,
-                          ]}>
+                          ]}
+                        >
                           {isVerified ? "VERIFIED" : "UNVERIFIED"}
                         </Text>
                         <Text style={styles.address}>Incident Status</Text>
@@ -283,7 +285,7 @@ export default function IncidentRoomVerification() {
                 </View>
               </View>
               <View style={styles.subHeading}>
-                <Text style={{color: "white", textAlign: "center"}}>
+                <Text style={{ color: "white", textAlign: "center" }}>
                   Sending nearest asset at the incident location...
                 </Text>
               </View>
@@ -307,7 +309,8 @@ export default function IncidentRoomVerification() {
               showCancelModal && styles.disabledButton,
             ]}
             onPress={() => setShowCancelModal(true)}
-            disabled={showCancelModal}>
+            disabled={showCancelModal}
+          >
             <Text style={styles.cancelButtonText}>
               {showCancelModal ? "Cancelling..." : "Cancel Report"}
             </Text>
@@ -426,7 +429,7 @@ const styles = StyleSheet.create({
 
   subHeading: {
     padding: 20,
-    backgroundColor: "#1B4965",
+    backgroundColor: "#215a75",
   },
   statusRow: {
     flexDirection: "row",
@@ -450,7 +453,7 @@ const styles = StyleSheet.create({
   },
   etaStatus: {
     flex: 1,
-    backgroundColor: "#1B4965",
+    backgroundColor: "#215a75",
     padding: 15,
     justifyContent: "center",
     alignItems: "center",
@@ -462,7 +465,7 @@ const styles = StyleSheet.create({
   },
   etaDetails: {
     flex: 1,
-    backgroundColor: "#1B4965",
+    backgroundColor: "#215a75",
     padding: 15,
     borderLeftWidth: 1,
     borderLeftColor: "white",
@@ -494,7 +497,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   mapButtonText: {
-    color: "#1B4965",
+    color: "#215a75",
     fontSize: 16,
     fontWeight: "500",
   },

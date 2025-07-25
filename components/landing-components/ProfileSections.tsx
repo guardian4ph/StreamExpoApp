@@ -1,6 +1,6 @@
-import {StyleSheet, Text, TouchableOpacity, View} from "react-native";
-import React, {useState} from "react";
-import {Ionicons} from "@expo/vector-icons";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
 
 const ProfileCollapsable = ({
   title,
@@ -17,12 +17,13 @@ const ProfileCollapsable = ({
     <View style={styles.sectionContainer}>
       <TouchableOpacity
         style={styles.sectionHeader}
-        onPress={() => setExpanded(!expanded)}>
+        onPress={() => setExpanded(!expanded)}
+      >
         <Text style={styles.sectionTitle}>{title}</Text>
         <Ionicons
           name={expanded ? "chevron-up" : "chevron-down"}
           size={24}
-          color="#1B4965"
+          color="#215a75"
         />
       </TouchableOpacity>
       {expanded && <View style={styles.sectionContent}>{children}</View>}
@@ -47,7 +48,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#1B4965",
+    color: "#215a75",
   },
   sectionContent: {
     padding: 15,

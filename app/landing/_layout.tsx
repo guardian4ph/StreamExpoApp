@@ -1,14 +1,14 @@
 import React from "react";
-import {Tabs} from "expo-router";
-import {Image, TouchableOpacity, View, StyleSheet, Text} from "react-native";
-import {Ionicons} from "@expo/vector-icons";
-import {BottomTabBarProps} from "@react-navigation/bottom-tabs";
+import { Tabs } from "expo-router";
+import { Image, TouchableOpacity, View, StyleSheet, Text } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 
-function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
+function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const currentRoute = state.routes[state.index];
   const nestedState = currentRoute.state as {
     index: number;
-    routes: Array<{name: string}>;
+    routes: Array<{ name: string }>;
   };
   if (
     currentRoute.name === "(room)" &&
@@ -26,7 +26,7 @@ function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
             route.name !== "profile" && route.name !== "change-password"
         )
         .map((route, index) => {
-          const {options} = descriptors[route.key];
+          const { options } = descriptors[route.key];
           const isFocused = state.index === index;
 
           let labelText: string;
@@ -48,7 +48,8 @@ function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
                   navigation.navigate(route.name, {
                     screen: "index",
                   });
-                }}>
+                }}
+              >
                 <Image
                   source={require("@/assets/images/Button.png")}
                   style={styles.centerButtonImage}
@@ -62,12 +63,14 @@ function CustomTabBar({state, descriptors, navigation}: BottomTabBarProps) {
             <TouchableOpacity
               key={route.key}
               onPress={() => navigation.navigate(route.name)}
-              style={styles.tabButton}>
+              style={styles.tabButton}
+            >
               <View
                 style={[
                   styles.tabButtonContent,
                   isFocused && styles.tabButtonFocused,
-                ]}>
+                ]}
+              >
                 {options.tabBarIcon &&
                   options.tabBarIcon({
                     color: "white",
@@ -89,24 +92,24 @@ export default function MainLayout() {
       screenOptions={{
         headerShown: false,
       }}
-      tabBar={(props) => <CustomTabBar {...props} />}>
+      tabBar={(props) => <CustomTabBar {...props} />}
+    >
       <Tabs.Screen
         name="index"
         options={{
           title: "Alerts",
           headerShown: true,
           headerStyle: {
-            backgroundColor: "#1B4965",
+            backgroundColor: "#215a75",
           },
-          headerTitle: "Emergency Alerts",
+          headerTitle: "Alerts & Notifications",
           headerTitleStyle: {
             color: "white",
-            fontSize: 20,
-            fontWeight: "bold",
-            marginLeft: 10,
+            fontSize: 12,
+            fontWeight: "100",
           },
-          headerTitleAlign: "left",
-          tabBarIcon: ({color}) => (
+
+          tabBarIcon: ({ color }) => (
             <Ionicons name="alert-circle" size={24} color={color} />
           ),
         }}
@@ -115,18 +118,17 @@ export default function MainLayout() {
         name="messages"
         options={{
           title: "Messages",
-          tabBarIcon: ({color}) => (
+          tabBarIcon: ({ color }) => (
             <Ionicons name="mail" size={24} color={color} />
           ),
           headerShown: true,
           headerStyle: {
-            backgroundColor: "#1B4965",
+            backgroundColor: "#215a75",
           },
           headerTitleStyle: {
             color: "white",
-            fontSize: 20,
-            fontWeight: "bold",
-            marginLeft: 10,
+            fontSize: 12,
+            fontWeight: "100",
           },
         }}
       />
@@ -136,7 +138,7 @@ export default function MainLayout() {
         name="id"
         options={{
           title: "ID",
-          tabBarIcon: ({color}) => (
+          tabBarIcon: ({ color }) => (
             <Ionicons name="card" size={24} color={color} />
           ),
         }}
@@ -147,16 +149,16 @@ export default function MainLayout() {
           title: "Settings",
           headerShown: true,
           headerStyle: {
-            backgroundColor: "#1B4965",
+            backgroundColor: "#215a75",
           },
           headerTitle: "Settings",
           headerTitleStyle: {
             color: "white",
-            fontSize: 20,
-            fontWeight: "bold",
+            fontSize: 12,
+            fontWeight: "100",
             marginLeft: 10,
           },
-          tabBarIcon: ({color}) => (
+          tabBarIcon: ({ color }) => (
             <Ionicons name="settings" size={24} color={color} />
           ),
         }}
@@ -167,13 +169,13 @@ export default function MainLayout() {
           tabBarButton: () => null,
           headerShown: true,
           headerStyle: {
-            backgroundColor: "#1B4965",
+            backgroundColor: "#215a75",
           },
           headerTitle: "Profile",
           headerTitleStyle: {
             color: "white",
-            fontSize: 20,
-            fontWeight: "bold",
+            fontSize: 12,
+            fontWeight: "100",
             marginLeft: 10,
           },
         }}
@@ -184,14 +186,14 @@ export default function MainLayout() {
           tabBarButton: () => null,
           headerShown: true,
           headerStyle: {
-            backgroundColor: "#1B4965",
+            backgroundColor: "#215a75",
           },
           headerTitle: "Change Password",
           headerBackButtonDisplayMode: "generic",
           headerTitleStyle: {
             color: "white",
-            fontSize: 20,
-            fontWeight: "bold",
+            fontSize: 12,
+            fontWeight: "100",
             marginLeft: 10,
           },
         }}
@@ -203,8 +205,8 @@ export default function MainLayout() {
 const styles = StyleSheet.create({
   tabBarContainer: {
     flexDirection: "row",
-    height: 65,
-    backgroundColor: "#1B4965",
+    height: 95,
+    backgroundColor: "#215a75",
     justifyContent: "space-around",
     alignItems: "center",
     borderTopWidth: 0,
@@ -219,9 +221,11 @@ const styles = StyleSheet.create({
   tabButtonContent: {
     alignItems: "center",
     justifyContent: "center",
+    width: 75,
   },
   tabLabel: {
-    fontSize: 12,
+    fontSize: 10,
+    fontWeight: 100,
     marginTop: 4,
     textAlign: "center",
     color: "white",
@@ -229,15 +233,15 @@ const styles = StyleSheet.create({
   centerButton: {
     justifyContent: "center",
     alignItems: "center",
-    height: 40,
+    height: 50,
     width: 80,
-    bottom: 10,
+    bottom: 20,
     position: "relative",
   },
 
   centerButtonImage: {
-    width: 70,
-    height: 70,
+    width: 95,
+    height: 95,
   },
 
   tabButtonFocused: {

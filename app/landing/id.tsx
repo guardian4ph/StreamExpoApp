@@ -1,23 +1,23 @@
-import {View, StyleSheet, Image, Text, TouchableOpacity} from "react-native";
+import { View, StyleSheet, Image, Text, TouchableOpacity } from "react-native";
 import React from "react";
-import {useIncidentStore} from "@/context/useIncidentStore";
-import {useAuthStore} from "@/context/useAuthStore";
-import {useRouter} from "expo-router";
-import {useFetchUserData} from "@/api/user/useFetchUserData";
+import { useIncidentStore } from "@/context/useIncidentStore";
+import { useAuthStore } from "@/context/useAuthStore";
+import { useRouter } from "expo-router";
+import { useFetchUserData } from "@/api/user/useFetchUserData";
 import QRCode from "react-native-qrcode-svg";
 
 export default function ID() {
-  const {user_id, token} = useAuthStore();
-  const {incidentState} = useIncidentStore();
+  const { user_id, token } = useAuthStore();
+  const { incidentState } = useIncidentStore();
   const router = useRouter();
-  const {data: userInfo} = useFetchUserData(user_id || "");
+  const { data: userInfo } = useFetchUserData(user_id || "");
   const rating = userInfo?.rating || 0;
 
   return (
     <View style={styles.wrapper}>
       <View style={styles.idCard}>
         <View style={styles.qrContainer}>
-          {user_id && <QRCode value={user_id || ""} size={200} />}
+          {user_id && <QRCode value={user_id || ""} size={280} />}
         </View>
 
         {/* rank and rating */}
@@ -34,7 +34,8 @@ export default function ID() {
                   style={[
                     styles.starIcon,
                     star <= rating ? styles.filledStar : styles.emptyStar,
-                  ]}>
+                  ]}
+                >
                   ★
                 </Text>
               ))}
@@ -46,12 +47,13 @@ export default function ID() {
         {/* user profiiel */}
         <TouchableOpacity
           style={styles.profileContainer}
-          onPress={() => router.push("/landing/profile")}>
+          onPress={() => router.push("/landing/profile")}
+        >
           <View style={styles.avatarContainer}>
             <Image
               source={
                 userInfo?.profileImage
-                  ? {uri: userInfo.profileImage}
+                  ? { uri: userInfo.profileImage }
                   : require("@/assets/images/avatar.png")
               }
               style={styles.avatar}
@@ -104,29 +106,27 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
-    padding: 20,
+    // padding: 0,
   },
 
   idCard: {
     width: "100%",
-    maxWidth: 350,
+    height: "100%",
     backgroundColor: "#fff",
     borderRadius: 10,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "#ddd",
+    alignItems: "center",
+    justifyContent: "center",
   },
 
   qrContainer: {
     alignItems: "center",
     justifyContent: "center",
     padding: 20,
-    backgroundColor: "#fff",
-  },
-
-  qrCode: {
-    width: 200,
-    height: 200,
+    height: 300,
+    width: 300,
   },
 
   infoRow: {
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
   rankTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#2c5282",
+    color: "#215a75",
   },
 
   rankSubtitle: {
@@ -188,7 +188,7 @@ const styles = StyleSheet.create({
   profileContainer: {
     flexDirection: "row",
     padding: 15,
-    backgroundColor: "#2c5282", // Dark blue background as shown in the image
+    backgroundColor: "#215a75", // Dark blue background as shown in the image
   },
 
   avatarContainer: {

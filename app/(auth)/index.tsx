@@ -10,21 +10,21 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from "react-native";
-import React, {useState} from "react";
+import React, { useState } from "react";
 import Spinner from "react-native-loading-spinner-overlay";
-import {useRouter} from "expo-router";
-import {useAuthStore} from "@/context/useAuthStore";
+import { useRouter } from "expo-router";
+import { useAuthStore } from "@/context/useAuthStore";
 import useLocation from "@/hooks/useLocation";
-import {useUpdateUserData} from "@/api/user/useUpdateUserData";
+import { useUpdateUserData } from "@/api/user/useUpdateUserData";
 
 export default function LogIn() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const {login} = useAuthStore();
+  const { login } = useAuthStore();
   const router = useRouter();
-  const {getUserLocation} = useLocation();
-  const {mutate: updateUserData} = useUpdateUserData();
+  const { getUserLocation } = useLocation();
+  const { mutate: updateUserData } = useUpdateUserData();
 
   const logIn = async () => {
     Keyboard.dismiss();
@@ -51,7 +51,7 @@ export default function LogIn() {
           {
             userId: result._id,
             data: {
-              coordinates: {lat: location.latitude, lon: location.longitude},
+              coordinates: { lat: location.latitude, lon: location.longitude },
             },
           },
           {
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   },
   formContainer: {
     flex: 1,
-    backgroundColor: "#1B4965",
+    backgroundColor: "#215a75",
     padding: 20,
     justifyContent: "flex-start",
     paddingTop: 40,
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
 
   buttonLogin: {
     marginTop: 20,
-    backgroundColor: "#1B4965",
+    backgroundColor: "#215a75",
     paddingVertical: 12,
     borderRadius: 4,
     alignItems: "center",

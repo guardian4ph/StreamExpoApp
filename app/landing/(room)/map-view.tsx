@@ -8,24 +8,30 @@ import {
   ActivityIndicator,
   Platform,
 } from "react-native";
-import React, {useState, useEffect, useRef, useMemo, useCallback} from "react";
-import MapView, {Marker, PROVIDER_GOOGLE, Region} from "react-native-maps";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
+import MapView, { Marker, PROVIDER_GOOGLE, Region } from "react-native-maps";
 import MapViewDirections from "react-native-maps-directions";
 import GetEmergencyIcon from "@/utils/GetEmergencyIcon";
 import GetIcon from "@/utils/GetIcon";
-import {useIncidentStore} from "@/context/useIncidentStore";
-import {Ionicons} from "@expo/vector-icons";
-import {useRouter} from "expo-router";
+import { useIncidentStore } from "@/context/useIncidentStore";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import IncidentResponderSection from "@/components/incidents/incident-responder-section";
 
-const {width, height} = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 const ASPECT_RATIO = width / height;
 const LATITUDE_DELTA = 0.005;
 const LONGITUDE_DELTA = LATITUDE_DELTA * ASPECT_RATIO;
 const GOOGLE_MAPS_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 export default function MapViewScreen() {
-  const {incidentState} = useIncidentStore();
+  const { incidentState } = useIncidentStore();
   const [distance, setDistance] = useState<string>("--");
   const [duration, setDuration] = useState<string>("--");
   const [mapRegion, setMapRegion] = useState<Region | null>(null);
@@ -124,7 +130,7 @@ export default function MapViewScreen() {
               : ["incident", "responder"];
 
           mapRef.current.fitToSuppliedMarkers(markers, {
-            edgePadding: {top: 50, right: 50, bottom: 50, left: 50},
+            edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
             animated: true,
           });
         }
@@ -278,7 +284,7 @@ export default function MapViewScreen() {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={styles.backButton} onPress={handleBackPress}>
-        <Ionicons name="arrow-back" size={28} color="#1B4965" />
+        <Ionicons name="arrow-back" size={28} color="#215a75" />
       </TouchableOpacity>
 
       <MapView
@@ -290,7 +296,8 @@ export default function MapViewScreen() {
         showsMyLocationButton={true}
         loadingEnabled={true}
         loadingIndicatorColor="#3498db"
-        loadingBackgroundColor="#f9f9f9">
+        loadingBackgroundColor="#f9f9f9"
+      >
         {/* incident Marker (VOLUNTEER USER) */}
         {incidentCoords && !isRoutingToFacility && (
           <Marker
@@ -298,7 +305,8 @@ export default function MapViewScreen() {
             coordinate={incidentCoords}
             title="Incident Location"
             description="You are Here!"
-            anchor={{x: 0.5, y: 0.5}}>
+            anchor={{ x: 0.5, y: 0.5 }}
+          >
             <View style={styles.markerWrapper}>
               <Image source={emergencyIcon} style={styles.markerIcon} />
             </View>
@@ -311,7 +319,8 @@ export default function MapViewScreen() {
           coordinate={responderCoords}
           title="Responder Location"
           description="Responder"
-          anchor={{x: 0.5, y: 0.5}}>
+          anchor={{ x: 0.5, y: 0.5 }}
+        >
           <View style={styles.markerWrapper}>
             <Image source={responderIcon} style={styles.markerIcon} />
           </View>
@@ -324,7 +333,8 @@ export default function MapViewScreen() {
             coordinate={facilityCoords}
             title="Hospital"
             description="Destination Hospital"
-            anchor={{x: 0.5, y: 0.5}}>
+            anchor={{ x: 0.5, y: 0.5 }}
+          >
             <View style={styles.markerWrapper}>
               <Image source={facilityIcon} style={styles.markerIcon} />
             </View>
@@ -338,7 +348,7 @@ export default function MapViewScreen() {
             destination={isRoutingToFacility ? facilityCoords! : incidentCoords}
             apikey={GOOGLE_MAPS_API_KEY!}
             strokeWidth={4}
-            strokeColor={isRoutingToFacility ? "#ff6b6b" : "#1B4965"}
+            strokeColor={isRoutingToFacility ? "#ff6b6b" : "#215a75"}
             mode="DRIVING"
             optimizeWaypoints={true}
             onReady={handleDirectionsReady}

@@ -9,9 +9,9 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/banner-icon.png",
+      "image": "./assets/images/logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#215a75"
     },
     "ios": {
       "supportsTablet": true,
@@ -20,10 +20,10 @@
       "googleServicesFile": "./GoogleService-Info.plist"
     },
     "android": {
-      "navigationBarBackgroundColor": "#1B4965",
+      "navigationBarBackgroundColor": "#215a75",
       "navigationBarStyle": "light-content",
       "navigationBar": {
-        "backgroundColor": "#1B4965",
+        "backgroundColor": "#215a75",
         "barStyle": "light-content"
       },
       "config": {

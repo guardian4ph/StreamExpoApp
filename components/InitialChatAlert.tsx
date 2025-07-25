@@ -1,4 +1,4 @@
-import {Ionicons} from "@expo/vector-icons";
+import { Ionicons } from "@expo/vector-icons";
 import {
   View,
   Text,
@@ -28,7 +28,7 @@ export default function InitialChatAlert({
           <View style={styles.header}>
             <Text style={styles.title}>New Message</Text>
             <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={24} color="#1B4965" />
+              <Ionicons name="close" size={24} color="#215a75" />
             </TouchableOpacity>
           </View>
 
@@ -37,7 +37,7 @@ export default function InitialChatAlert({
               {/* <Ionicons
                 name="person-circle-outline"
                 size={24}
-                color="#1B4965"
+                color="#215a75"
               /> */}
               <Image
                 source={require("@/assets/images/userAvatar.png")}
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#1B4965",
+    color: "#215a75",
   },
   messageContainer: {
     backgroundColor: "#f5f5f5",
@@ -104,7 +104,7 @@ const styles = StyleSheet.create({
   sender: {
     fontSize: 16,
     fontWeight: "500",
-    color: "#1B4965",
+    color: "#215a75",
   },
   message: {
     fontSize: 15,
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   replyButton: {
-    backgroundColor: "#1B4965",
+    backgroundColor: "#215a75",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",

@@ -1,9 +1,9 @@
 import React from "react";
-import {View, Text, Image, StyleSheet} from "react-native";
-import {Ionicons} from "@expo/vector-icons";
-import {useRouter} from "expo-router";
-import {Incident} from "@/types/incidents";
-import {useGetDispatcher} from "@/api/dispatcher/useGetDispatcher";
+import { View, Text, Image, StyleSheet } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { Incident } from "@/types/incidents";
+import { useGetDispatcher } from "@/api/dispatcher/useGetDispatcher";
 
 interface IncidentDispatcherSectionProps {
   incidentState: Incident | null;
@@ -13,7 +13,7 @@ const IncidentDispatcherSection = ({
   incidentState,
 }: IncidentDispatcherSectionProps) => {
   const router = useRouter();
-  const {data: dispatcher, isLoading: isDispatcherLoading} = useGetDispatcher(
+  const { data: dispatcher, isLoading: isDispatcherLoading } = useGetDispatcher(
     incidentState?.dispatcher as string
   );
 
@@ -37,7 +37,7 @@ const IncidentDispatcherSection = ({
               <Ionicons
                 name="mail"
                 size={30}
-                color={"#1B4965"}
+                color={"#215a75"}
                 onPress={() => {
                   if (incidentState?.channelId) {
                     router.push({
@@ -52,7 +52,7 @@ const IncidentDispatcherSection = ({
               <Ionicons
                 name="videocam-sharp"
                 size={30}
-                color={"#1B4965"}
+                color={"#215a75"}
                 onPress={() => {
                   if (incidentState?.channelId) {
                     router.push({
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
   dispatcherName: {
     fontWeight: "bold",
     fontSize: 18,
-    color: "#1B4965",
+    color: "#215a75",
   },
   iconContainer: {
     flexDirection: "row",

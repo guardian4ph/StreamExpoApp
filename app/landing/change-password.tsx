@@ -8,7 +8,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from "react-native";
-import React, {useState} from "react";
+import React, { useState } from "react";
 import Spinner from "react-native-loading-spinner-overlay";
 
 export default function ChangePasswordPage() {
@@ -83,13 +83,13 @@ const styles = StyleSheet.create({
   },
   appTitle: {
     fontSize: 24,
-    color: "#1B4965",
+    color: "#215a75",
     fontWeight: "bold",
     marginBottom: 3,
   },
   pageTitle: {
     fontSize: 18,
-    color: "#1B4965",
+    color: "#215a75",
     fontWeight: "500",
   },
   formContainer: {
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   },
   buttonChange: {
     marginTop: 30,
-    backgroundColor: "#1B4965",
+    backgroundColor: "#215a75",
     paddingVertical: 15,
     borderRadius: 8,
     alignItems: "center",

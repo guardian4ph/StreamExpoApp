@@ -9,15 +9,15 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import React, {useState, useEffect} from "react";
-import {Ionicons} from "@expo/vector-icons";
+import React, { useState, useEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
 import ProfileCollapsable from "@/components/landing-components/ProfileSections";
-import {useFetchUserData} from "@/api/user/useFetchUserData";
-import {useAuthStore} from "@/context/useAuthStore";
-import {useUpdateUserData} from "@/api/user/useUpdateUserData";
-import {useQueryClient} from "@tanstack/react-query";
+import { useFetchUserData } from "@/api/user/useFetchUserData";
+import { useAuthStore } from "@/context/useAuthStore";
+import { useUpdateUserData } from "@/api/user/useUpdateUserData";
+import { useQueryClient } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
-import {useUploadAvatar} from "@/api/user/useUploadAvatar";
+import { useUploadAvatar } from "@/api/user/useUploadAvatar";
 
 const Profile = () => {
   const [email, setEmail] = useState("");
@@ -40,13 +40,13 @@ const Profile = () => {
   const [hasLimitations, setHasLimitations] = useState(false);
   const [limitations, setLimitations] = useState("");
 
-  const {user_id} = useAuthStore();
-  const {data: userInfo} = useFetchUserData(user_id || "");
+  const { user_id } = useAuthStore();
+  const { data: userInfo } = useFetchUserData(user_id || "");
   const rating = userInfo?.rating || 0;
 
   const queryClient = useQueryClient();
-  const {mutate: updateUserData, isPending} = useUpdateUserData();
-  const {mutate: uploadAvatar, isPending: isUploading} = useUploadAvatar();
+  const { mutate: updateUserData, isPending } = useUpdateUserData();
+  const { mutate: uploadAvatar, isPending: isUploading } = useUploadAvatar();
 
   useEffect(() => {
     if (userInfo) {
@@ -83,22 +83,24 @@ const Profile = () => {
     };
 
     const updatedData = {
-      ...(hasChanged(email, userInfo?.email) && {email}),
-      ...(hasChanged(mobileNumber, userInfo?.phone) && {phone: mobileNumber}),
+      ...(hasChanged(email, userInfo?.email) && { email }),
+      ...(hasChanged(mobileNumber, userInfo?.phone) && { phone: mobileNumber }),
       profile: {
-        ...(hasChanged(bloodType, userInfo?.profile?.bloodType) && {bloodType}),
+        ...(hasChanged(bloodType, userInfo?.profile?.bloodType) && {
+          bloodType,
+        }),
         ...(hasChanged(
           emergencyContact,
           userInfo?.profile?.emergencyContactPerson
-        ) && {emergencyContactPerson: emergencyContact}),
+        ) && { emergencyContactPerson: emergencyContact }),
         ...(hasChanged(
           relation,
           userInfo?.profile?.emergencyContactRelationship
-        ) && {emergencyContactRelationship: relation}),
+        ) && { emergencyContactRelationship: relation }),
         ...(hasChanged(
           contactNumber,
           userInfo?.profile?.emergencyContactNumber
-        ) && {emergencyContactNumber: contactNumber}),
+        ) && { emergencyContactNumber: contactNumber }),
         ...(hasChanged(skills, userInfo?.profile?.skillsAndCertifications) && {
           skillsAndCertifications: skills,
         }),
@@ -111,16 +113,16 @@ const Profile = () => {
         ...(hasChanged(
           hasMedicalConditions,
           userInfo?.profile?.isMedicalConditionsExists
-        ) && {isMedicalConditionsExists: hasMedicalConditions}),
+        ) && { isMedicalConditionsExists: hasMedicalConditions }),
         ...(hasMedicalConditions &&
           hasChanged(
             medicalConditions,
             userInfo?.profile?.medicalConditions
-          ) && {medicalConditions}),
+          ) && { medicalConditions }),
         ...(hasChanged(
           takingMedications,
           userInfo?.profile?.isMedicationExists
-        ) && {isMedicationExists: takingMedications}),
+        ) && { isMedicationExists: takingMedications }),
         ...(takingMedications &&
           hasChanged(medications, userInfo?.profile?.medications) && {
             medications,
@@ -129,11 +131,11 @@ const Profile = () => {
           isAllergiesExists: hasAllergies,
         }),
         ...(hasAllergies &&
-          hasChanged(allergies, userInfo?.profile?.allergies) && {allergies}),
+          hasChanged(allergies, userInfo?.profile?.allergies) && { allergies }),
         ...(hasChanged(
           hasLimitations,
           !!userInfo?.profile?.physicalLimitations
-        ) && {physicalLimitations: hasLimitations ? limitations : undefined}),
+        ) && { physicalLimitations: hasLimitations ? limitations : undefined }),
       },
     };
 
@@ -149,7 +151,7 @@ const Profile = () => {
       },
       {
         onSuccess: (data) => {
-          queryClient.invalidateQueries({queryKey: ["user", user_id]});
+          queryClient.invalidateQueries({ queryKey: ["user", user_id] });
           Alert.alert("Success", "Profile updated successfully!");
         },
         onError: (error) => {
@@ -161,7 +163,7 @@ const Profile = () => {
 
   // upload img
   const handlePickImage = async () => {
-    const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
       Alert.alert(
         "Permission denied",
@@ -185,10 +187,10 @@ const Profile = () => {
       };
 
       uploadAvatar(
-        {userId: user_id || "", file},
+        { userId: user_id || "", file },
         {
           onSuccess: () => {
-            queryClient.invalidateQueries({queryKey: ["user", user_id]});
+            queryClient.invalidateQueries({ queryKey: ["user", user_id] });
             Alert.alert("Success", "Profile image uploaded!");
           },
           onError: (error: any) => {
@@ -201,7 +203,11 @@ const Profile = () => {
 
   if (isUploading) {
     return (
-      <ActivityIndicator size="large" color="#1B4965" style={{marginTop: 10}} />
+      <ActivityIndicator
+        size="large"
+        color="#215a75"
+        style={{ marginTop: 10 }}
+      />
     );
   }
 
@@ -212,15 +218,17 @@ const Profile = () => {
           <Image
             source={
               userInfo?.profileImage
-                ? {uri: userInfo.profileImage}
+                ? { uri: userInfo.profileImage }
                 : require("@/assets/images/userAvatar.png")
             }
             style={styles.avatar}
+            resizeMode="contain"
           />
           <TouchableOpacity
             style={styles.editIconContainer}
             onPress={handlePickImage}
-            disabled={isUploading}>
+            disabled={isUploading}
+          >
             <Ionicons name="camera" size={20} color="#fff" />
           </TouchableOpacity>
         </View>
@@ -231,7 +239,7 @@ const Profile = () => {
               {userInfo?.firstName} {userInfo?.lastName}
             </Text>
             <TouchableOpacity>
-              <Ionicons name="create-outline" size={20} color="#1B4965" />
+              <Ionicons name="create-outline" size={20} color="#215a75" />
             </TouchableOpacity>
           </View>
           <Text style={styles.location}>
@@ -247,7 +255,8 @@ const Profile = () => {
                 style={[
                   styles.starIcon,
                   star <= rating ? styles.filledStar : styles.emptyStar,
-                ]}>
+                ]}
+              >
                 ★
               </Text>
             ))}
@@ -386,12 +395,14 @@ const Profile = () => {
           <View style={styles.radioGroup}>
             <TouchableOpacity
               style={styles.radioOption}
-              onPress={() => setHasMedicalConditions(false)}>
+              onPress={() => setHasMedicalConditions(false)}
+            >
               <View
                 style={[
                   styles.radioButton,
                   !hasMedicalConditions && styles.radioButtonSelected,
-                ]}>
+                ]}
+              >
                 {!hasMedicalConditions && (
                   <View style={styles.radioButtonInner} />
                 )}
@@ -401,12 +412,14 @@ const Profile = () => {
 
             <TouchableOpacity
               style={styles.radioOption}
-              onPress={() => setHasMedicalConditions(true)}>
+              onPress={() => setHasMedicalConditions(true)}
+            >
               <View
                 style={[
                   styles.radioButton,
                   hasMedicalConditions && styles.radioButtonSelected,
-                ]}>
+                ]}
+              >
                 {hasMedicalConditions && (
                   <View style={styles.radioButtonInner} />
                 )}
@@ -433,12 +446,14 @@ const Profile = () => {
           <View style={styles.radioGroup}>
             <TouchableOpacity
               style={styles.radioOption}
-              onPress={() => setTakingMedications(false)}>
+              onPress={() => setTakingMedications(false)}
+            >
               <View
                 style={[
                   styles.radioButton,
                   !takingMedications && styles.radioButtonSelected,
-                ]}>
+                ]}
+              >
                 {!takingMedications && <View style={styles.radioButtonInner} />}
               </View>
               <Text style={styles.radioLabel}>No</Text>
@@ -446,12 +461,14 @@ const Profile = () => {
 
             <TouchableOpacity
               style={styles.radioOption}
-              onPress={() => setTakingMedications(true)}>
+              onPress={() => setTakingMedications(true)}
+            >
               <View
                 style={[
                   styles.radioButton,
                   takingMedications && styles.radioButtonSelected,
-                ]}>
+                ]}
+              >
                 {takingMedications && <View style={styles.radioButtonInner} />}
               </View>
               <Text style={styles.radioLabel}>
@@ -476,12 +493,14 @@ const Profile = () => {
           <View style={styles.radioGroup}>
             <TouchableOpacity
               style={styles.radioOption}
-              onPress={() => setHasAllergies(false)}>
+              onPress={() => setHasAllergies(false)}
+            >
               <View
                 style={[
                   styles.radioButton,
                   !hasAllergies && styles.radioButtonSelected,
-                ]}>
+                ]}
+              >
                 {!hasAllergies && <View style={styles.radioButtonInner} />}
               </View>
               <Text style={styles.radioLabel}>No</Text>
@@ -489,12 +508,14 @@ const Profile = () => {
 
             <TouchableOpacity
               style={styles.radioOption}
-              onPress={() => setHasAllergies(true)}>
+              onPress={() => setHasAllergies(true)}
+            >
               <View
                 style={[
                   styles.radioButton,
                   hasAllergies && styles.radioButtonSelected,
-                ]}>
+                ]}
+              >
                 {hasAllergies && <View style={styles.radioButtonInner} />}
               </View>
               <Text style={styles.radioLabel}>
@@ -522,12 +543,14 @@ const Profile = () => {
           <View style={styles.radioGroup}>
             <TouchableOpacity
               style={styles.radioOption}
-              onPress={() => setHasLimitations(false)}>
+              onPress={() => setHasLimitations(false)}
+            >
               <View
                 style={[
                   styles.radioButton,
                   !hasLimitations && styles.radioButtonSelected,
-                ]}>
+                ]}
+              >
                 {!hasLimitations && <View style={styles.radioButtonInner} />}
               </View>
               <Text style={styles.radioLabel}>No</Text>
@@ -535,12 +558,14 @@ const Profile = () => {
 
             <TouchableOpacity
               style={styles.radioOption}
-              onPress={() => setHasLimitations(true)}>
+              onPress={() => setHasLimitations(true)}
+            >
               <View
                 style={[
                   styles.radioButton,
                   hasLimitations && styles.radioButtonSelected,
-                ]}>
+                ]}
+              >
                 {hasLimitations && <View style={styles.radioButtonInner} />}
               </View>
               <Text style={styles.radioLabel}>Yes (please describe)</Text>
@@ -562,7 +587,7 @@ const Profile = () => {
       <View style={styles.declarationContainer}>
         <View style={styles.checkboxRow}>
           <View style={styles.checkbox}>
-            <Ionicons name="checkmark-circle" size={24} color="#1B4965" />
+            <Ionicons name="checkmark-circle" size={24} color="#215a75" />
           </View>
           <Text style={styles.declarationText}>
             I hereby declare that all the information provided above is true,
@@ -577,7 +602,8 @@ const Profile = () => {
         <TouchableOpacity
           style={styles.saveButton}
           onPress={handleSave}
-          disabled={isPending}>
+          disabled={isPending}
+        >
           <Text style={styles.saveButtonText}>
             {isPending ? "Saving..." : "Agree and Save"}
           </Text>
@@ -606,17 +632,17 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 200,
+    height: 200,
+    borderRadius: 8,
     borderWidth: 2,
-    borderColor: "#1B4965",
+    borderColor: "#215a75",
   },
   editIconContainer: {
     position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: "#1B4965",
+    backgroundColor: "#215a75",
     borderRadius: 15,
     width: 30,
     height: 30,
@@ -635,7 +661,7 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#1B4965",
+    color: "#215a75",
     marginRight: 5,
   },
   location: {
@@ -663,7 +689,7 @@ const styles = StyleSheet.create({
   ratingLabel: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#1B4965",
+    color: "#215a75",
   },
   reportsCount: {
     fontSize: 14,
@@ -736,19 +762,19 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: "#1B4965",
+    borderColor: "#215a75",
     marginRight: 10,
     justifyContent: "center",
     alignItems: "center",
   },
   radioButtonSelected: {
-    borderColor: "#1B4965",
+    borderColor: "#215a75",
   },
   radioButtonInner: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: "#1B4965",
+    backgroundColor: "#215a75",
   },
   radioLabel: {
     fontSize: 14,
@@ -780,7 +806,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   saveButton: {
-    backgroundColor: "#1B4965",
+    backgroundColor: "#215a75",
     padding: 15,
     borderRadius: 5,
     alignItems: "center",

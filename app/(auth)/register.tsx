@@ -13,11 +13,11 @@ import {
   Modal,
 } from "react-native";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import React, {useState} from "react";
+import React, { useState } from "react";
 import Spinner from "react-native-loading-spinner-overlay";
-import {useRouter} from "expo-router";
-import {ScrollView} from "react-native-gesture-handler";
-import {useAuthStore} from "@/context/useAuthStore";
+import { useRouter } from "expo-router";
+import { ScrollView } from "react-native-gesture-handler";
+import { useAuthStore } from "@/context/useAuthStore";
 
 const WIDTH = Dimensions.get("window").width;
 const HEIGHT = Dimensions.get("window").height;
@@ -39,7 +39,7 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [isAgree, setIsAgree] = useState(false);
   const [showGenderModal, setShowGenderModal] = useState(false);
-  const {register} = useAuthStore();
+  const { register } = useAuthStore();
   const router = useRouter();
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -105,13 +105,14 @@ const Register = () => {
   };
 
   const handleChange = (name: string, value: string) => {
-    setFormData((prev) => ({...prev, [name]: value}));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={styles.container}>
+      style={styles.container}
+    >
       <StatusBar
         hidden={false}
         barStyle="default"
@@ -122,7 +123,8 @@ const Register = () => {
 
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+      >
         <Text style={styles.headerText}>Register an Account</Text>
         <Text style={styles.requiredText}>All fields are required</Text>
 
@@ -154,22 +156,24 @@ const Register = () => {
 
         <TouchableOpacity
           style={styles.textField}
-          onPress={() => setShowGenderModal(true)}>
+          onPress={() => setShowGenderModal(true)}
+        >
           <Text
-            style={
-              formData.gender ? styles.selectText : styles.placeholderText
-            }>
+            style={formData.gender ? styles.selectText : styles.placeholderText}
+          >
             {formData.gender || "Gender"}
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.textField}
-          onPress={() => setShowDatePicker(true)}>
+          onPress={() => setShowDatePicker(true)}
+        >
           <Text
             style={
               formData.dateOfBirth ? styles.selectText : styles.placeholderText
-            }>
+            }
+          >
             {formData.dateOfBirth || "Date of Birth"}
           </Text>
         </TouchableOpacity>
@@ -190,7 +194,8 @@ const Register = () => {
           visible={showGenderModal}
           transparent={true}
           animationType="slide"
-          onRequestClose={() => setShowGenderModal(false)}>
+          onRequestClose={() => setShowGenderModal(false)}
+        >
           <View style={styles.modalOverlay}>
             <View style={styles.modalContent}>
               <Text style={styles.modalTitle}>Select Gender</Text>
@@ -204,20 +209,23 @@ const Register = () => {
                   onPress={() => {
                     handleChange("gender", option);
                     setShowGenderModal(false);
-                  }}>
+                  }}
+                >
                   <Text
                     style={
                       formData.gender === option
                         ? styles.selectedOptionText
                         : styles.optionText
-                    }>
+                    }
+                  >
                     {option.charAt(0).toUpperCase() + option.slice(1)}
                   </Text>
                 </TouchableOpacity>
               ))}
               <TouchableOpacity
                 style={styles.closeButton}
-                onPress={() => setShowGenderModal(false)}>
+                onPress={() => setShowGenderModal(false)}
+              >
                 <Text style={styles.closeButtonText}>Close</Text>
               </TouchableOpacity>
             </View>
@@ -315,7 +323,7 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#1B4965",
+    color: "#215a75",
     textAlign: "center",
     marginBottom: 5,
   },
@@ -350,7 +358,7 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderWidth: 1,
-    borderColor: "#1B4965",
+    borderColor: "#215a75",
     borderRadius: 3,
     marginRight: 8,
     justifyContent: "center",
@@ -359,7 +367,7 @@ const styles = StyleSheet.create({
   checkboxInner: {
     width: 12,
     height: 12,
-    backgroundColor: "#1B4965",
+    backgroundColor: "#215a75",
     borderRadius: 2,
   },
   termsText: {
@@ -368,7 +376,7 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   buttonLogin: {
-    backgroundColor: "#1B4965",
+    backgroundColor: "#215a75",
     paddingVertical: 10,
     borderRadius: 4,
     alignItems: "center",
@@ -403,7 +411,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginBottom: 15,
-    color: "#1B4965",
+    color: "#215a75",
   },
   optionItem: {
     width: "100%",
@@ -420,14 +428,14 @@ const styles = StyleSheet.create({
   },
   selectedOptionText: {
     fontSize: 16,
-    color: "#1B4965",
+    color: "#215a75",
     fontWeight: "500",
   },
   closeButton: {
     marginTop: 15,
     paddingVertical: 10,
     paddingHorizontal: 20,
-    backgroundColor: "#1B4965",
+    backgroundColor: "#215a75",
     borderRadius: 5,
   },
   closeButtonText: {

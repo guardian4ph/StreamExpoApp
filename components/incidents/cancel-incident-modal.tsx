@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
   Pressable,
 } from "react-native";
-import React, {useState} from "react";
-import {useIncidentStore} from "@/context/useIncidentStore";
+import React, { useState } from "react";
+import { useIncidentStore } from "@/context/useIncidentStore";
 
 interface CancelIncidentModalProps {
   visible: boolean;
@@ -22,7 +22,7 @@ export default function CancelIncidentModal({
   onSubmit,
 }: CancelIncidentModalProps) {
   const [reason, setReason] = useState("");
-  const {clearActiveIncident} = useIncidentStore();
+  const { clearActiveIncident } = useIncidentStore();
 
   const handleSubmit = () => {
     clearActiveIncident!();
@@ -50,7 +50,8 @@ export default function CancelIncidentModal({
             <TouchableOpacity
               style={styles.sendButton}
               onPress={handleSubmit}
-              disabled={!reason.trim()}>
+              disabled={!reason.trim()}
+            >
               <Text style={styles.sendButtonText}>Send</Text>
             </TouchableOpacity>
           </View>
@@ -99,7 +100,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   sendButton: {
-    backgroundColor: "#1B4965",
+    backgroundColor: "#215a75",
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 5,

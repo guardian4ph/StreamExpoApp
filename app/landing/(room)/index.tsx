@@ -6,14 +6,14 @@ import {
   View,
   ActivityIndicator,
 } from "react-native";
-import React, {useEffect, useState, useCallback} from "react";
-import {EmergencyContacts} from "@/assets/data/emergencyContacts";
-import {TouchableOpacity} from "react-native";
-import {useRouter} from "expo-router";
-import {useIncidentStore} from "@/context/useIncidentStore";
+import React, { useEffect, useState, useCallback } from "react";
+import { EmergencyContacts } from "@/assets/data/emergencyContacts";
+import { TouchableOpacity } from "react-native";
+import { useRouter } from "expo-router";
+import { useIncidentStore } from "@/context/useIncidentStore";
 import useLocation from "@/hooks/useLocation";
-import {useAuthStore} from "@/context/useAuthStore";
-import {useCreateIncident} from "@/api/incidents/useCreateIncident";
+import { useAuthStore } from "@/context/useAuthStore";
+import { useCreateIncident } from "@/api/incidents/useCreateIncident";
 
 interface LocationData {
   latitude: number;
@@ -28,16 +28,16 @@ interface LocationData {
 
 export default function SelectEmergency() {
   const router = useRouter();
-  const {setCurrentIncident, incidentState} = useIncidentStore();
-  const {getUserLocation} = useLocation();
+  const { setCurrentIncident, incidentState } = useIncidentStore();
+  const { getUserLocation } = useLocation();
   const [isLoading, setIsLoading] = useState(false);
   const [loadingEmergencyType, setLoadingEmergencyType] = useState<
     string | null
   >(null);
   const [locationData, setLocationData] = useState<LocationData | null>(null);
   const [locationFetched, setLocationFetched] = useState(false);
-  const {user_id} = useAuthStore();
-  const {mutateAsync: createIncident, isPending} = useCreateIncident();
+  const { user_id } = useAuthStore();
+  const { mutateAsync: createIncident, isPending } = useCreateIncident();
 
   // should fetch location when user lands on dius page
   useEffect(() => {
@@ -64,7 +64,7 @@ export default function SelectEmergency() {
     prefetchLocation();
   }, []);
 
-  const handleCreateIncident = async (contact: {name: string}) => {
+  const handleCreateIncident = async (contact: { name: string }) => {
     try {
       setIsLoading(true);
       setLoadingEmergencyType(contact.name);
@@ -127,7 +127,8 @@ export default function SelectEmergency() {
           key={contact.id}
           style={[styles.gridItem, isContactLoading && styles.loadingGridItem]}
           onPress={() => handleCreateIncident(contact)}
-          disabled={isLoading}>
+          disabled={isLoading}
+        >
           {isContactLoading ? (
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color="#ffffff" />
@@ -172,34 +173,34 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   grid: {
-    width: "100%",
+    width: "80%",
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "center",
+    alignItems: "center",
     gap: 1,
   },
   gridItem: {
-    width: "45%",
+    width: "49%",
     aspectRatio: 1,
-    backgroundColor: "#1B4965",
-    borderRadius: 5,
+    backgroundColor: "#215a75",
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
-    marginBottom: 1,
+    // marginBottom: 1,
+    // padding: 20,
+    borderRadius: 5,
   },
   loadingGridItem: {
     opacity: 0.8,
   },
   icon: {
-    width: "80%",
+    width: 100,
     height: "60%",
-    marginBottom: 10,
   },
   label: {
     color: "white",
-    fontSize: 16,
-    fontWeight: "500",
+    fontSize: 14,
+    fontWeight: "200",
   },
   loadingContainer: {
     alignItems: "center",

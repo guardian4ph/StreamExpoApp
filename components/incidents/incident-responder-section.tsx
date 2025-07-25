@@ -1,10 +1,10 @@
-import React, {useCallback} from "react";
-import {View, Text, Image, TouchableOpacity, StyleSheet} from "react-native";
-import {useRouter, usePathname} from "expo-router";
-import {Ionicons} from "@expo/vector-icons";
-import {Incident} from "@/types/incidents";
-import {useGetResponder} from "@/api/responder/useGetResponder";
-import {useGetOpcen} from "@/api/opCen/useGetOpcen";
+import React, { useCallback } from "react";
+import { View, Text, Image, TouchableOpacity, StyleSheet } from "react-native";
+import { useRouter, usePathname } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { Incident } from "@/types/incidents";
+import { useGetResponder } from "@/api/responder/useGetResponder";
+import { useGetOpcen } from "@/api/opCen/useGetOpcen";
 import formatResponderStatus from "@/utils/FormatResponderStatus";
 import GetIcon from "@/utils/GetIcon";
 
@@ -18,10 +18,10 @@ const IncidentResponderSection: React.FC<IncidentResponderSectionProps> = ({
   const router = useRouter();
   const pathname = usePathname();
   const isMapView = pathname === "/landing/map-view";
-  const {data: responder, isLoading: isResponderLoading} = useGetResponder(
+  const { data: responder, isLoading: isResponderLoading } = useGetResponder(
     incidentState?.responder as string
   );
-  const {data: opCen, isLoading: isOpCenLoading} = useGetOpcen(
+  const { data: opCen, isLoading: isOpCenLoading } = useGetOpcen(
     responder?.operationCenter as string
   );
 
@@ -70,8 +70,9 @@ const IncidentResponderSection: React.FC<IncidentResponderSectionProps> = ({
         {!isMapView && (
           <TouchableOpacity
             style={styles.mapButtonContainer}
-            onPress={() => router.push("/landing/(room)/map-view")}>
-            <Ionicons name="map" size={24} color="#1B4965" />
+            onPress={() => router.push("/landing/(room)/map-view")}
+          >
+            <Ionicons name="map" size={24} color="#215a75" />
             <Text style={styles.mapButtonText}>View Map</Text>
           </TouchableOpacity>
         )}
@@ -123,7 +124,7 @@ const styles = StyleSheet.create({
 
   subHeading: {
     padding: 10,
-    backgroundColor: "#1B4965",
+    backgroundColor: "#215a75",
   },
   statusRow: {
     flexDirection: "row",
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
   },
   etaStatus: {
     flex: 1,
-    backgroundColor: "#1B4965",
+    backgroundColor: "#215a75",
     padding: 15,
     justifyContent: "center",
     alignItems: "center",
@@ -159,7 +160,7 @@ const styles = StyleSheet.create({
   },
   etaDetails: {
     flex: 1,
-    backgroundColor: "#1B4965",
+    backgroundColor: "#215a75",
     padding: 5,
     borderLeftWidth: 1,
     borderLeftColor: "white",
@@ -191,7 +192,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   mapButtonText: {
-    color: "#1B4965",
+    color: "#215a75",
     fontSize: 16,
     fontWeight: "500",
   },
