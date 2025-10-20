@@ -1,7 +1,7 @@
 import * as SecureStore from "expo-secure-store";
-import {create} from "zustand";
-import {useAuthStore} from "@/context/useAuthStore";
-import {Incident} from "@/types/incidents";
+import { create } from "zustand";
+import { useAuthStore } from "@/context/useAuthStore";
+import { Incident } from "@/types/incidents";
 
 const INCIDENT_KEY = "current-incident";
 
@@ -22,16 +22,16 @@ export const useIncidentStore = create<IncidentStore>((set, get) => ({
 
   loadIncident: async () => {
     try {
-      const {user_id} = useAuthStore.getState();
+      const { user_id } = useAuthStore.getState();
       if (!user_id) {
-        set({incidentState: null});
+        set({ incidentState: null });
         return;
       }
 
       const data = await SecureStore.getItemAsync(`${INCIDENT_KEY}-${user_id}`);
       if (data) {
         const parsedData = JSON.parse(data);
-        set({incidentState: parsedData});
+        set({ incidentState: parsedData });
       }
     } catch (error) {
       console.error("Error loading incident:", error);
@@ -40,7 +40,7 @@ export const useIncidentStore = create<IncidentStore>((set, get) => ({
 
   setCurrentIncident: async (data: Incident) => {
     try {
-      const {user_id} = useAuthStore.getState();
+      const { user_id } = useAuthStore.getState();
       if (!user_id) {
         throw new Error("No user ID found, cannot set current incident.");
       }
@@ -49,11 +49,51 @@ export const useIncidentStore = create<IncidentStore>((set, get) => ({
         `${INCIDENT_KEY}-${user_id}`,
         JSON.stringify(data)
       );
-      set({incidentState: data});
+      set({ incidentState: data });
     } catch (error) {
       console.error("Error setting current incident:", error);
     }
   },
+
+  // updateIncidentLocation: async (locationData: {
+  //   latitude: number;
+  //   longitude: number;
+  //   address: string;
+  // }) => {
+  //   try {
+  //     const { user_id } = useAuthStore.getState();
+  //     if (!user_id) {
+  //       console.warn("Cannot update incident location: No user ID found.");
+  //       return;
+  //     }
+
+  //     const currentIncident = get().incidentState;
+  //     if (!currentIncident) {
+  //       console.warn("No current incident to update.");
+  //       return;
+  //     }
+
+  //     const updatedIncident = {
+  //       ...currentIncident,
+  //       incidentDetails: {
+  //         ...currentIncident.incidentDetails,
+  //         coordinates: {
+  //           lat: locationData.latitude,
+  //           lon: locationData.longitude,
+  //         },
+  //         location: locationData.address,
+  //       },
+  //     };
+
+  //     await SecureStore.setItemAsync(
+  //       `${INCIDENT_KEY}-${user_id}`,
+  //       JSON.stringify(updatedIncident)
+  //     );
+  //     set({ incidentState: updatedIncident });
+  //   } catch (error) {
+  //     console.error("Error updating incident location:", error);
+  //   }
+  // },
 
   updateIncidentLocation: async (locationData: {
     latitude: number;
@@ -61,7 +101,7 @@ export const useIncidentStore = create<IncidentStore>((set, get) => ({
     address: string;
   }) => {
     try {
-      const {user_id} = useAuthStore.getState();
+      const { user_id } = useAuthStore.getState();
       if (!user_id) {
         console.warn("Cannot update incident location: No user ID found.");
         return;
@@ -77,9 +117,10 @@ export const useIncidentStore = create<IncidentStore>((set, get) => ({
         ...currentIncident,
         incidentDetails: {
           ...currentIncident.incidentDetails,
+          // **This is the corrected part**
           coordinates: {
-            lat: locationData.latitude,
-            lon: locationData.longitude,
+            type: "Point",
+            coordinates: [locationData.longitude, locationData.latitude], // GeoJSON format is [longitude, latitude]
           },
           location: locationData.address,
         },
@@ -89,7 +130,7 @@ export const useIncidentStore = create<IncidentStore>((set, get) => ({
         `${INCIDENT_KEY}-${user_id}`,
         JSON.stringify(updatedIncident)
       );
-      set({incidentState: updatedIncident});
+      set({ incidentState: updatedIncident });
     } catch (error) {
       console.error("Error updating incident location:", error);
     }
@@ -97,11 +138,11 @@ export const useIncidentStore = create<IncidentStore>((set, get) => ({
 
   clearActiveIncident: async () => {
     try {
-      const {user_id} = useAuthStore.getState();
+      const { user_id } = useAuthStore.getState();
       if (user_id) {
         await SecureStore.deleteItemAsync(`${INCIDENT_KEY}-${user_id}`);
       }
-      set({incidentState: null});
+      set({ incidentState: null });
     } catch (error) {
       console.error("Error clearing incident:", error);
     }

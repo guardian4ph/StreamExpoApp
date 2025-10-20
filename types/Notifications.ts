@@ -16,7 +16,7 @@ export type NotificationAlerts = {
   _id: string;
   title: string;
   message: string;
-  type: string;
+  mainType: string;
   images: string[];
   demographics: Demographics;
   schedule: Schedule;

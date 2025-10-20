@@ -5,70 +5,59 @@ import {
   Image,
   StyleSheet,
   SafeAreaView,
-  RefreshControl,
 } from "react-native";
-import React, { useCallback } from "react";
-import { useFocusEffect } from "@react-navigation/native";
-import { useGetMessages } from "@/api/messages/useFetchMessages";
+import React, { useMemo } from "react";
+import {
+  useGetMessages,
+  useGetDirectMessages,
+} from "@/api/messages/useFetchMessages";
 import { useAuthStore } from "@/context/useAuthStore";
 import { Message } from "@/types/Message";
 import formatDate from "@/utils/FormatDate";
-import moment from "moment";
 
 const Messages = () => {
   const { user_id } = useAuthStore();
-
-  const timeDifference = (item) => {
-    var current = new Date();
-    var formatDate = new Date(item);
-
-    var minutes = 60 * 1000;
-    var hours = minutes * 60;
-    var days = hours * 24;
-    var months = days * 30;
-    var years = days * 365;
-
-    var elapsed = current - formatDate;
-
-    if (elapsed < minutes) {
-      return Math.round(elapsed / 1000) + " seconds ago";
-    } else if (elapsed < hours) {
-      return Math.round(elapsed / minutes) + " minutes ago";
-    } else if (elapsed < days) {
-      return Math.round(elapsed / hours) + " hours ago";
-    } else if (elapsed < months) {
-      return Math.round(elapsed / days) + " days ago";
-    } else if (elapsed < years) {
-      return Math.round(elapsed / months) + " months ago";
-    } else {
-      return Math.round(elapsed / years) + " years ago";
-    }
-  };
-
   const {
-    data: messages,
-    // isLoading,
-    // error,
-    refetch,
-    isRefetching,
+    data: filteredMessages,
+    isLoading: isLoadingFiltered,
+    error: filteredError,
   } = useGetMessages(user_id || "");
+  const {
+    data: directMessages,
+    isLoading: isLoadingDirect,
+    error: directError,
+  } = useGetDirectMessages(user_id || "");
 
-  useFocusEffect(
-    useCallback(() => {
-      refetch();
-    }, [refetch])
-  );
+  // Combine and sort all messages by creation date
+  const allMessages = useMemo(() => {
+    const filtered = filteredMessages || [];
+    const direct = directMessages || [];
+
+    const combined = [...filtered, ...direct];
+
+    // Sort by creation date (newest first)
+    return combined.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }, [filteredMessages, directMessages]);
+
+  const isLoading = isLoadingFiltered || isLoadingDirect;
+  const error = filteredError || directError;
 
   const renderItem = ({ item: item }: { item: Message }) => (
     <View style={styles.messageContainer}>
       <View style={styles.messageHeader}>
-        <Image
-          source={{ uri: item.image }}
-          style={styles.thumbnail}
-          defaultSource={require("@/assets/images/Button.png")}
-        />
+        <Image source={{ uri: item.image }} style={styles.thumbnail} />
         <View style={styles.headerTextContainer}>
-          <Text style={styles.title}>{item.title}</Text>
+          <View style={styles.titleContainer}>
+            <Text style={styles.title}>{item.title}</Text>
+            {item.recipients && item.recipients.length > 0 && (
+              <View style={styles.directBadge}>
+                <Text style={styles.directText}>Direct</Text>
+              </View>
+            )}
+          </View>
           <View style={styles.categoryContainer}>
             <Text
               style={[
@@ -79,12 +68,7 @@ const Messages = () => {
             >
               {item.type}
             </Text>
-            {/* <Text style={styles.timestamp}>{formatDate(item.createdAt)}</Text> */}
-            <Text style={styles.timestamp}>
-              {/* {moment(item.createdAt).format("MM /D/YY").toLocaleString()}{" "}
-              {" | "} */}
-              {timeDifference(item.createdAt)}
-            </Text>
+            <Text style={styles.timestamp}>{formatDate(item.createdAt)}</Text>
           </View>
           <Text
             numberOfLines={2}
@@ -98,20 +82,37 @@ const Messages = () => {
     </View>
   );
 
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading messages...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>Error loading messages</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
-        data={messages}
+        data={allMessages}
         renderItem={renderItem}
         keyExtractor={(item) => item._id}
         showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefetching}
-            onRefresh={refetch}
-            colors={["#215a75"]}
-            tintColor="#215a75"
-          />
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>No messages available</Text>
+          </View>
         }
       />
     </SafeAreaView>
@@ -130,27 +131,37 @@ const styles = StyleSheet.create({
   },
   messageHeader: {
     flexDirection: "row",
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
   },
   thumbnail: {
     width: 50,
     height: 50,
     marginRight: 10,
-    borderRadius: 100,
-    borderWidth: 3, // Border thickness
-    borderColor: "#ddd",
-    backgroundColor: "#fff",
   },
   headerTextContainer: {
     flex: 1,
   },
+  titleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
   title: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#215a75",
-    textTransform: "uppercase",
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#1B4965",
+    flex: 1,
+  },
+  directBadge: {
+    backgroundColor: "#e63946",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+    marginLeft: 8,
+  },
+  directText: {
+    color: "#fff",
+    fontSize: 10,
+    fontWeight: "bold",
   },
   categoryContainer: {
     flexDirection: "row",
@@ -158,15 +169,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   category: {
-    fontSize: 10,
-    fontWeight: 200,
-    color: "#333",
+    fontSize: 12,
+    color: "#1B4965",
   },
   warning: {
     color: "red",
   },
   timestamp: {
-    fontSize: 8,
+    fontSize: 12,
     color: "#666",
   },
   description: {
@@ -174,12 +184,40 @@ const styles = StyleSheet.create({
     color: "#333",
     marginTop: 5,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    fontSize: 16,
+    color: "#666",
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorText: {
+    fontSize: 16,
+    color: "#e63946",
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 50,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "#666",
+  },
   bottomBar: {
     flexDirection: "row",
     justifyContent: "space-around",
     alignItems: "center",
     height: 60,
-    backgroundColor: "#215a75",
+    backgroundColor: "#1B4965",
     borderTopWidth: 1,
     borderTopColor: "#ddd",
   },

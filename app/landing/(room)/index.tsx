@@ -78,8 +78,9 @@ export default function SelectEmergency() {
         userId: user_id!,
         incidentDetails: {
           coordinates: {
-            lat: locData?.latitude || null,
-            lon: locData?.longitude || null,
+            // THIS IS THE CORRECTED PART
+            type: "Point",
+            coordinates: [locData?.longitude || 0, locData?.latitude || 0], // GeoJSON is [longitude, latitude]
           },
         },
       });
@@ -90,8 +91,9 @@ export default function SelectEmergency() {
         channelId: "fad-call",
         incidentDetails: {
           coordinates: {
-            lat: locData?.latitude || null,
-            lon: locData?.longitude || null,
+            // YOU ALSO NEED TO UPDATE THIS PART TO MATCH THE NEW SCHEMA
+            type: "Point",
+            coordinates: [locData?.longitude || 0, locData?.latitude || 0],
           },
           location: formattedAddress,
         },

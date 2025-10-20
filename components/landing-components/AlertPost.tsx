@@ -9,17 +9,20 @@ import {
   Dimensions,
   RefreshControl,
 } from "react-native";
-import React, { useCallback } from "react";
+import React, { useCallback, useState, useRef } from "react";
+import { Feather, AntDesign, FontAwesome5 } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import { NotificationAlerts } from "@/types/Notifications";
 import { useGetNotifications } from "@/api/notifications/useGetNotifications";
 import { useAuthStore } from "@/context/useAuthStore";
 import PagerView from "react-native-pager-view";
 import moment from "moment";
+import { ScrollView } from "react-native";
 
 const { width } = Dimensions.get("window");
+const MAX_LENGTH = 100;
 
-const timeDifference = (item) => {
+const timeDifference = (item: string) => {
   var current = new Date();
   var formatDate = new Date(item);
 
@@ -29,7 +32,7 @@ const timeDifference = (item) => {
   var months = days * 30;
   var years = days * 365;
 
-  var elapsed = current - formatDate;
+  const elapsed = +current - +formatDate;
 
   if (elapsed < minutes) {
     return Math.round(elapsed / 1000) + " seconds ago";
@@ -47,6 +50,17 @@ const timeDifference = (item) => {
 };
 
 export default function AlertPost() {
+  const [shortComment, toggleShortComment] = useState(true);
+  const [fullComment, toggleFullComment] = useState(false);
+  const flatListRef = useRef<FlatList>(null);
+
+  const onButtonClick = useCallback(
+    (e: any) => {
+      toggleShortComment(!shortComment);
+      toggleFullComment(!fullComment);
+    },
+    [fullComment, shortComment]
+  );
   const { user_id } = useAuthStore();
   const {
     data: notifications,
@@ -67,11 +81,14 @@ export default function AlertPost() {
 
     return (
       <View style={styles.imageContainer}>
-        <PagerView
+        {/* <PagerView
           style={styles.pagerView}
           initialPage={0}
           orientation="horizontal"
-        >
+          layoutDirection="ltr"
+          overdrag={true}
+        > */}
+        <View style={styles.pagerView}>
           {images.map((image, index) => (
             <View key={index} style={styles.page}>
               <Image
@@ -82,7 +99,10 @@ export default function AlertPost() {
               />
             </View>
           ))}
-        </PagerView>
+        </View>
+
+        {/* </PagerView> */}
+
         {images.length > 1 && (
           <View style={styles.paginationContainer}>
             {images.map((_, index) => (
@@ -100,44 +120,99 @@ export default function AlertPost() {
     );
   };
 
-  const renderItem = ({ item }: { item: NotificationAlerts }) => (
-    //  { console.log ("Item", item)},
-    <View style={styles.alertContainer}>
-      <View style={styles.alertHeader}>
-        <Image
-          source={require("@/assets/images/Cebu.png")}
-          style={styles.notifBadge}
-          defaultSource={require("@/assets/images/emergencyMedical.png")}
-        />
-        <View>
-          <Text style={styles.opCenter}>{item.type}</Text>
-          <Text style={styles.date}>
-            {moment(item.createdAt)
-              .format("MMMM D, YYYY, h:mm:ss")
-              .toLocaleString()}
-            {" | "}
-            {timeDifference(item.createdAt)}
-          </Text>
+  const renderItem = ({
+    item,
+    index,
+  }: {
+    item: NotificationAlerts;
+    index: number;
+  }) => {
+    const scrollToCenter = () => {
+      flatListRef.current?.scrollToIndex({
+        index,
+        viewPosition: 0.5, // 0 = top, 0.5 = middle, 1 = bottom
+        animated: true,
+      });
+    };
+
+    const handleToggleComment = () => {
+      toggleShortComment(!shortComment);
+      toggleFullComment(!fullComment);
+      setTimeout(scrollToCenter, 300); // delay to allow render to update
+    };
+    console.log("Itemeeem", item);
+
+    return (
+      <View style={styles.alertContainer}>
+        <View style={styles.alertHeader}>
+          <Image
+            source={require("@/assets/images/Cebu.png")}
+            style={styles.notifBadge}
+            defaultSource={require("@/assets/images/emergencyMedical.png")}
+          />
+          <View>
+            <Text style={styles.opCenter}>{item.mainType}</Text>
+            <Text style={styles.date}>
+              {moment(item.createdAt)
+                .format("MMMM D, YYYY, h:mm:ss")
+                .toLocaleString()}
+              {" | "}
+              {timeDifference(item.createdAt)}
+            </Text>
+          </View>
+        </View>
+        <Text style={styles.alertTitle}>{item.title}</Text>
+        <View style={styles.messageContainer}>
+          {item?.message.length > MAX_LENGTH ? (
+            <View>
+              {shortComment && (
+                <Text style={styles.alertMessage}>
+                  {`${item?.message.substring(0, MAX_LENGTH)}...`}
+                  <Text
+                    onPress={handleToggleComment}
+                    style={styles.seeMoreText}
+                  >
+                    {" "}
+                    see more
+                  </Text>
+                </Text>
+              )}
+              {fullComment && (
+                <View>
+                  <Text style={styles.alertMessage}>{item?.message}</Text>
+                  <Text
+                    onPress={handleToggleComment}
+                    style={styles.seeMoreText}
+                  >
+                    {" "}
+                    see less
+                  </Text>
+                </View>
+              )}
+            </View>
+          ) : (
+            <Text style={styles.alertMessage}>{item?.message}</Text>
+          )}
+        </View>
+        {renderImages(item.images)}
+
+        <View style={styles.footerActions}>
+          <View style={styles.actionButton}>
+            <Text style={styles.color}>Like</Text>
+            <AntDesign name="like2" size={20} color={"#215a75"} />
+          </View>
+          <View style={styles.actionButton}>
+            <Text style={styles.color}>Comment</Text>
+            <FontAwesome5 name="comment-alt" size={20} color="#215a75" />
+          </View>
+          <View style={styles.actionButton}>
+            <Text style={styles.color}>Share</Text>
+            <Feather name="share" size={20} color="#215a75" />
+          </View>
         </View>
       </View>
-      <View style={{ marginTop: 10 }}>
-        <Text style={styles.alertTitle}>{item.title}</Text>
-        <Text style={styles.alertMessage}>{item.message}</Text>
-        {renderImages(item.images)}
-      </View>
-      <View style={styles.alertReact}>
-        <TouchableOpacity>
-          <Text style={styles.alertMessage}>Like</Text>
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Text style={styles.alertMessage}>Comment</Text>
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <Text style={styles.alertMessage}>Share</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
+    );
+  };
 
   if (isLoading) {
     return (
@@ -157,7 +232,7 @@ export default function AlertPost() {
 
   return (
     <View style={{ flex: 1 }}>
-      <FlatList
+      {/* <FlatList
         data={notifications}
         renderItem={renderItem}
         keyExtractor={(item) => item._id}
@@ -166,6 +241,7 @@ export default function AlertPost() {
         windowSize={3}
         scrollEnabled={true}
         nestedScrollEnabled={true}
+        keyboardShouldPersistTaps="handled"
         // refreshControl={
         //   <RefreshControl
         //     refreshing={isRefetching}
@@ -174,6 +250,13 @@ export default function AlertPost() {
         //     tintColor="#215a75"
         //   />
         // }
+      /> */}
+
+      <FlatList
+        ref={flatListRef}
+        data={notifications}
+        renderItem={renderItem}
+        keyExtractor={(item) => item._id}
       />
     </View>
   );
@@ -213,9 +296,9 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   date: {
-    fontWeight: "500",
+    fontWeight: "200",
     fontSize: 8,
-    color: "#ddd",
+    color: "#333",
   },
   alertTitle: {
     fontWeight: "500",
@@ -256,6 +339,17 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 10,
     width: "100%",
+  },
+
+  messageContainer: {
+    padding: 2,
+
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    // backgroundColor: "red",
   },
   paginationDot: {
     width: 4,
@@ -311,5 +405,35 @@ const styles = StyleSheet.create({
 
     // Android shadow
     elevation: 8,
+  },
+  seeMoreText: {
+    color: "#007AFF", // A common blue for links/actions
+    fontWeight: 400, // Make it stand out
+    marginLeft: 5, // Add a little space before "see more"
+    // Vertical alignment is usually handled well by Text nesting,
+    // but if issues arise, consider adjusting fontSize or lineHeight slightly.
+    backgroundColor: "#red",
+    fontSize: 12,
+  },
+  footerActions: {
+    flexDirection: "row",
+    justifyContent: "space-around", // or "space-between" depending on spacing preference
+    alignItems: "baseline",
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: "#eee",
+    marginTop: 10,
+    backgroundColor: "#fff",
+  },
+  actionButton: {
+    flexDirection: "row",
+    color: "#215a75",
+    justifyContent: "center",
+    alignItems: "baseline",
+    gap: 6, //
+  },
+  color: {
+    color: "#215a75",
+    fontSize: 12,
   },
 });

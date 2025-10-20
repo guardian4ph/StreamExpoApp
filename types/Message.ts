@@ -22,4 +22,5 @@ export type Message = {
   schedule: Schedule;
   createdAt: string;
   updatedAt: string;
+  recipients?: string[];
 };

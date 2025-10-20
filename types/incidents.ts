@@ -1,14 +1,14 @@
-import {User} from "@/types/User";
+import { User } from "@/types/User";
 
 export interface Coordinates {
-  lat: number | null;
-  lon: number | null;
+  type: "Point";
+  coordinates: [number, number]; // GeoJSON format is [longitude, latitude]
 }
 
 export interface IncidentDetails {
   incident?: string;
   incidentDescription?: string;
-  coordinates?: Coordinates;
+  coordinates: Coordinates;
   location?: string;
 }
 
@@ -38,6 +38,9 @@ export interface CreateIncidentProps {
   incidentType: string;
   userId: string;
   incidentDetails: {
-    coordinates: Coordinates;
+    coordinates: {
+      type: "Point";
+      coordinates: [number, number]; // GeoJSON format is [longitude, latitude]
+    };
   };
 }
